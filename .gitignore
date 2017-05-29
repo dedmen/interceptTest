@@ -1,0 +1,12 @@
+.vs/
+Debug/
+Release/
+x64/
+ipch/
+interceptTest\.sdf
+
+interceptTest\.VC\.db
+
+interceptTest/RelWithDebInfo/
+interceptTest/Debug/
+interceptTest/Release/
