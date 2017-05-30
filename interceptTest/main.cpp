@@ -671,7 +671,7 @@ void __cdecl intercept::pre_start() {
 
 
 
-    //tools::init();
+    tools::init();
     lua.preStart();
     _interceptEventFunction = intercept::client::host::functions.register_sqf_function_unary("Intercept_TFAR_preparePositionCoordinates", "", userFunctionWrapper<redirectWrapUnary>, types::__internal::GameDataType::STRING, types::__internal::GameDataType::ARRAY);
     _interceptEventFunction3 = intercept::client::host::functions.register_sqf_function_nular("Intercept_TFAR_preparePositionCoordinates_nular", "", userFunctionWrapper<redirectWrapNular>, types::__internal::GameDataType::STRING);
@@ -694,6 +694,7 @@ void __cdecl intercept::post_init() {
     //_interceptEventFunction4 = intercept::client::host::functions.register_sqf_function_unary(std::string("itfarprocp"), "", userFunctionWrapper<TFAR_fnc_processPlayerPositions>, types::__internal::GameDataType::STRING, types::__internal::GameDataType::ARRAY);
     //sqf::set_variable(sqf::mission_namespace(), "INTERCEPT_TFAR", true);
     sqf::system_chat("hellloooozzz");
+    tools::postInit();
 }
 
 class Variable {

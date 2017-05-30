@@ -5,6 +5,7 @@ using namespace intercept;
 types::registered_sqf_function _execLua;
 types::registered_sqf_function _compileLua;
 types::registered_sqf_function _callLuaString;
+types::registered_sqf_function _callLuaCodeArgs;
 types::registered_sqf_function _callLuaCode;
 
 //LuaEdit debugger
@@ -21,7 +22,8 @@ static sqf_script_type GameDataLuaCode_type;
 class GameDataLuaCode : public game_data {
 
 public:
-    GameDataLuaCode(sol::protected_function f) : code(f) {}
+    explicit GameDataLuaCode(sol::protected_function f) : code(f) {}
+    GameDataLuaCode(sol::protected_function f, r_string codeString) : code(f), code_string(codeString) {}
     GameDataLuaCode() {}
     void lastRefDeleted() const override { delete this; }
     const sqf_script_type& type() const override { return GameDataLuaCode_type; }
@@ -30,14 +32,14 @@ public:
     bool get_as_bool() const override { return true; }
     float get_as_number() const override { return 0.f; }
     r_string get_as_string() const override { return r_string(); }
-    game_data* copy() const override { __debugbreak(); return new GameDataLuaCode(*this); }
-    r_string to_string() const override { __debugbreak(); return r_string(); }
+    game_data* copy() const override { return new GameDataLuaCode(*this); }
+    r_string to_string() const override { return code_string;}
     //virtual bool equals(const game_data*) const override;
     const char* type_as_string() const override { return "luaCode"; }
     bool is_nil() const override { return false; }
 
     sol::protected_function code;
-
+    r_string code_string;
 };
 
 game_data* createGameDataLuaCode(void*) {
@@ -50,7 +52,7 @@ class lua_object {
 public:
     lua_object(object o) : obj(o){}
     object obj;
-    std::string getName() {
+    std::string getName() const {
         return sqf::name(obj);
     }
 };
@@ -98,10 +100,19 @@ game_value executeLua(game_value leftArg, game_value rightArg) {
     }
 }
 
-game_value compileLua(game_value leftArg, game_value rightArg) {
+game_value compileLua(game_value rightArg) {
     auto result = lua.state.load(rightArg);
     if (result.valid()) {
-        return new GameDataLuaCode(result.get<sol::protected_function>());
+        return game_value(new GameDataLuaCode(result.get<sol::protected_function>(), rightArg));
+    }
+    return game_value();
+}
+
+game_value compileLuaFromFile(game_value rightArg) {
+    std::string code(sqf::preprocess_file(rightArg));
+    auto result = lua.state.load_buffer(code.c_str(),code.length(),(std::string("@")+static_cast<std::string>(rightArg)).c_str());
+    if (result.valid()) {
+        return game_value(new GameDataLuaCode(result.get<sol::protected_function>(),rightArg));
     }
     return game_value();
 }   
@@ -117,6 +128,12 @@ game_value callLua_Code(game_value leftArg, game_value rightArg) {
     return ret;
 }
 
+game_value callLua_Code(game_value rightArg) {
+    auto code = static_cast<GameDataLuaCode*>(rightArg.data.getRef());
+    std::string ret = code->code();
+    return ret;
+}
+
 LuaManager::LuaManager() : state{} {
 
 }
@@ -125,14 +142,17 @@ LuaManager::LuaManager() : state{} {
 LuaManager::~LuaManager() {}
 
 
+types::registered_sqf_function _compileLuaFromFile;
 
 void LuaManager::preStart() {
     auto codeType = client::host::functions.register_sqf_type(r_string("LUACODE"), r_string("luaCode"), r_string("Dis is LUA!"), r_string("luaCode"), createGameDataLuaCode);
     GameDataLuaCode_type = codeType.second;
-    _execLua = client::host::functions.register_sqf_function("execLUA", "", userFunctionWrapper<executeLua>, types::__internal::GameDataType::ANY, types::__internal::GameDataType::ANY, types::__internal::GameDataType::STRING);
-    _compileLua = client::host::functions.register_sqf_function("compileLUA", "", userFunctionWrapper<compileLua>, codeType.first, types::__internal::GameDataType::STRING, types::__internal::GameDataType::STRING);
-    _callLuaString = client::host::functions.register_sqf_function("callLUA", "", userFunctionWrapper<callLua_String>, types::__internal::GameDataType::ANY, types::__internal::GameDataType::ANY, types::__internal::GameDataType::STRING);
-    _callLuaCode = client::host::functions.register_sqf_function("callLUA", "", userFunctionWrapper<callLua_Code>, types::__internal::GameDataType::ANY, types::__internal::GameDataType::ANY, codeType.first);
+    _execLua = client::host::functions.register_sqf_function("execLUA", "Loads, compiles and executes given Lua file", userFunctionWrapper<executeLua>, types::__internal::GameDataType::ANY, types::__internal::GameDataType::ANY, types::__internal::GameDataType::STRING);
+    _compileLua = client::host::functions.register_sqf_function_unary("compileLUA", "Compiles Lua string", userFunctionWrapper<compileLua>, codeType.first, types::__internal::GameDataType::STRING);
+    _compileLuaFromFile = client::host::functions.register_sqf_function_unary("compileLUAFromFile", "Preprocesses and compiles LUA from file. Setting source information in case of errors.", userFunctionWrapper<compileLuaFromFile>, codeType.first, types::__internal::GameDataType::STRING);
+    _callLuaString = client::host::functions.register_sqf_function("callLUA", "Call Named lua function in global Namespace", userFunctionWrapper<callLua_String>, types::__internal::GameDataType::ANY, types::__internal::GameDataType::ANY, types::__internal::GameDataType::STRING);
+    _callLuaCodeArgs = client::host::functions.register_sqf_function("call", "Call compiled lua code", userFunctionWrapper<callLua_Code>, types::__internal::GameDataType::ANY, types::__internal::GameDataType::ANY, codeType.first);
+    _callLuaCode = client::host::functions.register_sqf_function_unary("call", "Call compiled lua code", userFunctionWrapper<callLua_Code>, types::__internal::GameDataType::ANY, codeType.first);
     
     state.open_libraries();
     state["systemChat"] = &system_chat;

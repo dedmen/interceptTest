@@ -6,7 +6,7 @@ using namespace intercept;
 
 types::registered_sqf_function _funcExport;
 
-std::vector<std::string> alreadyHave {
+std::vector<std::string> alreadyHave{
     "BIS_fnc_packStaticWeapon",
     "BIS_fnc_unpackStaticWeapon",
     "BIS_fnc_ambientFlyby",
@@ -1274,7 +1274,7 @@ game_value exportFuncs(game_value arg) {
     for (int x1 = 0; x1 < 8; x1++) {
         std::ofstream file("P:\\file" + std::to_string(x1) + ".txt", std::ios_base::app | std::ios_base::binary);
         file << fulltext;
-        for (int x2 = 0; Index < pages.size() && x2 < pages.size()/7; x2++) {
+        for (int x2 = 0; Index < pages.size() && x2 < pages.size() / 7; x2++) {
             file << pages[Index];
             Index++;
         }
@@ -1290,19 +1290,162 @@ game_value initFunctions(game_value arg) {
     return 0.f;
 }
 
+types::registered_sqf_function _bis_fnc_itemType;
+game_value bis_fnc_itemType(game_value arg) {
+    static std::map<std::string, std::pair<std::string, std::string>> magTypes{
+        { "shotboundingmine" ,{ "Mine", "MineBounding" } },
+        { "shotbullet" ,{ "Magazine", "Bullet" } },
+        { "shotcm" ,{ "Magazine", "CounterMeasures" } },
+        { "shotdeploy" ,{ "Magazine", "Artillery" } },
+        { "shotdirectionalbomb" ,{ "Mine", "MineDirectional" } },
+        { "shotgrenade" ,{ "Magazine", "Grenade" } },
+        { "shotilluminating" ,{ "Magazine", "Flare" } },
+        { "shotlaser" ,{ "Magazine", "Laser" } },
+        { "shotmine" ,{ "Mine", "Mine" } },
+        { "shotmissile" ,{ "Magazine", "Missile" } },
+        { "shotrocket" ,{ "Magazine", "Rocket" } },
+        { "shotshell" ,{ "Magazine", "Shell" } },
+        { "shotsmoke" ,{ "Magazine", "SmokeShell" } },
+        { "shotsmokex" ,{ "Magazine", "SmokeShell" } },
+        { "shotspread" ,{ "Magazine", "ShotgunShell" } },
+        { "shotsubmunitions" ,{ "Magazine", "Artillery" } }
+    };
 
+    static std::map<std::string, std::string> cursorType{
+        { "arifle","AssaultRifle" },
+        { "bomb","BombLauncher" },
+        { "cannon","Cannon" },
+        { "gl","GrenadeLauncher" },
+        { "laserdesignator","LaserDesignator" },
+        { "mg","MachineGun" },
+        { "missile","MissileLauncher" },
+        { "mortar","Mortar" },
+        { "rocket","RocketLauncher" },
+        { "sgun","Shotgun" },
+        { "throw","Throw" },
+        { "smg","SubmachineGun" },
+        { "srifle","SniperRifle" }
 
+    };
 
+    std::string _item = arg;
 
+    auto _cfgItem = (sqf::config_entry() >> "cfgweapons" >> _item);
+    if (sqf::is_class(_cfgItem)) {
+        auto _simulation = sqf::get_text(_cfgItem >> "simulation");
+        std::transform(_simulation.begin(), _simulation.end(), _simulation.begin(), ::tolower);
 
+        if (_simulation == "weapon") {
+            auto _type = static_cast<int>(sqf::get_number(_cfgItem >> "type"));
+            //_itemCategory = "Weapon";
 
+            if (sqf::is_text(_cfgItem >> "type")) {
+                auto text = sqf::get_text(_cfgItem >> "type");
+                _type = stoi(text);
+            }
 
+            switch (_type) {
+                case 1:
+                case 4:
+                case 5:
+                case 65536: {
+                    auto _cursor = sqf::get_text(_cfgItem >> "cursor");
+                    std::transform(_cursor.begin(), _cursor.end(), _cursor.begin(), ::tolower);
+                    if (_cursor == "" || _cursor == "emptycursor") {
+                        _cursor = sqf::get_text(_cfgItem >> "cursorAim");
+                        std::transform(_cursor.begin(), _cursor.end(), _cursor.begin(), ::tolower);
+                    }
+                    if (_cursor == "") {
+                        return { "VehicleWeapon","Horn" };
+                    }
+                    std::string category = (_type > 4) ? "VehicleWeapon" : "Weapon";
 
+                    auto found = cursorType.find(_cursor);
+                    if (found != cursorType.end()) {
+                        return { category, found->second };
+                    }
 
+                    switch (_type) {
+                        case 1: return { category,"Rifle" };
+                        case 4: return { category,"Launcher" };
+                        case 65536: return { category,"VehicleWeapon" };
+                        default:return { category,"UnknownWeapon" };
+                    }
+                }
+                case 2: {
+                    return { "Weapon","Handgun" };
+                }
+                case 4096: {
+                    return { "Item","LaserDesignator" };
+                }
+                case 131072: {
+                    auto _infoType = static_cast<int>(sqf::get_number(_cfgItem >> "itemInfo" >> "type"));
+                    switch (_infoType) {
+                        case 101: return { "Item","AccessoryMuzzle" };
+                        case 201: return { "Item","AccessorySights" };
+                        case 301: return { "Item","AccessoryPointer" };
+                        case 302: return { "Item","AccessoryBipod" };
+                        case 401: return { "Item","FirstAidKit" };
+                        case 605: return { "Equipment","Headgear" };
+                        case 619: return { "Item","Medikit" };
+                        case 620: return { "Item","Toolkit" };
+                        case 621: return { "Item","UAVTerminal" };
+                        case 701: return { "Equipment","Vest" };
+                        case 801: return { "Equipment","Uniform" };
+                        default: return { "Item","UnknownEquipment" };
+                    }
+                }
+                default: return { "Weapon","UnknownWeapon" };
+            }
+        }
+
+        if (_simulation == "binocular")return { "Item","Binocular" };
+        if (_simulation == "nvgoggles")return { "Item","NVGoggles" };
+        if (_simulation == "itemcompass")return { "Item","Compass" };
+        if (_simulation == "itemgps")return { "Item","GPS" };
+        if (_simulation == "itemmap")return { "Item","Map" };
+        if (_simulation == "itemminedetector")return { "Item","MineDetector" };
+        if (_simulation == "itemradio")return { "Item","Radio" };
+        if (_simulation == "itemwatch")return { "Item","Watch" };
+        if (_simulation == "cmlauncher")return { "VehicleWeapon","CounterMeasuresLauncher" };
+        return { "Item","Unknown" };
+    }
+
+    if (sqf::is_class(sqf::config_entry() >> "cfgmagazines" >> _item)) {
+        auto _ammo = sqf::get_text(sqf::config_entry() >> "cfgammo" >> sqf::get_text(sqf::config_entry() >> "cfgmagazines" >> _item >> "ammo") >> "simulation");
+        std::transform(_ammo.begin(), _ammo.end(), _ammo.begin(), ::tolower);
+
+        auto found = magTypes.find(_ammo);
+        if (found != magTypes.end()) {
+            return { found->second.first, found->second.second };
+        }
+
+        return { "Magazine","UnknownMagazine" };
+    }
+
+    if (sqf::is_class(sqf::config_entry() >> "cfgvehicles" >> _item)) {
+        if (sqf::get_number(sqf::config_entry() >> "cfgvehicles" >> _item >> "isBackpack") > 0)
+            return { "Equipment", "Backpack" };
+        return { "","" };
+    }
+    if (sqf::is_class(sqf::config_entry() >> "cfgGlasses" >> _item)) {
+        return { "Equipment", "Glasses" };
+    }
+    return { "","" };
+}
 
 
 
 void tools::init() {
     _funcExport = client::host::functions.register_sqf_function_unary("Intercept_bis_fnc_exportFunctionsToWiki", "", userFunctionWrapper<exportFuncs>, types::__internal::GameDataType::NOTHING, types::__internal::GameDataType::ARRAY);
+    _bis_fnc_itemType = client::host::functions.register_sqf_function_unary("Intercept_bis_fnc_itemType", "", userFunctionWrapper<bis_fnc_itemType>, types::__internal::GameDataType::ARRAY, types::__internal::GameDataType::STRING);
 
+}
+
+void tools::postInit() {
+    auto orig = sqf::get_variable(sqf::mission_namespace(), "bis_fnc_itemType");
+    auto c = static_cast<game_data_code*>(orig.data.getRef());
+    c->is_final = false;
+    sqf::set_variable(sqf::mission_namespace(), "bis_fnc_itemType2", orig);
+    sqf::set_variable(sqf::mission_namespace(), "bis_fnc_itemType", sqf::compile("Intercept_bis_fnc_itemType _this;"));
 }
