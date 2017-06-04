@@ -1438,13 +1438,13 @@ game_value bis_fnc_itemType(game_value arg) {
 
 
 void tools::init() {
-    _funcExport = client::host::functions.register_sqf_function_unary("Intercept_bis_fnc_exportFunctionsToWiki", "", userFunctionWrapper<exportFuncs>, types::__internal::GameDataType::NOTHING, types::__internal::GameDataType::ARRAY);
-    _bis_fnc_itemType = client::host::functions.register_sqf_function_unary("Intercept_bis_fnc_itemType", "", userFunctionWrapper<bis_fnc_itemType>, types::__internal::GameDataType::ARRAY, types::__internal::GameDataType::STRING);
+    _funcExport = client::host::registerFunction("Intercept_bis_fnc_exportFunctionsToWiki", "", userFunctionWrapper<exportFuncs>, GameDataType::NOTHING, GameDataType::ARRAY);
+    _bis_fnc_itemType = client::host::registerFunction("Intercept_bis_fnc_itemType", "", userFunctionWrapper<bis_fnc_itemType>, GameDataType::ARRAY, GameDataType::STRING);
 
 }
 
 void tools::postInit() {
-    /*
+ 
     auto orig = sqf::get_variable(sqf::mission_namespace(), "bis_fnc_itemType");
     auto c = static_cast<game_data_code*>(orig.data.getRef());
     if (c->is_final)
@@ -1479,5 +1479,5 @@ void tools::postInit() {
     c2->is_final = true;
     if (c2->is_final)
         OutputDebugString("is again Final\n");
-        */
+     
 }

@@ -9,6 +9,7 @@
 #define INTEL_NO_ITTNOTIFY_API
 #include <ittnotify.h>
 #include "tools.h"
+#include <queue>
 
 using namespace intercept;
 types::registered_sqf_function _interceptEventFunction;
@@ -112,11 +113,11 @@ game_value TFAR_fnc_getConfigProperty(const std::string& classname, const std::s
         return _value;
     }
 
-    //if (sqf::is_array(_cfgProperty)) {
-    //    game_value _value = sqf::get_array(_cfgProperty);
-    //    configCache.insert_or_assign(_cacheName, _value);
-    //    return _value;
-    //}
+    if (sqf::is_array(_cfgProperty)) {
+        game_value _value = sqf::get_array(_cfgProperty);
+        configCache.insert_or_assign(_cacheName, _value);
+        return _value;
+    }
     configCache.insert_or_assign(_cacheName, def);
     return def;
 }
@@ -295,7 +296,7 @@ static game_value TFAR_fnc_preparePositionCoordinates(game_value args) {
             auto swRadiosList = sqf::call(TFAR_fnc_radiosList, _unit);
             auto swRadioCount = swRadiosList.size();
             for (int Index = 0; Index < swRadioCount; Index++) {
-                auto _x = swRadiosList[Index];
+                auto _x = swRadiosList[Index];   //#TODO make sure _x is array
                 if (sqf::call(TFAR_fnc_getSwSpeakers, _x)) {
                     std::vector<std::string> _frequencies;
                     std::string freq = sqf::call(TFAR_fnc_getSwFrequency, _x);
@@ -308,7 +309,7 @@ static game_value TFAR_fnc_preparePositionCoordinates(game_value args) {
                         _frequencies.push_back(freq + code);
                     };
 
-                    auto _radio_id = sqf::net_id((object) _x[0]);
+                    auto _radio_id = sqf::net_id((object) _x[0]); //#CRASH make sure this returned something.
                     float swVolume = sqf::call(TFAR_fnc_getSwVolume, _x);
                     vector3 pos = sqf::get_pos_asl(_unit);
                     std::string radioInfo = _radio_id + "\xA";
@@ -615,13 +616,13 @@ intercept::types::game_value binaryFuncOne(intercept::types::game_value left_arg
 LuaManager lua;
 
 void __cdecl intercept::pre_start() {
-    _binaryFuncOne = intercept::client::host::functions.register_sqf_function(
+    _binaryFuncOne = intercept::client::host::registerFunction(
         "aliveBinary",
         "This is a test binary command",
         userFunctionWrapper<binaryFuncOne>,
-        intercept::types::__internal::GameDataType::STRING,
-        intercept::types::__internal::GameDataType::ARRAY,
-        intercept::types::__internal::GameDataType::ARRAY
+        GameDataType::STRING,
+        GameDataType::ARRAY,
+        GameDataType::ARRAY
     );
     //sqf::set_variable(sqf::mission_namespace(), "INTERCEPT_TFAR", true);
     //if (!globalThready) globalThready = new thready();
@@ -655,30 +656,27 @@ void __cdecl intercept::pre_start() {
     for (size_t i = 0; i < 500; i++) {
         auto length = dist2(rng);
         auto name = random_string(length, [ch_set, &dist, &rng]() {return ch_set[dist(rng)]; });
-        funcs.push_back(intercept::client::host::functions.register_sqf_function_unary(name.c_str(), "", userFunctionWrapper<redirectWrapUnary>, types::__internal::GameDataType::STRING, types::__internal::GameDataType::ARRAY));
+        funcs.push_back(intercept::client::host::registerFunction(name, "", userFunctionWrapper<redirectWrapUnary>, GameDataType::STRING, GameDataType::ARRAY));
     }
     for (size_t i = 0; i < 500; i++) {
         auto length = dist2(rng);
         auto name = random_string(length, [ch_set, &dist, &rng]() {return ch_set[dist(rng)]; });
-        funcs.push_back(intercept::client::host::functions.register_sqf_function_nular(name.c_str(), "", userFunctionWrapper<redirectWrapNular>, types::__internal::GameDataType::STRING));
+        funcs.push_back(intercept::client::host::registerFunction(name, "", userFunctionWrapper<redirectWrapNular>, GameDataType::STRING));
     }
     for (size_t i = 0; i < 500; i++) {
         auto length = dist2(rng);
         auto name = random_string(length, [ch_set, &dist, &rng]() {return ch_set[dist(rng)]; });
-        funcs.push_back(intercept::client::host::functions.register_sqf_function(name.c_str(), "", userFunctionWrapper<redirectWrap>, types::__internal::GameDataType::STRING, types::__internal::GameDataType::ARRAY, types::__internal::GameDataType::ARRAY));
+        funcs.push_back(intercept::client::host::registerFunction(name, "", userFunctionWrapper<redirectWrap>, GameDataType::STRING, GameDataType::ARRAY, GameDataType::ARRAY));
     }
-
-
-
 
     tools::init();
     lua.preStart();
-    _interceptEventFunction = intercept::client::host::functions.register_sqf_function_unary("Intercept_TFAR_preparePositionCoordinates", "", userFunctionWrapper<redirectWrapUnary>, types::__internal::GameDataType::STRING, types::__internal::GameDataType::ARRAY);
-    _interceptEventFunction3 = intercept::client::host::functions.register_sqf_function_nular("Intercept_TFAR_preparePositionCoordinates_nular", "", userFunctionWrapper<redirectWrapNular>, types::__internal::GameDataType::STRING);
-    _interceptEventFunction2 = intercept::client::host::functions.register_sqf_function("Intercept_TFAR_preparePositionCoordinates_test", "", userFunctionWrapper<redirectWrap>, types::__internal::GameDataType::STRING, types::__internal::GameDataType::OBJECT, types::__internal::GameDataType::ARRAY);
-    //_interceptEventFunction2 = intercept::client::host::functions.register_sqf_function_unary(std::string("itfarprepcoords"), "", userFunctionWrapper<redirectWrapUnary>, types::__internal::GameDataType::STRING, types::__internal::GameDataType::ARRAY);
-    //_interceptEventFunction3 = intercept::client::host::functions.register_sqf_function_unary(std::string("itfarSendPInfo"), "", userFunctionWrapper<TFAR_fnc_sendPlayerInfo>, types::__internal::GameDataType::ARRAY, types::__internal::GameDataType::ARRAY);
-    _interceptEventFunction4 = intercept::client::host::functions.register_sqf_function_unary("itfarprocp", "", userFunctionWrapper<TFAR_fnc_processPlayerPositions>, types::__internal::GameDataType::STRING, types::__internal::GameDataType::ARRAY);
+    _interceptEventFunction = intercept::client::host::registerFunction("Intercept_TFAR_preparePositionCoordinates", "", userFunctionWrapper<redirectWrapUnary>, GameDataType::STRING, GameDataType::ARRAY);
+    _interceptEventFunction3 = intercept::client::host::registerFunction("Intercept_TFAR_preparePositionCoordinates_nular", "", userFunctionWrapper<redirectWrapNular>, GameDataType::STRING);
+    _interceptEventFunction2 = intercept::client::host::registerFunction("Intercept_TFAR_preparePositionCoordinates_test", "", userFunctionWrapper<redirectWrap>, GameDataType::STRING, GameDataType::OBJECT, GameDataType::ARRAY);
+    //_interceptEventFunction2 = intercept::client::host::registerFunction(std::string("itfarprepcoords"), "", userFunctionWrapper<redirectWrapUnary>, types::__internal::GameDataType::STRING, types::__internal::GameDataType::ARRAY);
+    //_interceptEventFunction3 = intercept::client::host::registerFunction(std::string("itfarSendPInfo"), "", userFunctionWrapper<TFAR_fnc_sendPlayerInfo>, types::__internal::GameDataType::ARRAY, types::__internal::GameDataType::ARRAY);
+    _interceptEventFunction4 = intercept::client::host::registerFunction("itfarprocp", "", userFunctionWrapper<TFAR_fnc_processPlayerPositions>, GameDataType::STRING, GameDataType::ARRAY);
 }
 
 void __cdecl intercept::pre_init() {

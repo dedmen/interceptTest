@@ -145,14 +145,14 @@ LuaManager::~LuaManager() {}
 types::registered_sqf_function _compileLuaFromFile;
 
 void LuaManager::preStart() {
-    auto codeType = client::host::functions.register_sqf_type(r_string("LUACODE"), r_string("luaCode"), r_string("Dis is LUA!"), r_string("luaCode"), createGameDataLuaCode);
+    auto codeType = client::host::registerType(r_string("LUACODE"), r_string("luaCode"), r_string("Dis is LUA!"), r_string("luaCode"), createGameDataLuaCode);
     GameDataLuaCode_type = codeType.second;
-    _execLua = client::host::functions.register_sqf_function("execLUA", "Loads, compiles and executes given Lua file", userFunctionWrapper<executeLua>, types::__internal::GameDataType::ANY, types::__internal::GameDataType::ANY, types::__internal::GameDataType::STRING);
-    _compileLua = client::host::functions.register_sqf_function_unary("compileLUA", "Compiles Lua string", userFunctionWrapper<compileLua>, codeType.first, types::__internal::GameDataType::STRING);
-    _compileLuaFromFile = client::host::functions.register_sqf_function_unary("compileLUAFromFile", "Preprocesses and compiles LUA from file. Setting source information in case of errors.", userFunctionWrapper<compileLuaFromFile>, codeType.first, types::__internal::GameDataType::STRING);
-    _callLuaString = client::host::functions.register_sqf_function("callLUA", "Call Named lua function in global Namespace", userFunctionWrapper<callLua_String>, types::__internal::GameDataType::ANY, types::__internal::GameDataType::ANY, types::__internal::GameDataType::STRING);
-    _callLuaCodeArgs = client::host::functions.register_sqf_function("call", "Call compiled lua code", userFunctionWrapper<callLua_Code>, types::__internal::GameDataType::ANY, types::__internal::GameDataType::ANY, codeType.first);
-    _callLuaCode = client::host::functions.register_sqf_function_unary("call", "Call compiled lua code", userFunctionWrapper<callLua_Code>, types::__internal::GameDataType::ANY, codeType.first);
+    _execLua = client::host::registerFunction("execLUA", "Loads, compiles and executes given Lua file", userFunctionWrapper<executeLua>, GameDataType::ANY, GameDataType::ANY, GameDataType::STRING);
+    _compileLua = client::host::registerFunction("compileLUA", "Compiles Lua string", userFunctionWrapper<compileLua>, codeType.first, GameDataType::STRING);
+    _compileLuaFromFile = client::host::registerFunction("compileLUAFromFile", "Preprocesses and compiles LUA from file. Setting source information in case of errors.", userFunctionWrapper<compileLuaFromFile>, codeType.first, GameDataType::STRING);
+    _callLuaString = client::host::registerFunction("callLUA", "Call Named lua function in global Namespace", userFunctionWrapper<callLua_String>, GameDataType::ANY, GameDataType::ANY, GameDataType::STRING);
+    _callLuaCodeArgs = client::host::registerFunction("call", "Call compiled lua code", userFunctionWrapper<callLua_Code>, GameDataType::ANY, GameDataType::ANY, codeType.first);
+    _callLuaCode = client::host::registerFunction("call", "Call compiled lua code", userFunctionWrapper<callLua_Code>, GameDataType::ANY, codeType.first);
     
     state.open_libraries();
     state["systemChat"] = &system_chat;
