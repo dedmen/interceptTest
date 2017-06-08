@@ -1,10 +1,12 @@
 ﻿#include "tools.h"
 #include <client/headers/intercept.hpp>
 #include <fstream>
+#include <future>
 using namespace intercept;
-
+#include <ittnotify.h>
 
 types::registered_sqf_function _funcExport;
+types::registered_sqf_function _initFunc;
 
 std::vector<std::string> alreadyHave{
     "BIS_fnc_packStaticWeapon",
@@ -1284,10 +1286,660 @@ game_value exportFuncs(game_value arg) {
 
     return game_value();
 }
+__itt_domain* domain_initF = __itt_domain_create("InterceptInitFunctions");
+__itt_string_handle* handle_initFunctions = __itt_string_handle_create("initFunctions");
+
+game_value initFunctions(game_value _this) {
+    __itt_task_begin(domain_initF, __itt_null, __itt_null, handle_initFunctions);
+    sqf::diag_log({ "_THiS###########",_this });
+    /*
+    File: init.sqf
+    Author: Karel Moricky, optimised headers by Killzone_Kid
+
+    Description:
+    Function library initialization.
+
+    Parameter(s):
+    _this select 0: 'Function manager' logic
+
+    Returns:
+    Nothing
+    */
+
+#define VERSION	3.0
+
+    //--- is not used anymore and so it should not be used anymore
+    sqf::call(sqf::compile("if (isNil \"BIS_fnc_MP_packet\") then{ BIS_fnc_MP_packet = compileFinal \"\" };"));
+
+    if (sqf::get_number(sqf::config_entry() >> "CfgFunctions" >> "version") != VERSION) {
+        
+        __itt_task_end(domain_initF);
+        return game_value();//--- Check version, has to match config version
+    }
+    //    exitwith{
+    //    sqf::text_log_format
+    //    textlogformat[
+    //        "Log: ERROR: Functions versions mismatch - config is %1, but script is %2",
+    //            getnumber(configfile >> "CfgFunctions" >> "version"),
+    //            VERSION
+    //    ];
+    //};
+
+    //--- Fake header
+    std::string _fnc_scriptName = sqf::get_variable(sqf::current_namespace(), "_fnc_scriptName", "Functions Init"_sv);
+
+    /******************************************************************************************************
+    DEFINE HEADERS
+
+    Headers are pieces of code inserted on the beginning of every function code before compiling.
+    Using 'BIS_fnc_functionsDebug', you can alter the headers to provide special debug output.
+
+    Modes can be following:
+    0: No Debug - header saves parent script name and current script name into variables
+    1: Save script Map - header additionaly save an array of all parent scripts into variable
+    2: Save and log script map - apart from saving into variable, script map is also logged through debugLog
+
+    Some system function are using simplified header unaffected to current debug mode.
+    These functions has headerType = 1; set in config.
+
+    ******************************************************************************************************/
+
+    std::string _headerNoDebug = "\
+        private _fnc_scriptNameParent = if (isNil '_fnc_scriptName') then{ '%1' } else { _fnc_scriptName };\
+        private _fnc_scriptName = '%1';\
+        scriptName _fnc_scriptName;\
+    ";
+    std::string _headerSaveScriptMap = "\
+        private _fnc_scriptMap = if (isNil '_fnc_scriptMap') then{ [_fnc_scriptName] } else { _fnc_scriptMap + [_fnc_scriptName] };\
+    ";
+    std::string _headerLogScriptMap = "\
+        textLogFormat['%1 : %2', _fnc_scriptMap joinString ' >> ', _this];\
+    ";
+    std::string _headerSystem = "\
+        private _fnc_scriptNameParent = if (isNil '_fnc_scriptName') then{ '%1' } else { _fnc_scriptName }; \
+        scriptName '%1';\
+    ";
+    std::string _headerNone = "";
+    std::string _debugHeaderExtended = "";
+
+    //--- Compose headers based on current debug mode
+    int _debug = sqf::get_variable(sqf::ui_namespace(), "bis_fnc_initFunctions_debugMode", 0);
+    std::string _headerDefault = _headerNoDebug;
+    if (_debug == 1)
+        _headerDefault = _headerNoDebug + _headerSaveScriptMap;
+    else if (_debug == 2)
+        _headerDefault = _headerNoDebug + _headerSaveScriptMap + _headerLogScriptMap;
 
 
-game_value initFunctions(game_value arg) {
-    return 0.f;
+    ///////////////////////////////////////////////////////////////////////////////////////////////////////
+    //--- Compile function
+    auto _fncCompile = [&](std::string _fncVar, std::string _fncPath, std::string _fncExt, int _fncHeader, bool _fncFinal) -> code {
+        //_fncVar = _this select 0;
+        //_fncMeta = _this select 1;
+        //_fncHeader = _this select 2;
+        //_fncFinal = _this select 3;
+
+        //_fncPath = _fncMeta select 0;
+        //_fncExt = _fncMeta select 1;
+        if (_fncExt == ".sqf") {   //--- SQF
+            std::string _header;
+            if (_fncHeader == -1)
+                _header = _headerNone;   //--- No header (used in low-level functions, like 'fired' event handlers for every weapon)
+            else if (_fncHeader == 1)
+                _header = _headerSystem;  //--- System functions' header (rewrite default header based on debug mode)
+            else
+                _header = _headerDefault;     //--- Full header
+
+                                              //--- Extend error report by including name of the function responsible
+            _debugHeaderExtended = "\r\n#line 1 \"" + _fncPath + " [" + _fncVar + "]\"\r\n";
+            std::string _debugMessage = "Log: [Functions]%1 | %2";
+
+            if (_fncFinal) {
+                return sqf::compile_final(sqf::format({ _header, _fncVar, _debugMessage }) + _debugHeaderExtended + sqf::preprocess_file(_fncPath));
+            } else {
+                return sqf::compile(sqf::format({ _header, _fncVar, _debugMessage }) + _debugHeaderExtended + sqf::preprocess_file(_fncPath));
+            };
+        } else if (_fncExt == ".fsm") {
+            return sqf::compile_final(sqf::format({ "%1_fsm = _this execfsm '%2'; %1_fsm",_fncVar,_fncPath }));
+        }
+        return game_value();
+    };
+
+
+    /******************************************************************************************************
+    COMPILE ONE FUNCTION
+
+    When input is string containing function name instead of number, only the function is recompiled.
+
+    The script stops here, reads function's meta data and recompile the function
+    based on its extension and header.
+
+    Instead of creating missionNamespace shortcut, it saves the function directly. Use it only for debugging!
+
+    ******************************************************************************************************/
+
+    //--- Compile only selected
+    if (_this.is_nil()) _this = auto_array<game_value>();
+    if (_this.type() != game_data_array::type_def) _this = auto_array<game_value>{ _this };
+    game_value _recompile = (_this.size() > 0) ? _this[0] : 0;
+    if (_recompile.type() == game_data_string::type_def) {
+
+        //--- Recompile specific function
+        bool _fncUINamespace = true;
+        game_value _fnc = sqf::get_variable(sqf::ui_namespace(), _recompile);
+        if (_fnc.is_nil()) { _fnc = sqf::get_variable(sqf::mission_namespace(), _recompile); _fncUINamespace = false; }
+        if (!_fnc.is_nil()) {
+            static code bis_fnc_functionMeta = sqf::get_variable(sqf::ui_namespace(), "bis_fnc_functionMeta");
+            auto _fncMeta = sqf::call(bis_fnc_functionMeta, _recompile);
+            int _headerType = (_this.size() > 1) ? static_cast<int>(_this[1]) : 0;
+            auto compiled = _fncCompile(_recompile, _fncMeta[0], _fncMeta[1], _headerType, false);
+            if (_fncUINamespace && sqf::cheats_enabled()) { sqf::set_variable(sqf::ui_namespace(), _recompile, compiled); }; //--- Cannot recompile compileFinal functions in public version
+            sqf::set_variable(sqf::mission_namespace(), _recompile, compiled);
+            //if (isnil "_functions_listRecompile") then{
+            //    textlogformat["Log: [Functions]: %1 recompiled with meta %2",_recompile,_fncMeta];
+            //};
+        } else {
+            static code _fncError = sqf::get_variable(sqf::ui_namespace(), "bis_fnc_error");
+            if (!_fncError.is_nil()) {
+                sqf::call(_fncError, { "%1 is not a function.", _recompile });
+            } else {
+                //textlogformat["Log: [Functions]: ERROR: %1 is not a function.",_recompile];
+            }
+        }
+        __itt_task_end(domain_initF);
+        return game_value();
+    };
+
+
+    /******************************************************************************************************
+    COMPILE EVERYTHING IN GIVEN NAMESPACE(S)
+
+    Function codes are present only in uiNamespace. Mission variables contains only shortcuts to uiNamespace.
+    To executed only required compilation section, input param can be one of following numbers:
+
+    0 - Autodetect what compile type should be used
+    1 - Forced recompile of all the things
+    2 - Create only uiNamespace variables (used in UI)
+    3 - Create missionNamespace variables and initialize mission
+    4 - Create only missionNamespace variables
+    5 - Recompile all functions, and initialize mission (used for editor preview with function recompile)
+
+    ******************************************************************************************************/
+
+    sqf::set_variable(sqf::current_namespace(), "RscDisplayLoading_progressMission", game_value());
+
+    //--- Get existing lists (create new ones when they doesn't exist)
+    //auto retEmptyArrayFunc = sqf::compile("[]");
+    code bis_functions_list = sqf::get_variable(sqf::ui_namespace(), "bis_functions_list");
+    code bis_functions_listPreInit = sqf::get_variable(sqf::ui_namespace(), "bis_functions_listPreInit");
+    code bis_functions_listPostInit = sqf::get_variable(sqf::ui_namespace(), "bis_functions_listPostInit");
+    code bis_functions_listRecompile = sqf::get_variable(sqf::ui_namespace(), "bis_functions_listRecompile");
+
+    game_value base_list = bis_functions_list.is_nil() ? game_value(auto_array<game_value>()) : sqf::call(bis_functions_list);
+    game_value base_PreInit = bis_functions_listPreInit.is_nil() ? game_value(auto_array<game_value>()) : sqf::call(bis_functions_listPreInit);
+    game_value base_PostInit = bis_functions_listPostInit.is_nil() ? game_value(auto_array<game_value>()) : sqf::call(bis_functions_listPostInit);
+    game_value base_Recompile = bis_functions_listRecompile.is_nil() ? game_value(auto_array<game_value>()) : sqf::call(bis_functions_listRecompile);
+    auto_array<r_string> _functions_listPreStart = auto_array<r_string>();
+    auto_array<r_string> _functions_list(base_list.to_array().begin(), base_list.to_array().end());
+    game_value _functions_listPreInit = auto_array<game_value>{ base_PreInit,auto_array<game_value>() };
+    auto test = sqf::str(_functions_listPreInit);
+    game_value _functions_listPostInit = auto_array<game_value>{ base_PostInit,auto_array<game_value>() };
+    auto_array<r_string> _functions_listRecompile(base_Recompile.to_array().begin(), base_Recompile.to_array().end());
+    //--- When not forced, recompile only mission if uiNamespace functions exists
+    int _recompileInt =
+        (_recompile.type() == game_data_number::type_def) ?
+        static_cast<int>(_recompile)
+        :
+        ((_functions_list.count() > 0) ? 3 : 0)
+        ;
+
+    //--- When autodetect, recognize what recompile type is required
+
+    if (_recompileInt == 0 && !sqf::get_variable(sqf::ui_namespace(), "bis_fnc_init").is_nil()) { _recompileInt = 3; };
+    if (_recompileInt == 3 && !sqf::get_variable(sqf::mission_namespace(), "bis_fnc_init").is_nil()) { _recompileInt = 4; };
+    if (_recompileInt == 3 && !sqf::is_eden() && static_cast<bool>(sqf::get_3den_mission_attribute("Preferences", "RecompileFunctions"))) { _recompileInt = 5; };
+
+    auto _file = sqf::get_text(sqf::config_entry() >> "cfgFunctions" >> "file");
+    std::vector<std::tuple<config, std::string, int>> _cfgSettings = {
+            {sqf::config_file(), _file, 0 },	//--- 0
+            {sqf::campaign_config_file(), "functions", 1 },	//--- 1
+            {sqf::mission_config_file(), "functions", 1 }	//--- 2
+    };
+    std::vector<int> _listConfigs;
+    switch (_recompileInt) {
+        case 0: _listConfigs = { 0,1,2 }; break;
+        case 5:
+        case 1: {
+            _functions_list.clear();
+            _functions_listPreInit = auto_array<game_value>{ auto_array<game_value>(), auto_array<game_value>() };
+            _functions_listPostInit = auto_array<game_value>{ auto_array<game_value>(), auto_array<game_value>() };
+            _functions_listRecompile.clear();
+
+            sqf::set_variable(sqf::ui_namespace(), "bis_functions_list", auto_array<r_string>());
+            sqf::set_variable(sqf::ui_namespace(), "bis_functions_listPreInit", _functions_listPreInit);
+            sqf::set_variable(sqf::ui_namespace(), "bis_functions_listPostInit", _functions_listPostInit);
+            sqf::set_variable(sqf::ui_namespace(), "bis_functions_listRecompile", auto_array<r_string>());
+
+            _listConfigs = { 0,1,2 };
+        }break;
+        case 2: _listConfigs = { 0 }; break;
+        case 3:
+        case 4: _listConfigs = { 1,2 }; break;
+    }
+
+
+    /******************************************************************************************************
+    SCAN CFGFUNCTIONS
+
+    Go through CfgFunctions, scan categories and declare all functions.
+
+    Following variables are stored:
+    <tag>_fnc_<functionName> - actual code of the function
+    <tag>_fnc_<functionName>_meta - additional meta data of this format
+    [<path>,<extension>,<header>,<preInit>,<postInit>,<recompile>,<category>]
+    * path - path to actual file
+    * extension - file extension, either ".sqf" or ".fsm"
+    * header - header type. Usually 0, system functions are using 1 (see DEFINE HEADERS section)
+    * preInit - function is executed automatically upon mission start, before objects are initalized
+    * postInit - function is executed automatically upon mission start, after objects are initialized
+    * recompile - function is recompiled upon mission start
+    * category - function's category based on config structure
+
+    ******************************************************************************************************/
+    //test = sqf::str(_functions_listPreInit);
+    //--- Allow recompile in dev version, in the editor and when description.ext contains 'allowFunctionsRecompile = 1;'
+    bool _compileFinal =
+        //--- Dev version
+        !sqf::cheats_enabled()
+        &&
+        //--- Editor mission
+        static_cast<bool>(sqf::call(sqf::compile("((uinamespace getvariable[\"gui_displays\", []]) find(finddisplay 26) != 1)"))) //To lazy to implement correctly
+        &&
+        //--- Manual toggle
+        sqf::get_number(sqf::config_entry(sqf::mission_config_file()) >> "allowFunctionsRecompile") == 0;
+    for (auto _t : _listConfigs) {
+        auto _cfg = _cfgSettings[_t];
+        auto _pathConfig = std::get<0>(_cfg);
+        auto _pathFile = std::get<1>(_cfg);
+        auto _pathAccess = std::get<2>(_cfg);
+        auto _cfgFunctions = (sqf::config_entry(_pathConfig) >> "cfgfunctions");
+
+
+        auto cfgFunctionsCount = sqf::count(_cfgFunctions);
+        for (int _c = 0; _c < cfgFunctionsCount; _c++) {
+            auto _currentTag = sqf::select(_cfgFunctions, _c);
+            if (!sqf::is_class(_currentTag)) continue;
+
+            //--- Check of all required patches are in CfgPatches
+            auto _requiredAddons = sqf::get_array(sqf::config_entry(_currentTag) >> "requiredAddons");
+            bool _requiredAddonsMet = true;
+            for (auto& it : _requiredAddons.to_array()) {
+                if (!sqf::is_class(sqf::config_entry() >> "CfgPatches" >> it)) {
+                    _requiredAddonsMet = false; break;
+                }
+            }
+            if (!_requiredAddonsMet) continue;
+
+            auto _tag = sqf::config_name(_currentTag);
+            auto _tagName = sqf::get_text(sqf::config_entry(_currentTag) >> "tag");
+            if (_tagName == "")  _tagName = _tag;
+            auto _itemPathTag = sqf::get_text(sqf::config_entry(_currentTag) >> "file");
+            auto currentTagCount = sqf::count(_currentTag);
+            for (int _i = 0; _i < currentTagCount; _i++) {
+                auto _currentCategory = sqf::select(_currentTag, _i);
+
+                if (!sqf::is_class(_currentCategory)) continue;
+
+                auto _categoryName = sqf::config_name(_currentCategory);
+                auto _itemPathCat = sqf::get_text(sqf::config_entry(_currentCategory) >> "file");
+                auto currentCategoryCount = sqf::count(_currentCategory);
+                for (int _n = 0; _n < currentCategoryCount; _n++) {
+                    auto _currentItem = sqf::config_entry(sqf::select(_currentCategory, _n));
+
+                    if (!sqf::is_class(_currentItem)) continue;
+
+                    auto _itemName = sqf::config_name(_currentItem);
+                    auto _itemPathItem = sqf::get_text(_currentItem >> "file");
+                    auto _itemExt = sqf::get_text(_currentItem >> "ext");
+                    auto _itemPreInit = sqf::get_number(_currentItem >> "preInit");
+                    auto _itemPostInit = sqf::get_number(_currentItem >> "postInit");
+                    auto _itemPreStart = sqf::get_number(_currentItem >> "preStart");
+                    auto _itemRecompile = sqf::get_number(_currentItem >> "recompile");
+                    auto _itemCheatsEnabled = sqf::get_number(_currentItem >> "cheatsEnabled");
+
+                    if (_itemExt == "") _itemExt = ".sqf";
+
+
+                    //if (_itemPathItem != "") {
+                    //    if (_tagName == "BIS" && _pathAccess == 0) {
+                    //        //--- Disable rewriting of global BIS functions from outside (ToDo: Make it dynamic, so anyone can protect their functions)
+                    //
+                    //        //auto _itemPathItemA3 = (sqf::to_lower(_itemPathItem).find("a3"));
+                    //        //auto _itemPathSlash = (_itemPathItem.find("\\"));
+                    //        //if ((_itemPathItemA3 < 0 || _itemPathItemA3 > 1) && _itemPathSlash > 0) _itemPathItem = "";
+                    //        //I think this is what it does...
+                    //        if (_itemPathItem.front() == '\\' && sqf::to_lower(_itemPathItem.substr(1, 3)) != "a3") {
+                    //            _itemPathItem = "";
+                    //        }
+                    //    }
+                    //}
+                    std::string _itemPath = _itemPathItem;
+                    if (_itemPath == "") {
+                        if (_itemPathCat != "") { _itemPath = _itemPathCat + "\\fn_" + _itemName + _itemExt; } else {
+                            if (_itemPathTag != "") { _itemPath = _itemPathTag + "\\fn_" + _itemName + _itemExt; } else { _itemPath = ""; }
+                        }
+                    }
+
+                    auto _itemHeader = sqf::get_number(_currentItem >> "headerType");
+
+                    //--- Compile function
+                    if (_itemPath == "") _itemPath = _pathFile + "\\" + _categoryName + "\\fn_" + _itemName + _itemExt;
+                    auto _itemVar = _tagName + "_fnc_" + _itemName;
+                    game_value _itemMeta = auto_array<game_value>{ _itemPath, _itemExt, _itemHeader, _itemPreInit > 0, _itemPostInit > 0, _itemRecompile > 0, _tag, _categoryName, _itemName };
+                    code _itemCompile;
+                    if (_itemCheatsEnabled == 0 || (_itemCheatsEnabled > 0 && sqf::cheats_enabled())) {
+                        _itemCompile = _fncCompile(_itemVar, _itemPath, _itemExt, _itemHeader, _compileFinal);
+                    } else {
+                        _itemCompile = sqf::compile_final("false"); //--- Function not available in retail version
+                    }
+
+                    //--- Register function
+                    if (_itemCompile.type() == game_data_code::type_def) {
+                        if (_functions_list.find(r_string(_itemVar)) == _functions_list.end()) {
+                            auto _namespace = (_pathAccess == 0) ? sqf::ui_namespace() : sqf::mission_namespace();
+                            sqf::set_variable(_namespace, _itemVar, _itemCompile); //---- Save function
+                            auto metaStr = sqf::str(_itemMeta);
+                            sqf::set_variable(_namespace, _itemVar + "_meta", sqf::compile_final(metaStr));
+
+                            if (_pathAccess == 0) _functions_list.push_back(r_string(_itemVar));
+                        }
+
+                        //--- Add to list of functions executed upon mission start
+                        if (_itemPreInit > 0) {
+                            auto_array<r_string> _functions_listPreInitAccess(_functions_listPreInit[_pathAccess].to_array().begin(), _functions_listPreInit[_pathAccess].to_array().end());
+                            if (_functions_listPreInitAccess.find(r_string(_itemVar)) == _functions_listPreInitAccess.end()) {
+                                _functions_listPreInit[_pathAccess].to_array().push_back(r_string(_itemVar));
+                            }
+                        }
+                        if (_itemPostInit > 0) {
+                            auto_array<r_string> _functions_listPostInitAccess(_functions_listPostInit[_pathAccess].to_array().begin(), _functions_listPostInit[_pathAccess].to_array().end());
+                            if (_functions_listPostInitAccess.find(r_string(_itemVar)) == _functions_listPostInitAccess.end()) {
+                                _functions_listPostInit[_pathAccess].to_array().push_back(r_string(_itemVar));
+                            }
+                        }
+
+                        //--- Add to list of functions executed upon game start
+                        if (_itemPreStart > 0) {
+                            if (_pathAccess == 0) {
+                                if (_functions_listPreStart.find(r_string(_itemVar)) == _functions_listPreStart.end()) {
+                                    _functions_listPreStart.push_back(r_string(_itemVar));
+                                };
+                            } else {
+                                static code bis_fnc_error = sqf::get_variable(sqf::ui_namespace(), "bis_fnc_error");
+                                std::string _errorText("%1 is a mission / campaign function and cannot contain 'preStart = 1;' param"_sv);
+                                if (!bis_fnc_error.is_nil()) {
+                                    sqf::call(bis_fnc_error, { _errorText,_itemVar });
+                                } else {
+                                    sqf::diag_log(sqf::format({ "Log: [Functions]: " + _errorText,_itemVar }));
+                                }
+                            }
+                        }
+
+                        //--- Add to list of functions recompiled upon mission start
+                        if (_itemRecompile > 0) {
+                            if (_pathAccess == 0) {
+                                if (_functions_listRecompile.find(r_string(_itemVar)) == _functions_listRecompile.end()) {
+                                    _functions_listRecompile.push_back(r_string(_itemVar));
+                                }
+                            } else {
+                                static code bis_fnc_error = sqf::get_variable(sqf::ui_namespace(), "bis_fnc_error");
+                                std::string _errorText("Redundant use of 'recompile = 1;' in %1 - mission / campaign functions are recompiled on start by default."_sv);
+                                if (!bis_fnc_error.is_nil()) {
+                                    sqf::call(bis_fnc_error, { _errorText,_itemVar });
+                                } else {
+                                    sqf::diag_log(sqf::format({ "Log: [Functions]: " + _errorText,_itemVar }));
+                                }
+                            }
+                        }
+
+                        //if (_itemRecompile > 0) then {
+                        //	_functions_listRecompileAccess = _functions_listRecompile select _pathAccess;
+                        //	_functions_listRecompileAccess set [count _functions_listRecompileAccess,_itemVar];
+                        //};
+                        //--- Debug
+                        //debuglog ["Log:::::::::::::::::::Function",_itemVar,_itemPath,_pathAccess];
+                    }
+                }
+            }
+        }
+    }
+
+    //--- Save the lists (only when they're undefined, or in dev version where compileFinal variables can be rewritten)
+    if (sqf::get_variable(sqf::ui_namespace(), "BIS_functions_list").is_nil() || sqf::cheats_enabled()) {
+
+        auto f1 = sqf::str(_functions_list);
+        auto f2 = sqf::str(_functions_listPreInit[0]);
+        auto f3 = sqf::str(_functions_listPostInit[0]);
+        auto f4 = sqf::str(_functions_listRecompile);
+
+
+        sqf::set_variable(sqf::ui_namespace(), "BIS_functions_list", static_cast<game_value>(sqf::compile_final(f1)));
+        sqf::set_variable(sqf::ui_namespace(), "BIS_functions_listPreInit", static_cast<game_value>(sqf::compile_final(f2)));
+        sqf::set_variable(sqf::ui_namespace(), "BIS_functions_listPostInit", static_cast<game_value>(sqf::compile_final(f3)));
+        sqf::set_variable(sqf::ui_namespace(), "BIS_functions_listRecompile", static_cast<game_value>(sqf::compile_final(f4)));
+    };
+
+    /******************************************************************************************************
+    FINISH
+
+    When functions are saved, following operations are executed:
+    1. MissionNamespace shortcuts are created
+    2. Functions with 'recompile' param set to 1 are recompiled
+    3. Functions with 'preInit' param set to 1 are executed
+    4. Multiplayer framework is initialized
+    5. Modules are initialized (running their own scripts, functions just wait until those scripts are ready)
+    6. Automatic scripts "initServer.sqf", "initPlayerServer.sqf" and "initPlayerLocal.sqf" are executed
+    7. Functions with 'postInit' param set to 1 are executed
+
+    When done, system will set 'bis_fnc_init' to true so other systems can catch it.
+
+    ******************************************************************************************************/
+
+    //--- Not core
+    if (_recompileInt >= 0 && _recompileInt <= 5 && _recompileInt != 2) {
+        auto cpy = _functions_list;
+        for (auto& it : _functions_listRecompile) //--- Exclude functions marker for recompile to avoid double-compile
+            cpy.erase(cpy.find(it));
+        for (auto& it : cpy) {
+            static code bis_fnc_functionMeta = sqf::get_variable(sqf::ui_namespace(), "bis_fnc_functionMeta");
+            bool _allowRecompile = sqf::call(bis_fnc_functionMeta, it)[5];
+
+            auto _xCode = sqf::get_variable(sqf::ui_namespace(), std::string(it));
+            if (_allowRecompile || !_compileFinal) {
+                auto codeStr = sqf::str(_xCode);
+                _xCode = sqf::call(sqf::compile(codeStr));
+            }
+            sqf::set_variable(sqf::mission_namespace(), std::string(it), _xCode);
+        }
+    };
+
+    //--- Core only
+    if (_recompileInt == 2) {
+        //--- Call preStart functions
+
+        if (sqf::is_null(sqf::find_display(0))) {
+            for (auto& it : _functions_listPreStart) {
+                static code bis_fnc_logFormat = sqf::get_variable(sqf::ui_namespace(), "bis_fnc_logFormat");
+                sqf::call(bis_fnc_logFormat, { "preStart %1",it });
+                auto name = std::string(it);
+                auto code = sqf::get_variable(sqf::ui_namespace(), name);
+                auto codeString = sqf::str(code);
+                auto _function = sqf::call(code, std::move(auto_array<game_value>()));
+                sqf::set_variable(sqf::ui_namespace(), std::string(it) + "_preStart", _function);
+            }
+        }
+    }
+
+    //--- Mission only
+#pragma region Mission only
+    if (_recompileInt == 3 && _recompileInt == 5) {
+
+        //--- Switch to mission loading bar
+        sqf::set_variable(sqf::current_namespace(), "RscDisplayLoading_progressMission", true);
+        static code bis_fnc_preload = sqf::get_variable(sqf::ui_namespace(), "bis_fnc_preload");
+        //--- Execute script preload
+        sqf::call(bis_fnc_preload, auto_array<game_value>());
+
+        //--- Create functions logic (cannot be created when game is launching; server only)
+
+        auto bis_functions_mainscope = static_cast<object>(sqf::get_variable(sqf::mission_namespace(), "bis_functions_mainscope", static_cast<game_value>(sqf::obj_null())));
+        if (sqf::is_server() && sqf::is_null(bis_functions_mainscope)
+            && !sqf::get_variable(sqf::ui_namespace(), "bis_fnc_init").is_nil() && sqf::world_name() != "") {
+            auto _grpLogic = sqf::create_group(sqf::side_logic());
+            bis_functions_mainscope = sqf::create_unit(_grpLogic, "Logic", { 9, 9, 9 }, {}, 0, "none");
+            sqf::set_variable(sqf::mission_namespace(), "bis_functions_mainscope", static_cast<game_value>(bis_functions_mainscope));
+
+            sqf::set_variable(bis_functions_mainscope, "isDedicated", sqf::is_dedicated(), true);
+
+            //--- Support for netId in SP (used in BIS_fnc_netId, BIS_fnc_objectFromNetId, BIS_fnc_groupFromNetId)
+            //--- Format [netId1,grpOrObj1,netId2,grpOrObj2,...]
+            if (!sqf::is_multiplayer()) sqf::set_variable(bis_functions_mainscope, "BIS_fnc_netId_globIDs_SP", auto_array<game_value>());
+            sqf::public_variable("bis_functions_mainscope");
+        }
+        sqf::set_group_id(sqf::get_group(bis_functions_mainscope), sqf::localize("str_dn_modules"), {});//--- Name the group for curator
+
+        //if (!sqf::is_nil("bis_functions_mainscope")) {
+        //    sqf::set_pos(bis_functions_mainscope, sqf::position(bis_functions_mainscope));
+        //     //I don't know what the F this is.
+        //_test = bis_functions_mainscope setPos(position bis_functions_mainscope); if (isnil "_test") then{ _test = false };
+        //_test2 = bis_functions_mainscope playMove ""; if (isnil "_test2") then{ _test2 = false };
+        //if (_test || _test2) then{ 0 call(compile(preprocessFileLineNumbers "a3\functions_f\misc\fn_initCounter.sqf")) };
+        //};
+
+        //--- Recompile selected functions
+        if (!sqf::is_eden()) {
+            sqf::set_variable(sqf::current_namespace(), "_fnc_scriptname", "recompile");
+            static code bis_fnc_logFormat = sqf::get_variable(sqf::current_namespace(), "bis_fnc_logFormat");
+            static code bis_fnc_recompile = sqf::get_variable(sqf::current_namespace(), "bis_fnc_recompile");
+            for (auto& it : _functions_listRecompile) {
+                sqf::call(bis_fnc_logFormat, { "recompile %1",it });
+                sqf::call(bis_fnc_recompile, it);
+            };
+
+            //--- Call preInit functions
+            sqf::set_variable(sqf::current_namespace(), "_fnc_scriptname", "preInit");
+
+            for (auto& x : _functions_listPreInit.to_array()) {
+                for (auto& it : x.to_array()) {
+                    sqf::call(sqf::get_variable(sqf::mission_namespace(), it), { "preInit" });
+                }
+            }
+        }
+
+        //--- Call postInit functions once player is present
+
+        __SQF(
+            _this spawn{
+            _fnc_scriptName = "script";
+            0.15 call bis_fnc_progressloadingscreen;
+
+            //--- Wait until server is initialized (to avoid running scripts before the server)
+            waituntil{ call(missionnamespace getvariable["BIS_fnc_preload_server",{ isserver }]) || getClientState == "LOGGED IN" };
+            if (getClientState == "LOGGED IN") exitwith{}; //--- Server lost
+            0.30 call bis_fnc_progressloadingscreen;
+
+            //--- After JIP, units cannot be initialized during the loading screen
+            if !(isserver) then {
+                endloadingscreen;
+                waituntil{ !isnull cameraon && {getClientState != "MISSION RECEIVED" && {getClientState != "GAME LOADED"}} };
+
+                ["bis_fnc_initFunctions"] call bis_fnc_startLoadingScreen;
+            };
+            if (isnil "bis_functions_mainscope") exitwith{ endloadingscreen; ["[x] Error while loading the mission!"] call bis_fnc_errorMsg; }; //--- Error while loading
+            bis_functions_mainscope setvariable["didJIP",didJIP];
+            0.45 call bis_fnc_progressloadingscreen;
+
+            //wait for functions mainscope to get initialized (overruled by escape condition at line: 577)
+            //waituntil {!isnil "bis_functions_mainscope" && {!isnull bis_functions_mainscope}};
+            0.60 call bis_fnc_progressloadingscreen;
+
+            //--- Wait until module inits are initialized
+            [] call bis_fnc_initModules;
+            0.75 call bis_fnc_progressloadingscreen;
+
+            //--- Execute automatic scripts
+            if (!is3DEN) then
+            {
+                if (isserver) then{
+                    [] execvm "initServer.sqf";
+            "initServer.sqf" call bis_fnc_logFormat;
+                };
+
+            //--- Run mission scripts
+            if !(isDedicated) then {
+                [player,didJIP] execvm "initPlayerLocal.sqf";
+                [[[player,didJIP],"initPlayerServer.sqf"],"bis_fnc_execvm",false,false] call bis_fnc_mp;
+                "initPlayerLocal.sqf" call bis_fnc_logFormat;
+                "initPlayerServer.sqf" call bis_fnc_logFormat;
+            };
+            0.90 call bis_fnc_progressloadingscreen;
+
+            //--- Call postInit functions
+            _fnc_scriptname = "postInit";
+            {
+                {
+                    _time = diag_ticktime;
+                    [_x,didJIP] call{
+                        private["_didJIP","_time"];
+                    ["postInit",_this select 1] call(missionnamespace getvariable(_this select 0))
+                    };
+                    ["%1 (%2 ms)",_x,(diag_ticktime - _time) * 1000] call bis_fnc_logFormat;
+                } foreach _x;
+            } foreach _this;
+            1.0 call bis_fnc_progressloadingscreen;
+            };
+
+            //--- MissionNamespace init
+            missionnamespace setvariable["bis_fnc_init",true];
+
+            if !(isserver) then {
+                ["bis_fnc_initFunctions"] call bis_fnc_endLoadingScreen;
+            };
+        };
+        ).capture(_functions_listPostInit);
+    };
+#pragma endregion
+    //--- Not mission
+    if (_recompileInt >= 0 && _recompileInt <= 2) {
+        //--- UInameSpace init
+        sqf::set_variable(sqf::ui_namespace(), "bis_fnc_init", true);
+    };
+
+    //--- Only mission variables
+    if (_recompileInt == 4) {
+        //--- MissionNameSpace init
+        sqf::set_variable(sqf::mission_namespace(), "bis_fnc_init", true);
+    };
+
+    //--- Only mission variables
+    if (_recompileInt == 1 || _recompileInt == 5) {
+
+        //_fnc_scriptname = "initFunctions";
+        //"Functions recompiled" call bis_fnc_log;
+    };
+
+    //--- Log the info about selected recompile type
+    //_recompileNames = [
+    //    "ERROR: Autodetect failed",
+    //        "Forced",
+    //        "Core Only",
+    //        "Mission/Campaign Only"
+    //];
+    //["Initialized: %1.",_recompileNames select _recompile] call (uinamespace getvariable "bis_fnc_logFormat");
+    //auto test2 = sqf::str(sqf::all_variables(sqf::ui_namespace()));
+    //sqf::diag_log(test);
+    __itt_task_end(domain_initF);
+    return game_value();
 }
 
 types::registered_sqf_function _bis_fnc_itemType;
@@ -1341,7 +1993,7 @@ game_value bis_fnc_itemType(game_value arg) {
 
             if (sqf::is_text(_cfgItem >> "type")) {
                 auto text = sqf::get_text(_cfgItem >> "type");
-                
+
                 _type = static_cast<int>(sqf::call(sqf::compile(text)));
             }
 
@@ -1439,12 +2091,13 @@ game_value bis_fnc_itemType(game_value arg) {
 
 void tools::init() {
     _funcExport = client::host::registerFunction("Intercept_bis_fnc_exportFunctionsToWiki", "", userFunctionWrapper<exportFuncs>, GameDataType::NOTHING, GameDataType::ARRAY);
+    _initFunc = client::host::registerFunction("Intercept_InitFunctions", "", userFunctionWrapper<initFunctions>, GameDataType::NOTHING, GameDataType::ANY);
     _bis_fnc_itemType = client::host::registerFunction("Intercept_bis_fnc_itemType", "", userFunctionWrapper<bis_fnc_itemType>, GameDataType::ARRAY, GameDataType::STRING);
 
 }
 
 void tools::postInit() {
- 
+
     auto orig = sqf::get_variable(sqf::mission_namespace(), "bis_fnc_itemType");
     auto c = static_cast<game_data_code*>(orig.data.getRef());
     if (c->is_final)
@@ -1454,7 +2107,7 @@ void tools::postInit() {
     auto newCode = sqf::compile("Intercept_bis_fnc_itemType _this;");
     auto nc = static_cast<game_data_code*>(newCode.data.getRef());
     sqf::set_variable(sqf::mission_namespace(), "bis_fnc_itemType2", newCode);
-   // sqf::set_variable(sqf::mission_namespace(), "bis_fnc_itemType", newCode);
+    // sqf::set_variable(sqf::mission_namespace(), "bis_fnc_itemType", newCode);
 
     auto _1 = c->code_string;
     auto _2 = c->instruction_array;
@@ -1479,5 +2132,5 @@ void tools::postInit() {
     c2->is_final = true;
     if (c2->is_final)
         OutputDebugString("is again Final\n");
-     
+
 }
