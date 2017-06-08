@@ -6,7 +6,7 @@
 // the Intercept library, only one include required.
 #include <client/headers/intercept.hpp>
 #include <iso646.h>
-#define INTEL_NO_ITTNOTIFY_API
+//#define INTEL_NO_ITTNOTIFY_API
 #include <ittnotify.h>
 #include "tools.h"
 #include <queue>
@@ -677,11 +677,20 @@ void __cdecl intercept::pre_start() {
     //_interceptEventFunction2 = intercept::client::host::registerFunction(std::string("itfarprepcoords"), "", userFunctionWrapper<redirectWrapUnary>, types::__internal::GameDataType::STRING, types::__internal::GameDataType::ARRAY);
     //_interceptEventFunction3 = intercept::client::host::registerFunction(std::string("itfarSendPInfo"), "", userFunctionWrapper<TFAR_fnc_sendPlayerInfo>, types::__internal::GameDataType::ARRAY, types::__internal::GameDataType::ARRAY);
     _interceptEventFunction4 = intercept::client::host::registerFunction("itfarprocp", "", userFunctionWrapper<TFAR_fnc_processPlayerPositions>, GameDataType::STRING, GameDataType::ARRAY);
+
+    auto x = client::host::list_plugin_interfaces("lua_iface"_sv);
+    std::string modl(x.first);
+    auto iface = client::host::request_plugin_interface("lua_iface"_sv, 1);
+
+    if (iface) {
+        static_cast<lua_iface*>(*iface)->blubTest();
+    }
 }
 
 void __cdecl intercept::pre_init() {
     sqf::set_variable(sqf::mission_namespace(), "INTERCEPT_TFAR", true);
 }
+
 
 void __cdecl intercept::post_init() {
     //sqf::set_variable(sqf::mission_namespace(), "INTERCEPT_TFAR", true);
@@ -692,6 +701,7 @@ void __cdecl intercept::post_init() {
     //_interceptEventFunction4 = intercept::client::host::functions.register_sqf_function_unary(std::string("itfarprocp"), "", userFunctionWrapper<TFAR_fnc_processPlayerPositions>, types::__internal::GameDataType::STRING, types::__internal::GameDataType::ARRAY);
     //sqf::set_variable(sqf::mission_namespace(), "INTERCEPT_TFAR", true);
     sqf::system_chat("hellloooozzz");
+
     tools::postInit();
 }
 

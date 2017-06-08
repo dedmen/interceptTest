@@ -1,5 +1,6 @@
 ﻿#include "LuaManager.h"
 #include <client/headers/intercept.hpp>
+#include <sstream>
 using namespace intercept;
 
 types::registered_sqf_function _execLua;
@@ -33,24 +34,38 @@ public:
     float get_as_number() const override { return 0.f; }
     r_string get_as_string() const override { return r_string(); }
     game_data* copy() const override { return new GameDataLuaCode(*this); }
-    r_string to_string() const override { return code_string;}
+    r_string to_string() const override { return code_string; }
     //virtual bool equals(const game_data*) const override;
     const char* type_as_string() const override { return "luaCode"; }
     bool is_nil() const override { return false; }
+    bool can_serialize() override { return true; }
 
+    serialization_return serialize(param_archive& ar) override {
+        game_data::serialize(ar);
+        ar.serialize("value"_sv, code_string, 1);
+        if (!ar._isExporting) {
+            std::string c(code_string);
+            code = lua.state.load(c).get<sol::protected_function>();
+        }
+        return serialization_return::no_error;
+    }
     sol::protected_function code;
     r_string code_string;
 };
 
-game_data* createGameDataLuaCode(void*) {
-    return new GameDataLuaCode();
+game_data* createGameDataLuaCode(param_archive* ar) {
+    //#TODO use armaAlloc
+    auto x = new GameDataLuaCode();
+    if (ar)
+        x->serialize(*ar);
+    return x;
 }
 
 
 
 class lua_object {
 public:
-    lua_object(object o) : obj(o){}
+    lua_object(object o) : obj(o) {}
     object obj;
     std::string getName() const {
         return sqf::name(obj);
@@ -77,12 +92,11 @@ std::vector<sol::object> allPlayers(sol::this_state s) {
     return ret;
 }
 
-
 sol::object getVariable(sol::object a, sol::this_state s) {
     sol::state_view lua(s);
     std::vector<sol::object> ret;
     if (a.is<std::string>()) {
-        return sol::object(lua, sol::in_place<lua_object>, sqf::get_variable(sqf::mission_namespace(),a.as<std::string>()));
+        return sol::object(lua, sol::in_place<lua_object>, sqf::get_variable(sqf::mission_namespace(), a.as<std::string>()));
     }
     return  sol::make_object(lua, sol::nil);
 }
@@ -95,7 +109,8 @@ game_value executeLua(game_value leftArg, game_value rightArg) {
         auto result = lua.state.do_file(rightArg);
         std::string ret = result;
         return ret;
-    } catch (sol::error err) {
+    }
+    catch (sol::error err) {
         return err.what();
     }
 }
@@ -110,12 +125,12 @@ game_value compileLua(game_value rightArg) {
 
 game_value compileLuaFromFile(game_value rightArg) {
     std::string code(sqf::preprocess_file(rightArg));
-    auto result = lua.state.load_buffer(code.c_str(),code.length(),(std::string("@")+static_cast<std::string>(rightArg)).c_str());
+    auto result = lua.state.load_buffer(code.c_str(), code.length(), (std::string("@") + static_cast<std::string>(rightArg)).c_str());
     if (result.valid()) {
-        return game_value(new GameDataLuaCode(result.get<sol::protected_function>(),rightArg));
+        return game_value(new GameDataLuaCode(result.get<sol::protected_function>(), rightArg));
     }
     return game_value();
-}   
+}
 
 game_value callLua_String(game_value leftArg, game_value rightArg) {
     std::string ret = lua.state[static_cast<std::string>(rightArg)](sol::object(lua.state, sol::in_place, static_cast<std::string>(leftArg)));
@@ -144,15 +159,131 @@ LuaManager::~LuaManager() {}
 
 types::registered_sqf_function _compileLuaFromFile;
 
+class ClassEntryx : public param_archive_entry {
+public:
+    //! virtual destructor
+    virtual ~ClassEntryx() {}
+
+    // generic entry
+    virtual int GetEntryCount() const { __debugbreak(); return 0; }
+    virtual param_archive_entry *GetEntry(int i) const { __debugbreak(); return NULL; }
+    virtual r_string _x() { return r_string(); }
+    virtual param_archive_entry *FindEntry(const r_string &name) const { __debugbreak(); return NULL; }
+    virtual operator float() const { __debugbreak(); return 0; }
+    virtual operator int() const { __debugbreak(); return 0; }
+    //#if _HELISIM_LARGE_OBJECTID
+    virtual operator int64_t() const { __debugbreak(); return 0; }
+    //#endif // _HELISIM_LARGE_OBJECTID
+    virtual operator const r_string() const { __debugbreak(); return r_string(); }
+    virtual operator r_string() const { __debugbreak(); return r_string(); }
+    virtual operator bool() const { __debugbreak(); return false; }
+    virtual r_string GetContext(const char *member = NULL) const { __debugbreak(); return r_string(); }
+
+    // array
+
+    virtual void AddValue(float val) {
+        std::stringstream str;
+        str << this << " AddValue " << val << "\n";
+        OutputDebugStringA(str.str().c_str());
+    }
+    virtual void AddValue(int val) {
+        std::stringstream str;
+        str << this << " AddValue " << val << "\n";
+        OutputDebugStringA(str.str().c_str());;
+    }
+    //#if _HELISIM_LARGE_OBJECTID
+    virtual void AddValue(int64_t val) {
+        std::stringstream str;
+        str << this << " AddValue " << val << "\n";
+        OutputDebugStringA(str.str().c_str());
+    }
+    //#endif
+    virtual void AddValue(bool val) {
+        std::stringstream str;
+        str << this << " AddValue " << val << "\n";
+        OutputDebugStringA(str.str().c_str());
+    }
+    virtual void AddValue(const r_string &val) {
+        std::stringstream str;
+        str << this << " AddValue " << val/*.data()*/ << "\n";
+        OutputDebugStringA(str.str().c_str());
+    }
+    virtual void ReserveArrayElements(int count) {
+        std::stringstream str;
+        str << this << " ReserveArrayElements " << count << "\n";
+        OutputDebugStringA(str.str().c_str());
+    }
+    virtual int GetSize() const { __debugbreak(); return 0; }
+    virtual param_archive_array_entry *operator [] (int i) const { __debugbreak(); return new param_archive_array_entry(); }
+
+    // class
+    virtual param_archive_entry *AddArray(const r_string &name) {
+        std::stringstream str;
+        auto newArr = new ClassEntryx;
+        str << this << " AddArray " << name.data() << " " << newArr << "\n";
+        OutputDebugStringA(str.str().c_str());
+        return newArr;
+    }
+    virtual param_archive_entry *AddClass(const r_string &name, bool guaranteedUnique = false) {
+        std::stringstream str;
+        auto newClass = new ClassEntryx;
+        str << this << " AddClass " << name.data() << " " << guaranteedUnique << " " << newClass << "\n";
+        OutputDebugStringA(str.str().c_str());
+        return newClass;
+    }
+    virtual void Add(const r_string &name, const r_string &val) {
+        std::stringstream str;
+        str << this << " Add " << name.data() << " " << val.data() << "\n";
+        OutputDebugStringA(str.str().c_str());
+    }
+    virtual void Add(const r_string &name, float val) {
+        std::stringstream str;
+        str << this << " Add " << name.data() << " " << val << "\n";
+        OutputDebugStringA(str.str().c_str());
+    }
+    virtual void Add(const r_string &name, int val) {
+        std::stringstream str;
+        str << this << " Add " << name.data() << " " << val << "\n";
+        OutputDebugStringA(str.str().c_str());
+    }
+    virtual void Add(const r_string &name, int64_t val) {
+        std::stringstream str;
+        str << this << " Add " << name.data() << " " << val << "\n";
+        OutputDebugStringA(str.str().c_str());
+    }
+    //#if _HELISIM_LARGE_OBJECTID
+    //#endif // _HELISIM_LARGE_OBJECTID
+    virtual void Compact() {
+        std::stringstream str;
+        str << this << " Compact " << "\n";
+        OutputDebugStringA(str.str().c_str());
+    }
+
+    //! Delete the entry. Note: it could be used in rare cases only!
+    virtual void Delete(const r_string &name) { __debugbreak(); }
+};
+
+
+r_string blubTest() {
+    return ""_sv;
+}
+
+static lua_iface iface_decl{ blubTest };
+
+void intercept::register_interfaces() {
+    client::host::register_plugin_interface("lua_iface"_sv, 1, &iface_decl);
+}
+
+
 void LuaManager::preStart() {
     auto codeType = client::host::registerType(r_string("LUACODE"), r_string("luaCode"), r_string("Dis is LUA!"), r_string("luaCode"), createGameDataLuaCode);
     GameDataLuaCode_type = codeType.second;
-    _execLua = client::host::registerFunction("execLUA", "Loads, compiles and executes given Lua file", userFunctionWrapper<executeLua>, GameDataType::ANY, GameDataType::ANY, GameDataType::STRING);
-    _compileLua = client::host::registerFunction("compileLUA", "Compiles Lua string", userFunctionWrapper<compileLua>, codeType.first, GameDataType::STRING);
-    _compileLuaFromFile = client::host::registerFunction("compileLUAFromFile", "Preprocesses and compiles LUA from file. Setting source information in case of errors.", userFunctionWrapper<compileLuaFromFile>, codeType.first, GameDataType::STRING);
-    _callLuaString = client::host::registerFunction("callLUA", "Call Named lua function in global Namespace", userFunctionWrapper<callLua_String>, GameDataType::ANY, GameDataType::ANY, GameDataType::STRING);
-    _callLuaCodeArgs = client::host::registerFunction("call", "Call compiled lua code", userFunctionWrapper<callLua_Code>, GameDataType::ANY, GameDataType::ANY, codeType.first);
-    _callLuaCode = client::host::registerFunction("call", "Call compiled lua code", userFunctionWrapper<callLua_Code>, GameDataType::ANY, codeType.first);
+    _execLua = client::host::registerFunction("execLUA"_sv, "Loads, compiles and executes given Lua file"_sv, userFunctionWrapper<executeLua>, GameDataType::ANY, GameDataType::ANY, GameDataType::STRING);
+    _compileLua = client::host::registerFunction("compileLUA"_sv, "Compiles Lua string"_sv, userFunctionWrapper<compileLua>, codeType.first, GameDataType::STRING);
+    _compileLuaFromFile = client::host::registerFunction("compileLUAFromFile"_sv, "Preprocesses and compiles LUA from file. Setting source information in case of errors."_sv, userFunctionWrapper<compileLuaFromFile>, codeType.first, GameDataType::STRING);
+    _callLuaString = client::host::registerFunction("callLUA"_sv, "Call Named lua function in global Namespace"_sv, userFunctionWrapper<callLua_String>, GameDataType::ANY, GameDataType::ANY, GameDataType::STRING);
+    _callLuaCodeArgs = client::host::registerFunction("call"_sv, "Call compiled lua code"_sv, userFunctionWrapper<callLua_Code>, GameDataType::ANY, GameDataType::ANY, codeType.first);
+    _callLuaCode = client::host::registerFunction("call"_sv, "Call compiled lua code_sv", userFunctionWrapper<callLua_Code>, GameDataType::ANY, codeType.first);
     
     state.open_libraries();
     state["systemChat"] = &system_chat;
@@ -161,5 +292,15 @@ void LuaManager::preStart() {
     state["player"] = &player;
     state.new_usertype<lua_object, object>("object", "name", &lua_object::getName);
     lua.state.do_file("P:\\test.luac");
+
+    
+
+    //param_archive ar;
+    //delete ar._p1;
+    //ar._p1 = new ClassEntryx();
+    //auto gv = compileLua("return \"TEST\";");
+    //game_value x = sqf::player();
+    //auto err = x.serialize(ar);
+    //r_string x2 = ar._p1->_x();
     //StartLuaEditRemoteDebugger(32201, state);
 }
