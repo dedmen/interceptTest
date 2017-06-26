@@ -7,7 +7,7 @@ using namespace intercept;
 
 types::registered_sqf_function _funcExport;
 types::registered_sqf_function _initFunc;
-
+#pragma region exportFuncs
 std::vector<std::string> alreadyHave{
     "BIS_fnc_packStaticWeapon",
     "BIS_fnc_unpackStaticWeapon",
@@ -1128,7 +1128,7 @@ game_value exportFuncs(game_value arg) {
     auto flist = sqf::get_variable(sqf::ui_namespace(), "BIS_functions_list");
     game_value l = sqf::call(flist);
     auto& _functionsList = l.to_array();
-    static auto bis_fnc_functionmeta = sqf::get_variable(sqf::mission_namespace(), "bis_fnc_functionmeta");
+    static game_value_static bis_fnc_functionmeta = sqf::get_variable(sqf::mission_namespace(), "bis_fnc_functionmeta");
     std::vector<std::string> pages;
     for (auto& it : _functionsList) {
         std::string funcName(it);
@@ -1286,11 +1286,41 @@ game_value exportFuncs(game_value arg) {
 
     return game_value();
 }
+#pragma endregion
 __itt_domain* domain_initF = __itt_domain_create("InterceptInitFunctions");
 __itt_string_handle* handle_initFunctions = __itt_string_handle_create("initFunctions");
 
+class scopedTimer {        //TFAR speedTest
+public:
+    explicit scopedTimer(const std::string & name_, bool willPrintOnDestruct_ = true) :start(std::chrono::high_resolution_clock::now()), name(name_), willPrintOnDestruct(willPrintOnDestruct_) {}
+    ~scopedTimer() { if (willPrintOnDestruct) log(); }
+    void log() const {
+        std::chrono::high_resolution_clock::time_point now = std::chrono::high_resolution_clock::now();
+        auto duration = std::chrono::duration_cast<std::chrono::microseconds>(now - start).count();
+        OutputDebugStringA((name + " " + std::to_string(duration) + " microsecs\n").c_str());
+    }
+    void log(const std::string & text) {
+        std::chrono::high_resolution_clock::time_point now = std::chrono::high_resolution_clock::now();
+        auto duration = std::chrono::duration_cast<std::chrono::microseconds>(now - start).count();
+        std::string message = name + "-" + text + " " + std::to_string(duration) + " microsecs\n";
+        OutputDebugStringA(message.c_str());
+        start += std::chrono::high_resolution_clock::now() - now; //compensate time for call to log func
+    }
+    void reset() {
+        start = std::chrono::high_resolution_clock::now();
+    }
+    std::chrono::microseconds getCurrentElapsedTime() const {
+        std::chrono::high_resolution_clock::time_point now = std::chrono::high_resolution_clock::now();
+        return std::chrono::duration_cast<std::chrono::microseconds>(now - start);
+    }
+    std::chrono::high_resolution_clock::time_point start;
+    std::string name;
+    bool willPrintOnDestruct;
+};
+
 game_value initFunctions(game_value _this) {
     __itt_task_begin(domain_initF, __itt_null, __itt_null, handle_initFunctions);
+    scopedTimer initFunctionsTimer("initFunctions");
     sqf::diag_log({ "_THiS###########",_this });
     /*
     File: init.sqf
@@ -1309,7 +1339,7 @@ game_value initFunctions(game_value _this) {
 #define VERSION	3.0
 
     //--- is not used anymore and so it should not be used anymore
-    sqf::call(sqf::compile("if (isNil \"BIS_fnc_MP_packet\") then{ BIS_fnc_MP_packet = compileFinal \"\" };"));
+    __SQF(if (isNil "BIS_fnc_MP_packet") then { BIS_fnc_MP_packet = compileFinal "" };);
 
     if (sqf::get_number(sqf::config_entry() >> "CfgFunctions" >> "version") != VERSION) {
         
@@ -1360,7 +1390,6 @@ game_value initFunctions(game_value _this) {
         scriptName '%1';\
     ";
     std::string _headerNone = "";
-    std::string _debugHeaderExtended = "";
 
     //--- Compose headers based on current debug mode
     int _debug = sqf::get_variable(sqf::ui_namespace(), "bis_fnc_initFunctions_debugMode", 0);
@@ -1373,7 +1402,8 @@ game_value initFunctions(game_value _this) {
 
     ///////////////////////////////////////////////////////////////////////////////////////////////////////
     //--- Compile function
-    auto _fncCompile = [&](std::string _fncVar, std::string _fncPath, std::string _fncExt, int _fncHeader, bool _fncFinal) -> code {
+    auto _fncCompile = [=](std::string _fncVar, std::string _fncPath, std::string _fncExt, int _fncHeader, bool _fncFinal) -> code {
+        scopedTimer compileTimer("compile "+ _fncVar);
         //_fncVar = _this select 0;
         //_fncMeta = _this select 1;
         //_fncHeader = _this select 2;
@@ -1391,7 +1421,7 @@ game_value initFunctions(game_value _this) {
                 _header = _headerDefault;     //--- Full header
 
                                               //--- Extend error report by including name of the function responsible
-            _debugHeaderExtended = "\r\n#line 1 \"" + _fncPath + " [" + _fncVar + "]\"\r\n";
+            std::string _debugHeaderExtended = "\r\n#line 1 \"" + _fncPath + " [" + _fncVar + "]\"\r\n";
             std::string _debugMessage = "Log: [Functions]%1 | %2";
 
             if (_fncFinal) {
@@ -1429,7 +1459,7 @@ game_value initFunctions(game_value _this) {
         game_value _fnc = sqf::get_variable(sqf::ui_namespace(), _recompile);
         if (_fnc.is_nil()) { _fnc = sqf::get_variable(sqf::mission_namespace(), _recompile); _fncUINamespace = false; }
         if (!_fnc.is_nil()) {
-            static code bis_fnc_functionMeta = sqf::get_variable(sqf::ui_namespace(), "bis_fnc_functionMeta");
+            static game_value_static bis_fnc_functionMeta = sqf::get_variable(sqf::ui_namespace(), "bis_fnc_functionMeta");
             auto _fncMeta = sqf::call(bis_fnc_functionMeta, _recompile);
             int _headerType = (_this.size() > 1) ? static_cast<int>(_this[1]) : 0;
             auto compiled = _fncCompile(_recompile, _fncMeta[0], _fncMeta[1], _headerType, false);
@@ -1439,7 +1469,7 @@ game_value initFunctions(game_value _this) {
             //    textlogformat["Log: [Functions]: %1 recompiled with meta %2",_recompile,_fncMeta];
             //};
         } else {
-            static code _fncError = sqf::get_variable(sqf::ui_namespace(), "bis_fnc_error");
+            static game_value_static _fncError = sqf::get_variable(sqf::ui_namespace(), "bis_fnc_error");
             if (!_fncError.is_nil()) {
                 sqf::call(_fncError, { "%1 is not a function.", _recompile });
             } else {
@@ -1558,6 +1588,7 @@ game_value initFunctions(game_value _this) {
         //--- Manual toggle
         sqf::get_number(sqf::config_entry(sqf::mission_config_file()) >> "allowFunctionsRecompile") == 0;
     for (auto _t : _listConfigs) {
+        auto configParsingTimer = std::make_shared<scopedTimer>("configParsingTimer");
         auto _cfg = _cfgSettings[_t];
         auto _pathConfig = std::get<0>(_cfg);
         auto _pathFile = std::get<1>(_cfg);
@@ -1675,7 +1706,7 @@ game_value initFunctions(game_value _this) {
                                     _functions_listPreStart.push_back(r_string(_itemVar));
                                 };
                             } else {
-                                static code bis_fnc_error = sqf::get_variable(sqf::ui_namespace(), "bis_fnc_error");
+                                static game_value_static bis_fnc_error = sqf::get_variable(sqf::ui_namespace(), "bis_fnc_error");
                                 std::string _errorText("%1 is a mission / campaign function and cannot contain 'preStart = 1;' param"_sv);
                                 if (!bis_fnc_error.is_nil()) {
                                     sqf::call(bis_fnc_error, { _errorText,_itemVar });
@@ -1692,7 +1723,7 @@ game_value initFunctions(game_value _this) {
                                     _functions_listRecompile.push_back(r_string(_itemVar));
                                 }
                             } else {
-                                static code bis_fnc_error = sqf::get_variable(sqf::ui_namespace(), "bis_fnc_error");
+                                static game_value_static bis_fnc_error = sqf::get_variable(sqf::ui_namespace(), "bis_fnc_error");
                                 std::string _errorText("Redundant use of 'recompile = 1;' in %1 - mission / campaign functions are recompiled on start by default."_sv);
                                 if (!bis_fnc_error.is_nil()) {
                                     sqf::call(bis_fnc_error, { _errorText,_itemVar });
@@ -1747,11 +1778,12 @@ game_value initFunctions(game_value _this) {
 
     //--- Not core
     if (_recompileInt >= 0 && _recompileInt <= 5 && _recompileInt != 2) {
+        scopedTimer recompileTimer("recompileTimer");
         auto cpy = _functions_list;
         for (auto& it : _functions_listRecompile) //--- Exclude functions marker for recompile to avoid double-compile
             cpy.erase(cpy.find(it));
         for (auto& it : cpy) {
-            static code bis_fnc_functionMeta = sqf::get_variable(sqf::ui_namespace(), "bis_fnc_functionMeta");
+            static game_value_static bis_fnc_functionMeta = sqf::get_variable(sqf::ui_namespace(), "bis_fnc_functionMeta");
             bool _allowRecompile = sqf::call(bis_fnc_functionMeta, it)[5];
 
             auto _xCode = sqf::get_variable(sqf::ui_namespace(), std::string(it));
@@ -1768,10 +1800,12 @@ game_value initFunctions(game_value _this) {
         //--- Call preStart functions
 
         if (sqf::is_null(sqf::find_display(0))) {
+            scopedTimer preStartTimer("preStart");
             for (auto& it : _functions_listPreStart) {
-                static code bis_fnc_logFormat = sqf::get_variable(sqf::ui_namespace(), "bis_fnc_logFormat");
-                sqf::call(bis_fnc_logFormat, { "preStart %1",it });
+                static game_value_static bis_fnc_logFormat = sqf::get_variable(sqf::ui_namespace(), "bis_fnc_logFormat");
+                //sqf::call(bis_fnc_logFormat, { "preStart %1",it });
                 auto name = std::string(it);
+                scopedTimer recompileTimer("preStart "+ name);
                 auto code = sqf::get_variable(sqf::ui_namespace(), name);
                 auto codeString = sqf::str(code);
                 auto _function = sqf::call(code, std::move(auto_array<game_value>()));
@@ -1782,11 +1816,11 @@ game_value initFunctions(game_value _this) {
 
     //--- Mission only
 #pragma region Mission only
-    if (_recompileInt == 3 && _recompileInt == 5) {
+    if (_recompileInt == 3 || _recompileInt == 5) {
 
         //--- Switch to mission loading bar
         sqf::set_variable(sqf::current_namespace(), "RscDisplayLoading_progressMission", true);
-        static code bis_fnc_preload = sqf::get_variable(sqf::ui_namespace(), "bis_fnc_preload");
+        static game_value_static bis_fnc_preload = sqf::get_variable(sqf::ui_namespace(), "bis_fnc_preload");
         //--- Execute script preload
         sqf::call(bis_fnc_preload, auto_array<game_value>());
 
@@ -1819,8 +1853,13 @@ game_value initFunctions(game_value _this) {
         //--- Recompile selected functions
         if (!sqf::is_eden()) {
             sqf::set_variable(sqf::current_namespace(), "_fnc_scriptname", "recompile");
-            static code bis_fnc_logFormat = sqf::get_variable(sqf::current_namespace(), "bis_fnc_logFormat");
-            static code bis_fnc_recompile = sqf::get_variable(sqf::current_namespace(), "bis_fnc_recompile");
+            static game_value_static bis_fnc_logFormat = sqf::get_variable(sqf::current_namespace(), "bis_fnc_logFormat");
+            static game_value_static bis_fnc_recompile = sqf::get_variable(sqf::current_namespace(), "bis_fnc_recompile");
+            {
+                scopedTimer recompileTimer("recompileTimer preInit");
+
+
+            }
             for (auto& it : _functions_listRecompile) {
                 sqf::call(bis_fnc_logFormat, { "recompile %1",it });
                 sqf::call(bis_fnc_recompile, it);
@@ -1828,9 +1867,10 @@ game_value initFunctions(game_value _this) {
 
             //--- Call preInit functions
             sqf::set_variable(sqf::current_namespace(), "_fnc_scriptname", "preInit");
-
+            scopedTimer preInitTimer("preInit");
             for (auto& x : _functions_listPreInit.to_array()) {
                 for (auto& it : x.to_array()) {
+                    scopedTimer preInitTimer_("preInit " + static_cast<std::string>(it));
                     sqf::call(sqf::get_variable(sqf::mission_namespace(), it), { "preInit" });
                 }
             }

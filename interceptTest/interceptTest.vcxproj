@@ -125,7 +125,7 @@
       <LanguageStandard>stdcpplatest</LanguageStandard>
     </ClCompile>
     <Link>
-      <AdditionalDependencies>intercept_client.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>intercept_client.lib;libittnotify.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <AdditionalLibraryDirectories>I:\intercept\build\win32\intercept_client\Debug;J:\Installs\IntelSWTools\VTune Amplifier XE 2017\lib32;C:\Program Files (x86)\LuaEdit 2010\lib\x86;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
     </Link>
   </ItemDefinitionGroup>

@@ -5,7 +5,6 @@
 
 // the Intercept library, only one include required.
 #include <client/headers/intercept.hpp>
-#include <iso646.h>
 //#define INTEL_NO_ITTNOTIFY_API
 #include <ittnotify.h>
 #include "tools.h"
@@ -227,7 +226,7 @@ static game_value TFAR_fnc_preparePositionCoordinates(game_value args) {
     auto vehicle = sqf::object_parent(_unit);
     if (!sqf::is_null(vehicle)) {
         _vehicle = TFAR_fnc_vehicleID(vehicle);// sqf::call(sqf::get_variable(sqf::mission_namespace(), "TFAR_fnc_vehicleId"), _unit);
-        static auto TFAR_fnc_vehicleIsIsolatedAndInside = sqf::get_variable(sqf::mission_namespace(), "TFAR_fnc_vehicleIsIsolatedAndInside");
+        static game_value_static TFAR_fnc_vehicleIsIsolatedAndInside = sqf::get_variable(sqf::mission_namespace(), "TFAR_fnc_vehicleIsIsolatedAndInside");
         _isolated_and_inside = sqf::call(TFAR_fnc_vehicleIsIsolatedAndInside, _unit);
     }
     auto _eyeDepth = _pos.z;//Inlined version of TFAR_fnc_eyeDepth to save performance
@@ -242,19 +241,19 @@ static game_value TFAR_fnc_preparePositionCoordinates(game_value args) {
     };
 
     if (_nearPlayer && sqf::distance(sqf::get_pos(TFAR_currentUnit), _pos) <= (float) sqf::get_variable(sqf::mission_namespace(), "TF_speakerDistance")) {
-        static auto TFAR_fnc_getLrSpeakers = sqf::get_variable(sqf::mission_namespace(), "TFAR_fnc_getLrSpeakers");
-        static auto TFAR_fnc_lrRadiosList = sqf::get_variable(sqf::mission_namespace(), "TFAR_fnc_lrRadiosList");
-        static auto TFAR_fnc_getLrFrequency = sqf::get_variable(sqf::mission_namespace(), "TFAR_fnc_getLrFrequency");
-        static auto TFAR_fnc_getLrRadioCode = sqf::get_variable(sqf::mission_namespace(), "TFAR_fnc_getLrRadioCode");
-        static auto TFAR_fnc_getAdditionalLrChannel = sqf::get_variable(sqf::mission_namespace(), "TFAR_fnc_getAdditionalLrChannel");
-        static auto TFAR_fnc_getChannelFrequency = sqf::get_variable(sqf::mission_namespace(), "TFAR_fnc_getChannelFrequency");
-        static auto TFAR_fnc_getLrVolume = sqf::get_variable(sqf::mission_namespace(), "TFAR_fnc_getLrVolume");
-        static auto TFAR_fnc_getSwSpeakers = sqf::get_variable(sqf::mission_namespace(), "TFAR_fnc_getSwSpeakers");
-        static auto TFAR_fnc_radiosList = sqf::get_variable(sqf::mission_namespace(), "TFAR_fnc_radiosList");
-        static auto TFAR_fnc_getSwFrequency = sqf::get_variable(sqf::mission_namespace(), "TFAR_fnc_getSwFrequency");
-        static auto TFAR_fnc_getSwRadioCode = sqf::get_variable(sqf::mission_namespace(), "TFAR_fnc_getSwRadioCode");
-        static auto TFAR_fnc_getAdditionalSwChannel = sqf::get_variable(sqf::mission_namespace(), "TFAR_fnc_getAdditionalSwChannel");
-        static auto TFAR_fnc_getSwVolume = sqf::get_variable(sqf::mission_namespace(), "TFAR_fnc_getSwVolume");
+        static game_value_static TFAR_fnc_getLrSpeakers = sqf::get_variable(sqf::mission_namespace(), "TFAR_fnc_getLrSpeakers");
+        static game_value_static TFAR_fnc_lrRadiosList = sqf::get_variable(sqf::mission_namespace(), "TFAR_fnc_lrRadiosList");
+        static game_value_static TFAR_fnc_getLrFrequency = sqf::get_variable(sqf::mission_namespace(), "TFAR_fnc_getLrFrequency");
+        static game_value_static TFAR_fnc_getLrRadioCode = sqf::get_variable(sqf::mission_namespace(), "TFAR_fnc_getLrRadioCode");
+        static game_value_static TFAR_fnc_getAdditionalLrChannel = sqf::get_variable(sqf::mission_namespace(), "TFAR_fnc_getAdditionalLrChannel");
+        static game_value_static TFAR_fnc_getChannelFrequency = sqf::get_variable(sqf::mission_namespace(), "TFAR_fnc_getChannelFrequency");
+        static game_value_static TFAR_fnc_getLrVolume = sqf::get_variable(sqf::mission_namespace(), "TFAR_fnc_getLrVolume");
+        static game_value_static TFAR_fnc_getSwSpeakers = sqf::get_variable(sqf::mission_namespace(), "TFAR_fnc_getSwSpeakers");
+        static game_value_static TFAR_fnc_radiosList = sqf::get_variable(sqf::mission_namespace(), "TFAR_fnc_radiosList");
+        static game_value_static TFAR_fnc_getSwFrequency = sqf::get_variable(sqf::mission_namespace(), "TFAR_fnc_getSwFrequency");
+        static game_value_static TFAR_fnc_getSwRadioCode = sqf::get_variable(sqf::mission_namespace(), "TFAR_fnc_getSwRadioCode");
+        static game_value_static TFAR_fnc_getAdditionalSwChannel = sqf::get_variable(sqf::mission_namespace(), "TFAR_fnc_getAdditionalSwChannel");
+        static game_value_static TFAR_fnc_getSwVolume = sqf::get_variable(sqf::mission_namespace(), "TFAR_fnc_getSwVolume");
 
         if (sqf::get_variable(_unit, "TFAR_LRSpeakersEnabled", false) && _useLr) {
             auto lrRadiosList = sqf::call(TFAR_fnc_lrRadiosList, _unit);
@@ -327,7 +326,7 @@ static game_value TFAR_fnc_preparePositionCoordinates(game_value args) {
 
     auto _isEnemy = false;
     if (_isRemotePlayer && sqf::get_variable(TFAR_currentUnit, "TFAR_forceSpectator", false)) { //If we are not spectating we are not interested if he is enemy
-        static auto BIS_fnc_sideIsEnemy = sqf::get_variable(sqf::mission_namespace(), "BIS_fnc_sideIsEnemy");
+        static game_value_static BIS_fnc_sideIsEnemy = sqf::get_variable(sqf::mission_namespace(), "BIS_fnc_sideIsEnemy");
         _isEnemy = sqf::call(BIS_fnc_sideIsEnemy, { sqf::player_side(), sqf::get_side(_unit) });
     };
     vector3 _curViewDir = _isSpectating ? (sqf::position_camera_to_world({ 0,0,1 }) - sqf::position_camera_to_world({ 0,0,0 })) : sqf::get_camera_view_direction(_unit);//Inlined version of TFAR_fnc_currentDirection
@@ -355,9 +354,9 @@ static game_value TFAR_fnc_preparePositionCoordinates(game_value args) {
 
 game_value TFAR_fnc_sendPlayerInfo(game_value args) {
     __itt_task_begin(domain, __itt_null, __itt_null, handle_TFAR_fnc_sendPlayerInfo);
-    static auto TFAR_fnc_fireEventHandlers = sqf::get_variable(sqf::mission_namespace(), "TFAR_fnc_fireEventHandlers");
-    static auto TFAR_fnc_showHint = sqf::get_variable(sqf::mission_namespace(), "TFAR_fnc_showHint");
-    static auto TFAR_fnc_hideHint = sqf::get_variable(sqf::mission_namespace(), "TFAR_fnc_hideHint");
+    static game_value_static TFAR_fnc_fireEventHandlers = sqf::get_variable(sqf::mission_namespace(), "TFAR_fnc_fireEventHandlers");
+    static game_value_static TFAR_fnc_showHint = sqf::get_variable(sqf::mission_namespace(), "TFAR_fnc_showHint");
+    static game_value_static TFAR_fnc_hideHint = sqf::get_variable(sqf::mission_namespace(), "TFAR_fnc_hideHint");
     auto missionNamespace = sqf::mission_namespace();
 
     object _player = args[0];
@@ -572,7 +571,7 @@ game_value TFAR_fnc_processPlayerPositions(game_value arg) {
 
     //Queue new updates to plugin if last one processed
     if (TFAR_currentNearPlayersProcessed) {
-        static auto TFAR_fnc_sendSpeakerRadios = sqf::get_variable(sqf::mission_namespace(), "TFAR_fnc_sendSpeakerRadios");
+        static game_value_static TFAR_fnc_sendSpeakerRadios = sqf::get_variable(sqf::mission_namespace(), "TFAR_fnc_sendSpeakerRadios");
         sqf::call(TFAR_fnc_sendSpeakerRadios);//send Speaker radio infos to plugin Has to be here because it needs a variable from NearPlayer processing
         //#TODO replace by native
         for (auto& it : TFAR_currentNearPlayers) {
@@ -586,7 +585,7 @@ game_value TFAR_fnc_processPlayerPositions(game_value arg) {
 
     //Queue new updates to plugin if last one processed
     if (TFAR_currentFarPlayersProcessed) {
-        static auto TFAR_fnc_pluginNextDataFrame = sqf::get_variable(sqf::mission_namespace(), "TFAR_fnc_pluginNextDataFrame");
+        static game_value_static TFAR_fnc_pluginNextDataFrame = sqf::get_variable(sqf::mission_namespace(), "TFAR_fnc_pluginNextDataFrame");
         sqf::call(TFAR_fnc_pluginNextDataFrame);//Doing this here causes NearPlayers to only expire after TFAR_FAR_PLAYER_UPDATE_TIME
         //#TODO replace by native
         TFAR_currentFarPlayersProcessing = std::queue<object>();
@@ -708,7 +707,7 @@ void __cdecl intercept::post_init() {
 class Variable {
 public:
     Variable() {};
-    Variable(std::string varName) : _name(varName), _namespace(intercept::sqf::mission_namespace()) {};//#TODO namespace/object and other types constructor argument
+    Variable(std::string varName) : _namespace(intercept::sqf::mission_namespace()), _name(varName) {};//#TODO namespace/object and other types constructor argument
     auto get() {
         return intercept::sqf::get_variable(_namespace, _name);
     }
