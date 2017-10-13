@@ -1,4 +1,4 @@
-﻿#include "LuaManager.h"
+#include "LuaManager.h"
 #include <client/headers/intercept.hpp>
 #include <sstream>
 using namespace intercept;
@@ -32,7 +32,7 @@ public:
 
     bool get_as_bool() const override { return true; }
     float get_as_number() const override { return 0.f; }
-    r_string get_as_string() const override { return r_string(); }
+    const r_string& get_as_string() const override { return code_string; }
     game_data* copy() const override { return new GameDataLuaCode(*this); }
     r_string to_string() const override { return code_string; }
     //virtual bool equals(const game_data*) const override;
@@ -42,7 +42,7 @@ public:
 
     serialization_return serialize(param_archive& ar) override {
         game_data::serialize(ar);
-        ar.serialize("value"_sv, code_string, 1);
+        ar.serialize("value"sv, code_string, 1);
         if (!ar._isExporting) {
             std::string c(code_string);
             code = lua.state.load(c).get<sol::protected_function>();
@@ -265,25 +265,25 @@ public:
 
 
 r_string blubTest() {
-    return ""_sv;
+    return ""sv;
 }
 
 static lua_iface iface_decl{ blubTest };
 
 void intercept::register_interfaces() {
-    client::host::register_plugin_interface("lua_iface"_sv, 1, &iface_decl);
+    client::host::register_plugin_interface("lua_iface"sv, 1, &iface_decl);
 }
 
 
 void LuaManager::preStart() {
     auto codeType = client::host::registerType(r_string("LUACODE"), r_string("luaCode"), r_string("Dis is LUA!"), r_string("luaCode"), createGameDataLuaCode);
     GameDataLuaCode_type = codeType.second;
-    _execLua = client::host::registerFunction("execLUA"_sv, "Loads, compiles and executes given Lua file"_sv, userFunctionWrapper<executeLua>, GameDataType::ANY, GameDataType::ANY, GameDataType::STRING);
-    _compileLua = client::host::registerFunction("compileLUA"_sv, "Compiles Lua string"_sv, userFunctionWrapper<compileLua>, codeType.first, GameDataType::STRING);
-    _compileLuaFromFile = client::host::registerFunction("compileLUAFromFile"_sv, "Preprocesses and compiles LUA from file. Setting source information in case of errors."_sv, userFunctionWrapper<compileLuaFromFile>, codeType.first, GameDataType::STRING);
-    _callLuaString = client::host::registerFunction("callLUA"_sv, "Call Named lua function in global Namespace"_sv, userFunctionWrapper<callLua_String>, GameDataType::ANY, GameDataType::ANY, GameDataType::STRING);
-    _callLuaCodeArgs = client::host::registerFunction("call"_sv, "Call compiled lua code"_sv, userFunctionWrapper<callLua_Code>, GameDataType::ANY, GameDataType::ANY, codeType.first);
-    _callLuaCode = client::host::registerFunction("call"_sv, "Call compiled lua code_sv", userFunctionWrapper<callLua_Code>, GameDataType::ANY, codeType.first);
+    _execLua = client::host::registerFunction("execLUA"sv, "Loads, compiles and executes given Lua file"sv, userFunctionWrapper<executeLua>, GameDataType::ANY, GameDataType::ANY, GameDataType::STRING);
+    _compileLua = client::host::registerFunction("compileLUA"sv, "Compiles Lua string"sv, userFunctionWrapper<compileLua>, codeType.first, GameDataType::STRING);
+    _compileLuaFromFile = client::host::registerFunction("compileLUAFromFile"sv, "Preprocesses and compiles LUA from file. Setting source information in case of errors."sv, userFunctionWrapper<compileLuaFromFile>, codeType.first, GameDataType::STRING);
+    _callLuaString = client::host::registerFunction("callLUA"sv, "Call Named lua function in global Namespace"sv, userFunctionWrapper<callLua_String>, GameDataType::ANY, GameDataType::ANY, GameDataType::STRING);
+    _callLuaCodeArgs = client::host::registerFunction("call"sv, "Call compiled lua code"sv, userFunctionWrapper<callLua_Code>, GameDataType::ANY, GameDataType::ANY, codeType.first);
+    _callLuaCode = client::host::registerFunction("call"sv, "Call compiled lua codesv", userFunctionWrapper<callLua_Code>, GameDataType::ANY, codeType.first);
     
     state.open_libraries();
     state["systemChat"] = &system_chat;

@@ -1356,7 +1356,7 @@ game_value initFunctions(game_value _this) {
     //};
 
     //--- Fake header
-    std::string _fnc_scriptName = sqf::get_variable(sqf::current_namespace(), "_fnc_scriptName", "Functions Init"_sv);
+    std::string _fnc_scriptName = sqf::get_variable(sqf::current_namespace(), "_fnc_scriptName", "Functions Init"sv);
 
     /******************************************************************************************************
     DEFINE HEADERS
@@ -1707,7 +1707,7 @@ game_value initFunctions(game_value _this) {
                                 };
                             } else {
                                 static game_value_static bis_fnc_error = sqf::get_variable(sqf::ui_namespace(), "bis_fnc_error");
-                                std::string _errorText("%1 is a mission / campaign function and cannot contain 'preStart = 1;' param"_sv);
+                                std::string _errorText("%1 is a mission / campaign function and cannot contain 'preStart = 1;' param"sv);
                                 if (!bis_fnc_error.is_nil()) {
                                     sqf::call(bis_fnc_error, { _errorText,_itemVar });
                                 } else {
@@ -1724,7 +1724,7 @@ game_value initFunctions(game_value _this) {
                                 }
                             } else {
                                 static game_value_static bis_fnc_error = sqf::get_variable(sqf::ui_namespace(), "bis_fnc_error");
-                                std::string _errorText("Redundant use of 'recompile = 1;' in %1 - mission / campaign functions are recompiled on start by default."_sv);
+                                std::string _errorText("Redundant use of 'recompile = 1;' in %1 - mission / campaign functions are recompiled on start by default."sv);
                                 if (!bis_fnc_error.is_nil()) {
                                     sqf::call(bis_fnc_error, { _errorText,_itemVar });
                                 } else {

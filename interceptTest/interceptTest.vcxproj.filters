@@ -135,6 +135,12 @@
     <ClCompile Include="lua\lutf8lib.c">
       <Filter>Quelldateien\lua</Filter>
     </ClCompile>
+    <ClCompile Include="TFAR.cpp">
+      <Filter>Quelldateien</Filter>
+    </ClCompile>
+    <ClCompile Include="cba.cpp">
+      <Filter>Quelldateien</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="tools.h">
@@ -223,6 +229,12 @@
     </ClInclude>
     <ClInclude Include="lua\lundump.h">
       <Filter>Quelldateien\lua</Filter>
+    </ClInclude>
+    <ClInclude Include="TFAR.h">
+      <Filter>Headerdateien</Filter>
+    </ClInclude>
+    <ClInclude Include="cba.h">
+      <Filter>Headerdateien</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

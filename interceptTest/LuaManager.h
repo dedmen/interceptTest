@@ -1,4 +1,4 @@
-﻿#pragma once
+#pragma once
 
 #include "sol.hpp"
 #include <client/headers/intercept.hpp>

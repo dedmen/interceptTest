@@ -1,21 +1,20 @@
-﻿#include <stdio.h>
+#include <stdio.h>
 #include <cstdint>
 #include <sstream>
 #include <experimental/string>
 
-// the Intercept library, only one include required.
-#include <client/headers/intercept.hpp>
-//#define INTEL_NO_ITTNOTIFY_API
-#include <ittnotify.h>
 #include "tools.h"
 #include <queue>
+#include "TFAR.h"
+#include "cba.h"
 
 using namespace intercept;
 types::registered_sqf_function _interceptEventFunction;
 types::registered_sqf_function _interceptEventFunction2;
 types::registered_sqf_function _interceptEventFunction3;
 types::registered_sqf_function _interceptEventFunction4;
-static game_value TFAR_fnc_preparePositionCoordinates(game_value left_arg);
+types::registered_sqf_function _interceptEventFunction5;
+types::registered_sqf_function _interceptEventFunction6;
 
 // required exported function to return API version
 int __cdecl intercept::api_version() {
@@ -49,6 +48,7 @@ public:
 
 };
 thready* globalThready;
+TFAR pTFAR;
 #include <random>
 std::random_device rd;
 
@@ -59,543 +59,39 @@ vector3 randomOffset(float maxOffset) {
     return{ dist(e2),dist(e2), dist(e2) };
 }
 
-vector3 TFAR_fnc_defaultPositionCoordinates(object& _unit, bool _isNearPlayer, bool forceSpectator, bool _isCurrentUnit) {
-    if (forceSpectator) return sqf::agl_to_asl(sqf::position_camera_to_world({ 0,0,0 }));
-
-
-
-    auto p2 = static_cast<game_data_object*>(_unit.data.getRef())->get_head_pos();
-    if (p2.valid)
-        return p2._cameraPositionWorld;
-    auto _current_eyepos = sqf::eye_pos(_unit);
-
-    //If this is not in here then positions inside fast moving vehicles will be weird. But this is also performance intensive
-    if (_isNearPlayer && sqf::velocity(_unit).magnitude() > 3 && !_isCurrentUnit) {
-        _current_eyepos = sqf::visible_position(_unit) + (_current_eyepos - sqf::get_pos(_unit));
-    };
-    return _current_eyepos;
-}
-
-bool TFAR_fnc_canUseSWRadio(object& _unit, bool _isolated_and_inside, float _depth) {
-    return  (_depth > 0) || _isolated_and_inside || sqf::is_able_to_breathe(_unit);
-}
-
-bool TFAR_fnc_canUseLrRadio(object& _unit, bool _isolated_and_inside, float _depth) {
-    if (_depth > 0) return true;
-
-    if (_depth > -3 && !sqf::is_equal_to(sqf::vehicle(_unit), _unit)) {
-        if ((_isolated_and_inside) || sqf::is_able_to_breathe(_unit)) return true;
-    };
-    return false;
-}
-
-
-
-game_value TFAR_fnc_getConfigProperty(const std::string& classname, const std::string& property, game_value def = game_value()) {
-    static std::map<std::string, game_value> configCache;
-
-    auto _cacheName = classname + property;
-    auto found = configCache.find(_cacheName);
-    if (found != configCache.end()) return found->second;
-
-    auto _cfgProperty = (sqf::config_entry() >> "CfgVehicles" >> classname >> property);
-            
-    if (sqf::is_number(_cfgProperty)){
-        game_value _value = sqf::get_number(_cfgProperty);
-        configCache.insert_or_assign(_cacheName, _value);
-        return _value;
-    }
-
-    if (sqf::is_text(_cfgProperty)) {
-        game_value _value = sqf::get_text(_cfgProperty);
-        configCache.insert_or_assign(_cacheName, _value);
-        return _value;
-    }
-
-    if (sqf::is_array(_cfgProperty)) {
-        game_value _value = sqf::get_array(_cfgProperty);
-        configCache.insert_or_assign(_cacheName, _value);
-        return _value;
-    }
-    configCache.insert_or_assign(_cacheName, def);
-    return def;
-}
-
-
-
-std::string TFAR_fnc_vehicleID(object& _vehicle) {
-    auto _netID = sqf::net_id(_vehicle);
-    //static auto TFAR_fnc_getConfigProperty = sqf::get_variable(sqf::mission_namespace(), "TFAR_fnc_getConfigProperty");
-    auto typeOf = sqf::type_of(_vehicle);
-    
-    float _hasIntercom = TFAR_fnc_getConfigProperty(typeOf, "TFAR_hasIntercom", 0.f);
-    float _intercomSlot = -1;
-
-    if (_hasIntercom > 0.f) {
-        _intercomSlot = sqf::get_variable(_vehicle, std::string("TFAR_IntercomSlot_") + _netID, 0.f);
-    };
-
-
-    return sqf::format({ "%1\x10%2\x10%3\x10%4",_netID,
-        //#TODO isTurnedOut
-         //false ? "turnout" : 
-        TFAR_fnc_getConfigProperty(typeOf, "tf_isolatedAmount", 0.f),
-        _intercomSlot,
-        sqf::velocity(_vehicle)
-    });
-}
-float TFAR_fnc_calcTerrainInterception(object& _unit, object& TFAR_currentUnit) {
-
-    auto _result = 0.f;
-    vector3 _p1 = sqf::eye_pos(TFAR_currentUnit);
-    vector3 _p2 = sqf::eye_pos(_unit);
-    if (sqf::terrain_intersect_asl(_p1, _p2)) {
-        auto _l = 10.0f;
-        auto _r = 250.0f;
-        auto _m = 100.0f;
-
-        vector3 _middle = {
-            ((_p1.x) + (_p2.x)) / 2.f,
-            ((_p1.y) + (_p2.y)) / 2.f,
-            ((_p1.z) + (_p2.z)) / 2.f
-        };
-        auto _base = _middle.z;
-
-        while ((_r - _l) > 10) {
-            _middle.z = _base + _m;
-            if ((!sqf::terrain_intersect_asl(_p1, _middle)) && !sqf::terrain_intersect_asl(_p2, _middle)) {
-                _r = _m;
-            } else {
-                _l = _m;
-            };
-            _m = (_l + _r) / 2.0f;
-        };
-        _result = _m;
-    };
-    return _result;
-}
-
-float TFAR_fnc_objectInterception(object& _unit, object& TFAR_currentUnit) {
-    auto _ins = sqf::line_intersects_surfaces(
-        sqf::eye_pos(TFAR_currentUnit), sqf::eye_pos(_unit),
-        _unit,
-        TFAR_currentUnit,
-        true,
-        10, "FIRE", "NONE"
-    );
-
-    auto _localParent = sqf::object_parent(TFAR_currentUnit);
-    auto _remoteParent = sqf::object_parent(_unit);
-    float count = 0.f;
-    for (auto& it : _ins) {
-        if (_localParent.data != it.intersect_object.data &&
-            _remoteParent.data != it.intersect_object.data)
-            count += 1.f;
-    }
-    return count;
-}
 
 game_value redirectWrap(game_value left_arg, game_value right_arg) {
     return u8"heööai?";
 }
 game_value redirectWrapUnary(game_value right_arg) {
-    return TFAR_fnc_preparePositionCoordinates(std::move(right_arg));
+    return {};// TFAR::TFAR_fnc_preparePositionCoordinates(std::move(right_arg));
 }
 game_value redirectWrapNular() {
-    return u8"heööai?";
-}
-__itt_domain* domain = __itt_domain_create("InterceptTest");
-__itt_string_handle* handle_TFAR_fnc_preparePositionCoordinates = __itt_string_handle_create("TFAR_fnc_preparePositionCoordinates");
-__itt_string_handle* handle_TFAR_fnc_sendPlayerInfo = __itt_string_handle_create("TFAR_fnc_sendPlayerInfo");
-static game_value TFAR_fnc_preparePositionCoordinates(game_value args) {
-    __itt_task_begin(domain, __itt_null, __itt_null, handle_TFAR_fnc_preparePositionCoordinates);
-    object _unit = args[0];
-    bool _nearPlayer = args[1];
-    std::string _unitName = args[2];
+    types::auto_array<types::game_value> output;
 
-    auto _isSpectating = sqf::get_variable(_unit, "TFAR_forceSpectator", false);
-    object TFAR_currentUnit = sqf::get_variable(sqf::mission_namespace(), "TFAR_currentUnit");
-    auto _isRemotePlayer = !sqf::is_equal_to(_unit, TFAR_currentUnit);
+    auto allUnits = sqf::all_units();
+    output.reserve(allUnits.size());
 
-    vector3 _pos = TFAR_fnc_defaultPositionCoordinates(_unit, _nearPlayer, _isSpectating, !_isRemotePlayer);
-    auto TF_fnc_position = sqf::get_variable(_unit, "TF_fnc_position");
-    if (!TF_fnc_position.is_nil())
-        _pos = sqf::call(TF_fnc_position, game_value({ _unit ,_nearPlayer }));
-    auto _isolated_and_inside = false; //_isInVehicle && {_unit call TFAR_fnc_vehicleIsIsolatedAndInside};
-    std::string _vehicle = "no"; //if (_isInVehicle) then {_unit call TFAR_fnc_vehicleId} else {"no"};
-    auto vehicle = sqf::object_parent(_unit);
-    if (!sqf::is_null(vehicle)) {
-        _vehicle = TFAR_fnc_vehicleID(vehicle);// sqf::call(sqf::get_variable(sqf::mission_namespace(), "TFAR_fnc_vehicleId"), _unit);
-        static game_value_static TFAR_fnc_vehicleIsIsolatedAndInside = sqf::get_variable(sqf::mission_namespace(), "TFAR_fnc_vehicleIsIsolatedAndInside");
-        _isolated_and_inside = sqf::call(TFAR_fnc_vehicleIsIsolatedAndInside, _unit);
-    }
-    auto _eyeDepth = _pos.z;//Inlined version of TFAR_fnc_eyeDepth to save performance
-    auto _can_speak = (_eyeDepth > 0 || _isolated_and_inside); //Inlined version of TFAR_fnc_canSpeak to save performance
-    auto _useSw = true;
-    auto _useLr = true;
-    auto _useDd = false;
-    if (_eyeDepth < 0) {
-        _useSw = TFAR_fnc_canUseSWRadio(_unit, _isolated_and_inside, _eyeDepth);
-        _useLr = TFAR_fnc_canUseLrRadio(_unit, _isolated_and_inside, _eyeDepth);
-        _useDd = sqf::call(sqf::get_variable(sqf::mission_namespace(), "TFAR_fnc_canUseDDRadio"), { _eyeDepth, _isolated_and_inside });
-    };
-
-    if (_nearPlayer && sqf::distance(sqf::get_pos(TFAR_currentUnit), _pos) <= (float) sqf::get_variable(sqf::mission_namespace(), "TF_speakerDistance")) {
-        static game_value_static TFAR_fnc_getLrSpeakers = sqf::get_variable(sqf::mission_namespace(), "TFAR_fnc_getLrSpeakers");
-        static game_value_static TFAR_fnc_lrRadiosList = sqf::get_variable(sqf::mission_namespace(), "TFAR_fnc_lrRadiosList");
-        static game_value_static TFAR_fnc_getLrFrequency = sqf::get_variable(sqf::mission_namespace(), "TFAR_fnc_getLrFrequency");
-        static game_value_static TFAR_fnc_getLrRadioCode = sqf::get_variable(sqf::mission_namespace(), "TFAR_fnc_getLrRadioCode");
-        static game_value_static TFAR_fnc_getAdditionalLrChannel = sqf::get_variable(sqf::mission_namespace(), "TFAR_fnc_getAdditionalLrChannel");
-        static game_value_static TFAR_fnc_getChannelFrequency = sqf::get_variable(sqf::mission_namespace(), "TFAR_fnc_getChannelFrequency");
-        static game_value_static TFAR_fnc_getLrVolume = sqf::get_variable(sqf::mission_namespace(), "TFAR_fnc_getLrVolume");
-        static game_value_static TFAR_fnc_getSwSpeakers = sqf::get_variable(sqf::mission_namespace(), "TFAR_fnc_getSwSpeakers");
-        static game_value_static TFAR_fnc_radiosList = sqf::get_variable(sqf::mission_namespace(), "TFAR_fnc_radiosList");
-        static game_value_static TFAR_fnc_getSwFrequency = sqf::get_variable(sqf::mission_namespace(), "TFAR_fnc_getSwFrequency");
-        static game_value_static TFAR_fnc_getSwRadioCode = sqf::get_variable(sqf::mission_namespace(), "TFAR_fnc_getSwRadioCode");
-        static game_value_static TFAR_fnc_getAdditionalSwChannel = sqf::get_variable(sqf::mission_namespace(), "TFAR_fnc_getAdditionalSwChannel");
-        static game_value_static TFAR_fnc_getSwVolume = sqf::get_variable(sqf::mission_namespace(), "TFAR_fnc_getSwVolume");
-
-        if (sqf::get_variable(_unit, "TFAR_LRSpeakersEnabled", false) && _useLr) {
-            auto lrRadiosList = sqf::call(TFAR_fnc_lrRadiosList, _unit);
-            auto lrRadioCount = lrRadiosList.size();
-            for (int Index = 0; Index < lrRadioCount; Index++) {
-                auto _x = lrRadiosList[Index];
-
-                if (sqf::call(TFAR_fnc_getLrSpeakers, _x)) {
-                    std::vector<std::string> _frequencies;
-                    std::string freq = sqf::call(TFAR_fnc_getLrFrequency, _x);
-                    std::string code = sqf::call(TFAR_fnc_getLrRadioCode, _x);
-
-                    _frequencies.push_back(freq + code);
-                    float additonalLrChannel = sqf::call(TFAR_fnc_getAdditionalLrChannel, _x);
-                    if (additonalLrChannel > -1.f) {
-                        std::string freq = sqf::call(TFAR_fnc_getChannelFrequency, { _x,additonalLrChannel + 1.f });
-                        _frequencies.push_back(freq + code);
-                    };
-
-                    auto _radio_id = sqf::net_id((object) _x[0]);
-                    float lrVolume = sqf::call(TFAR_fnc_getLrVolume, _x);
-                    vector3 pos = sqf::get_pos_asl(_unit);
-                    std::string radioInfo = _radio_id + "\xA";
-                    bool first = true;
-                    for (auto& it : _frequencies) {
-                        if (!first) radioInfo += "|" + it;
-                        else radioInfo += it;
-                        first = false;
-                    }
-                    radioInfo += "\xA" + _unitName + "\xA[]\xA" + std::to_string(lrVolume) + "\xA" + _vehicle + "\xA" + std::to_string(pos.z);
-
-                };
-            }
-
-        };
-
-        if (sqf::get_variable(_unit, "TFAR_SRSpeakersEnabled", false) && _useSw) {
-
-            auto swRadiosList = sqf::call(TFAR_fnc_radiosList, _unit);
-            auto swRadioCount = swRadiosList.size();
-            for (int Index = 0; Index < swRadioCount; Index++) {
-                auto _x = swRadiosList[Index];   //#TODO make sure _x is array
-                if (sqf::call(TFAR_fnc_getSwSpeakers, _x)) {
-                    std::vector<std::string> _frequencies;
-                    std::string freq = sqf::call(TFAR_fnc_getSwFrequency, _x);
-                    std::string code = sqf::call(TFAR_fnc_getSwRadioCode, _x);
-
-                    _frequencies.push_back(freq + code);
-                    float additonalSwChannel = sqf::call(TFAR_fnc_getAdditionalSwChannel, _x);
-                    if (additonalSwChannel > -1.f) {
-                        std::string freq = sqf::call(TFAR_fnc_getChannelFrequency, { _x,additonalSwChannel + 1.f });
-                        _frequencies.push_back(freq + code);
-                    };
-
-                    auto _radio_id = sqf::net_id((object) _x[0]); //#CRASH make sure this returned something.
-                    float swVolume = sqf::call(TFAR_fnc_getSwVolume, _x);
-                    vector3 pos = sqf::get_pos_asl(_unit);
-                    std::string radioInfo = _radio_id + "\xA";
-                    bool first = true;
-                    for (auto& it : _frequencies) {
-                        if (!first) radioInfo += "|" + it;
-                        else radioInfo += it;
-                        first = false;
-                    }
-                    radioInfo += "\xA" + _unitName + "\xA[]\xA" + std::to_string(swVolume) + "\xA" + _vehicle + "\xA" + std::to_string(pos.z);
-                }
-            }
-        }
+    for (auto& unit : allUnits) {
+        output.emplace_back(reinterpret_cast<game_data_object*>(unit.data.getRef())->get_position_matrix()._position);
     }
 
-    auto _isEnemy = false;
-    if (_isRemotePlayer && sqf::get_variable(TFAR_currentUnit, "TFAR_forceSpectator", false)) { //If we are not spectating we are not interested if he is enemy
-        static game_value_static BIS_fnc_sideIsEnemy = sqf::get_variable(sqf::mission_namespace(), "BIS_fnc_sideIsEnemy");
-        _isEnemy = sqf::call(BIS_fnc_sideIsEnemy, { sqf::player_side(), sqf::get_side(_unit) });
-    };
-    vector3 _curViewDir = _isSpectating ? (sqf::position_camera_to_world({ 0,0,1 }) - sqf::position_camera_to_world({ 0,0,0 })) : sqf::get_camera_view_direction(_unit);//Inlined version of TFAR_fnc_currentDirection
-    static bool objectInterceptionEnabled = sqf::get_variable(sqf::mission_namespace(), "TFAR_objectInterceptionEnabled");
-
-    std::vector<game_value> _data = {
-            game_value("POS	%1	%2	%3	%4	%5	%6	%7	%8	%9	%10	%11	%12	%13"),
-            game_value(_unitName),
-            game_value(_pos),
-            game_value(_curViewDir),//Position
-            game_value(_can_speak),
-            game_value(_useSw),
-            game_value(_useLr),
-            game_value(_useDd),
-            game_value(_vehicle),
-            game_value(_nearPlayer ? 0.f : TFAR_fnc_calcTerrainInterception(_unit,TFAR_currentUnit)),
-            game_value(sqf::get_variable(_unit, "tf_voiceVolume", 1.0f)),//Externally used API variable. Don't change name
-            game_value((_isRemotePlayer && objectInterceptionEnabled) ? TFAR_fnc_objectInterception(_unit,TFAR_currentUnit) : 0.f), //Interceptions
-            game_value(_isSpectating),
-            game_value(_isEnemy) };
-    auto ret = sqf::format(_data);//format is actually faster. 0.128 vs 0.131
-    __itt_task_end(domain);
-    return ret;
+    return std::move(output);
 }
 
-game_value TFAR_fnc_sendPlayerInfo(game_value args) {
-    __itt_task_begin(domain, __itt_null, __itt_null, handle_TFAR_fnc_sendPlayerInfo);
-    static game_value_static TFAR_fnc_fireEventHandlers = sqf::get_variable(sqf::mission_namespace(), "TFAR_fnc_fireEventHandlers");
-    static game_value_static TFAR_fnc_showHint = sqf::get_variable(sqf::mission_namespace(), "TFAR_fnc_showHint");
-    static game_value_static TFAR_fnc_hideHint = sqf::get_variable(sqf::mission_namespace(), "TFAR_fnc_hideHint");
-    auto missionNamespace = sqf::mission_namespace();
+game_value redirectWrapNularScript() {
+    types::auto_array<types::game_value> output;
 
-    object _player = args[0];
-    auto _request = TFAR_fnc_preparePositionCoordinates(args);
+    auto allUnits = sqf::all_units();
+    output.reserve(allUnits.size());
 
-    auto result = sqf::call_extension("task_force_radio_pipe", _request);
+    for (auto& unit : allUnits) {
+        output.emplace_back(sqf::get_pos(unit));
+    }
 
-
-    if ((result != "OK") && result.length() != 2) {
-        auto parsed = sqf::parse_text(result);
-        sqf::call(TFAR_fnc_showHint, game_value{ parsed,10.f });
-        sqf::set_variable(missionNamespace, "tf_lastError", true);
-        return{};
-    } else {
-        if (sqf::get_variable(missionNamespace, "tf_lastError", game_value(false))) {
-            sqf::call(TFAR_fnc_hideHint);
-            sqf::set_variable(missionNamespace, "tf_lastError", false);
-        };
-    };
-
-    bool _isSpeaking = result.front() == '1';
-    bool _isReceiving = result.length() == 2 && result.back() == '1';
-
-    if (_isSpeaking) {
-        sqf::set_variable(*reinterpret_cast<rv_namespace*>(&_player), "TFAR_speakingSince", sqf::diag_ticktime());
-    };
-    sqf::set_random_lip(_player, _isSpeaking);
-
-
-
-    //Only want to fire EH once
-    if (static_cast<bool>(sqf::get_variable(missionNamespace, "TFAR_isSpeaking", false)) != _isSpeaking) {
-        sqf::set_variable(*reinterpret_cast<rv_namespace*>(&_player), "TFAR_isSpeaking", game_value(_isSpeaking));
-        sqf::set_variable(*reinterpret_cast<rv_namespace*>(&_player), "TF_isSpeaking", game_value(_isSpeaking));
-        sqf::call(TFAR_fnc_fireEventHandlers, game_value{ "OnSpeak" , game_value{ (static_cast<game_value>(_player)), game_value(_isSpeaking) } });
-    };
-
-    if (static_cast<bool>(sqf::get_variable(missionNamespace, "TFAR_isReceiving", false)) != _isReceiving) {
-        sqf::set_variable(*reinterpret_cast<rv_namespace*>(&_player), "TFAR_isReceiving", game_value(_isReceiving));
-        sqf::call(TFAR_fnc_fireEventHandlers, game_value{ "OnRadioReceive" ,game_value{ (static_cast<game_value>(_player)), game_value(_isReceiving) } });
-    };
-
-
-    if (!sqf::get_variable(missionNamespace, "TFAR_killedEHAttached", false)) {
-        sqf::add_event_handler(_player, "killed", "_player call TFAR_fnc_sendPlayerKilled");
-        sqf::set_variable(*reinterpret_cast<rv_namespace*>(&_player), "TFAR_killedEHAttached", true);
-    };
-    __itt_task_end(domain);
-    return{};
+    return std::move(output);
 }
 
-bool TFAR_currentNearPlayersProcessed = false;
-std::queue<object> TFAR_currentNearPlayersProcessing;
-bool TFAR_currentFarPlayersProcessed = false;
-std::queue<object> TFAR_currentFarPlayersProcessing;
-std::set<object> TFAR_currentFarPlayers;
-std::set<object> TFAR_currentNearPlayers;
-std::chrono::system_clock::time_point TFAR_lastFarPlayerProcessTime;
-std::chrono::system_clock::time_point TFAR_lastPlayerScanTime;
-
-__itt_string_handle* handle_nearPlayerProcess = __itt_string_handle_create("nearPlayerProcess");
-__itt_string_handle* handle_farPlayerProcess = __itt_string_handle_create("farPlayerProcess");
-__itt_string_handle* handle_playerScan = __itt_string_handle_create("playerScan");
-__itt_string_handle* handle_UnitName = __itt_string_handle_create("unitName");
-
-class __ittFrameWatch {
-public:
-    __ittFrameWatch() { __itt_frame_end_v3(domain, NULL); }
-    ~__ittFrameWatch() { __itt_frame_end_v3(domain, NULL); }
-};
-
-//class TFAR_workerThreadPool {
-//
-//
-//    void threadRun() {
-//        while (shouldRun) {
-//            std::unique_lock<std::mutex> lock(theadMutex);
-//            threadWorkCondition.wait(lock, [this] {return !commandQueue.empty() || !shouldRun; });
-//            if (!shouldRun) return;
-//            std::string command(std::move(commandQueue.front())); commandQueue.pop();
-//            lock.unlock();
-//            TFAR_pr(command);
-//        }
-//    }
-//    void addThread() {
-//            _threads.emplace_back(std::make_unique<std::thread>(&TFAR_workerThreadPool::threadRun, this));
-//        {
-//            std::lock_guard<std::mutex> lock(theadMutex);
-//            commandQueue.emplace(command);
-//        }
-//        threadWorkCondition.notify_one();
-//    }
-//    
-//    std::vector<>
-//    std::condition_variable threadWorkCondition;
-//    std::mutex theadMutex;
-//    bool shouldRun;
-//    std::vector<std::unique_ptr<std::thread>> _threads;
-//};
-
-std::set<object> TFAR_fnc_getNearPlayers() {
-    std::set<object> nearPlayers;
-    object TFAR_currentUnit = sqf::get_variable(sqf::mission_namespace(), "TFAR_currentUnit");
-    TFAR_currentUnit.size();
-    if (!sqf::alive(TFAR_currentUnit) && !sqf::get_variable(TFAR_currentUnit, "TFAR_forceSpectator", false)) return nearPlayers;
-
-    auto myGroup = sqf::get_group(TFAR_currentUnit);
-    auto myGroupUnits = sqf::units(myGroup);
-
-    auto _players_in_group = myGroupUnits.size();
-    auto myPos = sqf::get_pos(TFAR_currentUnit);
-    float maxVoiceVolume = sqf::get_variable(sqf::mission_namespace(), "TF_max_voice_volume", 20.f);
-    auto nearUnits = sqf::near_entities(myPos, { "Man" }, maxVoiceVolume + 40.f);
-
-    nearUnits.insert(nearUnits.end(), myGroupUnits.begin(), myGroupUnits.end());
-    //nearUnits.push_back(TFAR_currentUnit); //#TODO add TFAR_currentUnit if it's not already in there
-
-    //_allUnits pushBackUnique TFAR_currentUnit;//Will be duplicate in normal play but in spectator the group units will be missing
-    auto nearVehicles = sqf::near_entities(myPos, { "LandVehicle","Air","Ship" }, maxVoiceVolume + 40.f);
-    for (auto& it : nearVehicles) {
-        auto crew = sqf::crew(it);
-        nearUnits.insert(nearUnits.end(), crew.begin(), crew.end());
-    }
-    for (auto& it : nearUnits) {
-        if (sqf::is_player(it) && (sqf::alive(it) || sqf::get_variable(it, "TFAR_forceSpectator", false)))
-            nearPlayers.insert(it);
-    }
-
-    return nearPlayers;
-}
-
-
-game_value TFAR_fnc_processPlayerPositions(game_value arg) {
-    __ittFrameWatch frameWatch{};
-    if (sqf::get_client_state_number() != 10) return "";// { "BI HAS CRAPPY WEIRD BUGS U KNOW! (Keeps PFH from firing after server disconnect)" };
-    auto _startTime = std::chrono::system_clock::now();
-
-    //Process queued Near Players
-    if (!TFAR_currentNearPlayersProcessed) {
-        for (int it = 0; it < 30; it++) {
-            __itt_task_begin(domain, __itt_null, __itt_null, handle_nearPlayerProcess);
-            if (TFAR_currentNearPlayersProcessing.empty()) { TFAR_currentNearPlayersProcessed = true; break; }
-            auto _x = TFAR_currentNearPlayersProcessing.front();
-            TFAR_currentNearPlayersProcessing.pop();
-            auto _controlled = sqf::get_variable(_x, "TFAR_controlledUnit", game_value());
-            auto _unitName = sqf::name(_x);
-            __itt_metadata_str_add(domain, __itt_null, handle_UnitName, _unitName.c_str(), _unitName.length());
-            if (static_cast<bool>(sqf::get_variable(_x, "TFAR_forceSpectator", false)))
-                _unitName = sqf::get_variable(_x, "TFAR_spectatorName", _unitName);
-            if (_controlled.is_nil())
-                TFAR_fnc_sendPlayerInfo({ _x,true,_unitName });
-            else
-                TFAR_fnc_sendPlayerInfo({ _controlled,true,_unitName });
-            __itt_task_end(domain);
-        }
-    }
-    //Don't process anymore if we already blocked too long (5 millisec)
-    if ((std::chrono::system_clock::now() - _startTime) > std::chrono::milliseconds(5)) return "";
-
-    //Process queued Far players
-    if (!TFAR_currentFarPlayersProcessed) {
-        auto _nearPlayersCount = TFAR_currentFarPlayersProcessing.size();
-        if (_nearPlayersCount == 0) TFAR_currentFarPlayersProcessed = true;
-
-        for (int it = 0; it < 50; it++) { //#TODO do batches of 10 until we are running longer than 5 millisecs
-            __itt_task_begin(domain, __itt_null, __itt_null, handle_farPlayerProcess);
-            if (TFAR_currentFarPlayersProcessing.empty()) { TFAR_lastFarPlayerProcessTime = std::chrono::system_clock::now(); TFAR_currentFarPlayersProcessed = true; break; }
-            auto _x = TFAR_currentFarPlayersProcessing.front();
-            TFAR_currentFarPlayersProcessing.pop();
-            auto _controlled = sqf::get_variable(_x, "TFAR_controlledUnit", game_value());
-            auto _unitName = sqf::name(_x);
-            if (static_cast<bool>(sqf::get_variable(_x, "TFAR_forceSpectator", false)))
-                _unitName = sqf::get_variable(_x, "TFAR_spectatorName", _unitName);
-            if (_controlled.is_nil())
-                TFAR_fnc_sendPlayerInfo({ _x,true,_unitName });
-            else
-                TFAR_fnc_sendPlayerInfo({ _controlled,true,_unitName });
-            __itt_task_end(domain);
-        }
-    }
-
-    //Rescan Players
-    bool _needNearPlayerScan = ((std::chrono::system_clock::now() - TFAR_lastPlayerScanTime) > std::chrono::seconds(1)) && TFAR_currentNearPlayersProcessed;
-
-    if (_needNearPlayerScan) {
-        __itt_task_begin(domain, __itt_null, __itt_null, handle_playerScan);
-        TFAR_currentNearPlayers = TFAR_fnc_getNearPlayers();// sqf::all_units();
-
-        for (auto& it : sqf::all_curators()) {
-            auto _player = sqf::get_assigned_curator_unit(it);
-            if (!_player.is_null())
-                TFAR_currentNearPlayers.insert(_player);
-        }
-
-        auto _other_units = sqf::all_players();
-        for (auto& it : TFAR_currentNearPlayers) {
-            auto found = std::find_if(_other_units.begin(), _other_units.end(), [&it](const object& other) {
-                return other.data == it.data;
-            });
-            if (found != _other_units.end()) _other_units.erase(found);
-        }
-
-        TFAR_currentFarPlayers.clear();
-        for (auto& it : _other_units) {
-            if (sqf::is_player(it))
-                TFAR_currentFarPlayers.insert(it);
-        }
-
-        TFAR_lastPlayerScanTime = std::chrono::system_clock::now();
-        __itt_task_end(domain);
-    };
-
-    //Queue new updates to plugin if last one processed
-    if (TFAR_currentNearPlayersProcessed) {
-        static game_value_static TFAR_fnc_sendSpeakerRadios = sqf::get_variable(sqf::mission_namespace(), "TFAR_fnc_sendSpeakerRadios");
-        sqf::call(TFAR_fnc_sendSpeakerRadios);//send Speaker radio infos to plugin Has to be here because it needs a variable from NearPlayer processing
-        //#TODO replace by native
-        for (auto& it : TFAR_currentNearPlayers) {
-            TFAR_currentNearPlayersProcessing.push(it);
-        }
-        TFAR_currentNearPlayersProcessed = false;
-    };
-
-    //Only process FarPlayers once a TFAR_FAR_PLAYER_UPDATE_TIME
-    if ((std::chrono::system_clock::now() - TFAR_lastFarPlayerProcessTime) < std::chrono::milliseconds(3500)) return "";
-
-    //Queue new updates to plugin if last one processed
-    if (TFAR_currentFarPlayersProcessed) {
-        static game_value_static TFAR_fnc_pluginNextDataFrame = sqf::get_variable(sqf::mission_namespace(), "TFAR_fnc_pluginNextDataFrame");
-        sqf::call(TFAR_fnc_pluginNextDataFrame);//Doing this here causes NearPlayers to only expire after TFAR_FAR_PLAYER_UPDATE_TIME
-        //#TODO replace by native
-        TFAR_currentFarPlayersProcessing = std::queue<object>();
-        for (auto& it : TFAR_currentFarPlayers) {
-            TFAR_currentFarPlayersProcessing.push(it);
-        }
-        TFAR_currentFarPlayersProcessed = false;
-    };
-    return "";
-}
 std::vector<types::registered_sqf_function> funcs;
 
 // given a function that generates a random character,
@@ -613,6 +109,76 @@ intercept::types::game_value binaryFuncOne(intercept::types::game_value left_arg
 }
 #include "LuaManager.h"
 LuaManager lua;
+
+
+game_value getNumberWithDef(intercept::types::game_value left_arg, intercept::types::game_value right_arg) {
+    if (sqf::is_number(left_arg))
+        return sqf::get_number(left_arg);
+    return right_arg;
+}
+
+
+void addListItem(r_string name, control ctrl, r_string configEntry) {
+    static std::map<size_t, std::tuple<r_string,r_string,r_string,int>> cacheMap;
+    auto getFromCache = [&]() {
+        auto cacheName = intercept::types::__internal::pairhash(configEntry,name);
+        auto found = cacheMap.find(cacheName);
+        if (found != cacheMap.end())
+            return found->second;
+        auto cfgClass = sqf::config_entry() >> configEntry >> name;
+        r_string dlcName;
+        int modID = 1; //dummy because we can't pushBack to gameVariable
+
+        auto _addons = sqf::config_source_addon_list(cfgClass);
+        if (!_addons.empty()) {
+            auto _mods = sqf::config_source_mod_list(sqf::config_entry() >> "CfgPatches" >> _addons[0]);
+            if (!_mods.empty()) {
+                dlcName = _mods[0];
+            }
+        }
+        r_string modIcon;
+        if (dlcName.length()) {
+            auto modParams = sqf::mod_params(dlcName, sqf::mod_params_options::logo);
+            if (!modParams.empty())
+            modIcon = modParams[0];
+        }
+
+
+        std::tuple<r_string, r_string, r_string, int> result{
+            sqf::get_text(cfgClass >> "displayName"),
+            sqf::get_text(cfgClass >> "picture"),
+            modIcon,
+            modID
+        };
+        cacheMap[cacheName] = result;
+        return result;
+    };
+
+    auto item = getFromCache();
+
+    auto _lbAdd = sqf::lb_add(ctrl, std::get<0>(item));
+
+    sqf::lb_set_data(ctrl, _lbAdd, name);
+    sqf::lb_set_picture(ctrl, _lbAdd, std::get<1>(item));
+    //sqf::lb_set_picture_right(ctrl, _lbAdd, std::get<2>(item));
+    sqf::lb_set_value(ctrl, _lbAdd, std::get<3>(item));
+    sqf::lb_set_tooltip(ctrl, _lbAdd, sqf::format({ "%1\n%2", std::get<0>(item), name}));
+}
+
+game_value addListItems_acearsenal(intercept::types::game_value left_arg, intercept::types::game_value right_arg) {
+   
+    auto& arr = left_arg[0].to_array();
+    r_string listName = left_arg[1];
+
+
+    for (r_string name : arr) {
+        addListItem(name, right_arg, listName);
+    }
+    return {};
+}
+
+
+
 
 void __cdecl intercept::pre_start() {
     _binaryFuncOne = intercept::client::host::registerFunction(
@@ -651,43 +217,46 @@ void __cdecl intercept::pre_start() {
     //   a non-deterministic uniform distribution from the 
     //   character set of your choice.
 
-    std::uniform_int_distribution<int> dist2(5, 20);
-    for (size_t i = 0; i < 500; i++) {
-        auto length = dist2(rng);
-        auto name = random_string(length, [ch_set, &dist, &rng]() {return ch_set[dist(rng)]; });
-        funcs.push_back(intercept::client::host::registerFunction(name, "", userFunctionWrapper<redirectWrapUnary>, GameDataType::STRING, GameDataType::ARRAY));
-    }
-    for (size_t i = 0; i < 500; i++) {
-        auto length = dist2(rng);
-        auto name = random_string(length, [ch_set, &dist, &rng]() {return ch_set[dist(rng)]; });
-        funcs.push_back(intercept::client::host::registerFunction(name, "", userFunctionWrapper<redirectWrapNular>, GameDataType::STRING));
-    }
-    for (size_t i = 0; i < 500; i++) {
-        auto length = dist2(rng);
-        auto name = random_string(length, [ch_set, &dist, &rng]() {return ch_set[dist(rng)]; });
-        funcs.push_back(intercept::client::host::registerFunction(name, "", userFunctionWrapper<redirectWrap>, GameDataType::STRING, GameDataType::ARRAY, GameDataType::ARRAY));
-    }
+    //std::uniform_int_distribution<int> dist2(5, 20);
+    //for (size_t i = 0; i < 500; i++) {
+    //    auto length = dist2(rng);
+    //    auto name = random_string(length, [ch_set, &dist, &rng]() {return ch_set[dist(rng)]; });
+    //    funcs.push_back(intercept::client::host::registerFunction(name, "", userFunctionWrapper<redirectWrapUnary>, GameDataType::STRING, GameDataType::ARRAY));
+    //}
+    //for (size_t i = 0; i < 500; i++) {
+    //    auto length = dist2(rng);
+    //    auto name = random_string(length, [ch_set, &dist, &rng]() {return ch_set[dist(rng)]; });
+    //    funcs.push_back(intercept::client::host::registerFunction(name, "", userFunctionWrapper<redirectWrapNular>, GameDataType::STRING));
+    //}
+    //for (size_t i = 0; i < 500; i++) {
+    //    auto length = dist2(rng);
+    //    auto name = random_string(length, [ch_set, &dist, &rng]() {return ch_set[dist(rng)]; });
+    //    funcs.push_back(intercept::client::host::registerFunction(name, "", userFunctionWrapper<redirectWrap>, GameDataType::STRING, GameDataType::ARRAY, GameDataType::ARRAY));
+    //}
 
     tools::init();
     lua.preStart();
     _interceptEventFunction = intercept::client::host::registerFunction("Intercept_TFAR_preparePositionCoordinates", "", userFunctionWrapper<redirectWrapUnary>, GameDataType::STRING, GameDataType::ARRAY);
-    _interceptEventFunction3 = intercept::client::host::registerFunction("Intercept_TFAR_preparePositionCoordinates_nular", "", userFunctionWrapper<redirectWrapNular>, GameDataType::STRING);
+    _interceptEventFunction3 = intercept::client::host::registerFunction("Intercept_loopTest", "", userFunctionWrapper<redirectWrapNular>, GameDataType::ARRAY);
+    _interceptEventFunction4 = intercept::client::host::registerFunction("Intercept_loopTestScript", "", userFunctionWrapper<redirectWrapNularScript>, GameDataType::ARRAY);
     _interceptEventFunction2 = intercept::client::host::registerFunction("Intercept_TFAR_preparePositionCoordinates_test", "", userFunctionWrapper<redirectWrap>, GameDataType::STRING, GameDataType::OBJECT, GameDataType::ARRAY);
-    //_interceptEventFunction2 = intercept::client::host::registerFunction(std::string("itfarprepcoords"), "", userFunctionWrapper<redirectWrapUnary>, types::__internal::GameDataType::STRING, types::__internal::GameDataType::ARRAY);
-    //_interceptEventFunction3 = intercept::client::host::registerFunction(std::string("itfarSendPInfo"), "", userFunctionWrapper<TFAR_fnc_sendPlayerInfo>, types::__internal::GameDataType::ARRAY, types::__internal::GameDataType::ARRAY);
-    _interceptEventFunction4 = intercept::client::host::registerFunction("itfarprocp", "", userFunctionWrapper<TFAR_fnc_processPlayerPositions>, GameDataType::STRING, GameDataType::ARRAY);
+    _interceptEventFunction5 = intercept::client::host::registerFunction("getNumber", "", userFunctionWrapper<getNumberWithDef>, GameDataType::ANY, GameDataType::CONFIG, GameDataType::ANY);
+    _interceptEventFunction6 = intercept::client::host::registerFunction("addListItems_acearsenal", "", userFunctionWrapper<addListItems_acearsenal>, GameDataType::NOTHING, GameDataType::ARRAY, GameDataType::CONTROL);
 
-    auto x = client::host::list_plugin_interfaces("lua_iface"_sv);
+    auto x = client::host::list_plugin_interfaces("lua_iface"sv);
     std::string modl(x.first);
-    auto iface = client::host::request_plugin_interface("lua_iface"_sv, 1);
+    auto iface = client::host::request_plugin_interface("lua_iface"sv, 1);
 
     if (iface) {
         static_cast<lua_iface*>(*iface)->blubTest();
     }
+    pTFAR.preStart();
+    cba::preStart();
+
 }
 
 void __cdecl intercept::pre_init() {
-    sqf::set_variable(sqf::mission_namespace(), "INTERCEPT_TFAR", true);
+    pTFAR.preInit();
 }
 
 
@@ -699,9 +268,10 @@ void __cdecl intercept::post_init() {
     //_interceptEventFunction3 = intercept::client::host::functions.register_sqf_function_unary(std::string("itfarSendPInfo"), "", userFunctionWrapper<TFAR_fnc_sendPlayerInfo>, types::__internal::GameDataType::ARRAY, types::__internal::GameDataType::ARRAY);
     //_interceptEventFunction4 = intercept::client::host::functions.register_sqf_function_unary(std::string("itfarprocp"), "", userFunctionWrapper<TFAR_fnc_processPlayerPositions>, types::__internal::GameDataType::STRING, types::__internal::GameDataType::ARRAY);
     //sqf::set_variable(sqf::mission_namespace(), "INTERCEPT_TFAR", true);
-    sqf::system_chat("hellloooozzz");
+    sqf::system_chat("TFAR Performance active");
 
     tools::postInit();
+    cba::postInit();
 }
 
 class Variable {
