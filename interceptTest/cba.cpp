@@ -219,6 +219,19 @@ game_value arrayUnion(game_value left_arg, game_value right_arg) {
     return output;
 }
 
+game_value naturalLog(game_value right_arg) {
+    return log(static_cast<float>(right_arg));
+}
+
+game_value nthRoot(game_value left_arg, game_value right_arg) {
+    return std::pow(static_cast<float>(right_arg), 1.0f / static_cast<float>(left_arg));
+}
+
+game_value logn(game_value left_arg, game_value right_arg) {
+    return std::log(static_cast<float>(right_arg))/ std::log(static_cast<float>(left_arg));
+}
+
+
 void cba::preStart() {
 
     auto codeType = client::host::registerType(r_string("HASHMAP"), r_string("hashMap"), r_string("Dis is a hashmap. It hashes things."), r_string("hashMap"), createGameDataHashMap);
@@ -246,6 +259,9 @@ void cba::preStart() {
     static auto _startsWith = intercept::client::host::registerFunction("startsWith", "", userFunctionWrapper<stringStartsWith>, GameDataType::BOOL, GameDataType::STRING, GameDataType::STRING);
     static auto _startsWithCI = intercept::client::host::registerFunction("startsWithCI", "", userFunctionWrapper<stringStartsWith>, GameDataType::BOOL, GameDataType::STRING, GameDataType::STRING);
     static auto _arrayUnion = intercept::client::host::registerFunction("arrayUnion", "", userFunctionWrapper<arrayUnion>, GameDataType::ARRAY, GameDataType::ARRAY, GameDataType::ARRAY);
+    static auto _naturalLog = intercept::client::host::registerFunction("ln", "", userFunctionWrapper<naturalLog>, GameDataType::SCALAR, GameDataType::SCALAR);
+    static auto _nthRoot = intercept::client::host::registerFunction("root", "", userFunctionWrapper<nthRoot>, GameDataType::SCALAR, GameDataType::SCALAR, GameDataType::SCALAR);
+    static auto _logn = intercept::client::host::registerFunction("log", "", userFunctionWrapper<logn>, GameDataType::SCALAR, GameDataType::SCALAR, GameDataType::SCALAR);
 
 }
 
