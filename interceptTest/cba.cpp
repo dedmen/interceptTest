@@ -166,6 +166,22 @@ game_value popFront(game_value right_arg) {
     return elem;
 }
 
+game_value pushFront(game_value left_arg, game_value right_arg) {
+    auto& arr = left_arg.to_array();
+    arr.emplace(arr.begin(), right_arg);
+    return {};
+}
+
+game_value pushFrontUnique(game_value left_arg, game_value right_arg) {
+    auto& arr = left_arg.to_array();
+    if (arr.find(right_arg) == arr.end()) {
+        arr.emplace(arr.begin(), right_arg);
+        return true;
+    }
+    return false;
+}
+
+
 game_value findCaseInsensitive(game_value left_arg, game_value right_arg) {
     bool searchIsString = right_arg.type() == game_data_string::type_def;
     auto& arr = left_arg.to_array();
@@ -254,6 +270,8 @@ void cba::preStart() {
     static auto _selectLast = intercept::client::host::registerFunction("selectLast", "", userFunctionWrapper<selectLast>, GameDataType::ANY, GameDataType::ARRAY);
     static auto _popEnd = intercept::client::host::registerFunction("popEnd", "", userFunctionWrapper<popEnd>, GameDataType::ANY, GameDataType::ARRAY);
     static auto _popFront = intercept::client::host::registerFunction("popFront", "", userFunctionWrapper<popFront>, GameDataType::ANY, GameDataType::ARRAY);
+    static auto _pushFront = intercept::client::host::registerFunction("pushFront", "", userFunctionWrapper<pushFront>, GameDataType::NOTHING, GameDataType::ARRAY, GameDataType::ANY);
+    static auto _pushFrontUnique = intercept::client::host::registerFunction("pushFrontUnique", "", userFunctionWrapper<pushFrontUnique>, GameDataType::BOOL, GameDataType::ARRAY, GameDataType::ANY);
     static auto _findCI = intercept::client::host::registerFunction("findCI", "", userFunctionWrapper<findCaseInsensitive>, GameDataType::ANY, GameDataType::ARRAY, GameDataType::ANY);
     static auto _inArrayCI = intercept::client::host::registerFunction("inCI", "", userFunctionWrapper<inArrayCaseInsensitive>, GameDataType::ANY, GameDataType::ANY, GameDataType::ARRAY);
     static auto _startsWith = intercept::client::host::registerFunction("startsWith", "", userFunctionWrapper<stringStartsWith>, GameDataType::BOOL, GameDataType::STRING, GameDataType::STRING);
