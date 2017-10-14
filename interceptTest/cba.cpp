@@ -128,6 +128,26 @@ game_value getArrayWithDef(intercept::types::game_value right_arg) {
         return sqf::get_array(right_arg[0]);
     return right_arg[1];
 }
+game_value getBoolWithDef(intercept::types::game_value right_arg) {
+    if (right_arg.size() != 2) return {};
+    if (sqf::is_number(right_arg[0]))
+        return sqf::get_number(right_arg[0]) > 0.f;
+    if (sqf::is_text(right_arg[0]))
+        return r_string(sqf::get_text(right_arg[0])).compare_case_insensitive("true");
+
+    return right_arg[1];
+}
+
+game_value getAnyWithDef(intercept::types::game_value right_arg) {
+    if (right_arg.size() != 2) return {};
+    if (sqf::is_number(right_arg[0]))
+        return sqf::get_number(right_arg[0]);
+    if (sqf::is_text(right_arg[0]))
+        return sqf::get_text(right_arg[0]);
+    if (sqf::is_array(right_arg[0]))
+        return sqf::get_array(right_arg[0]);
+    return right_arg[1];
+}
 
 void cba::preStart() {
 
@@ -146,6 +166,8 @@ void cba::preStart() {
     static auto _getNumberWithDef = intercept::client::host::registerFunction("getNumber", "", userFunctionWrapper<getNumberWithDef>, GameDataType::SCALAR, GameDataType::ARRAY);
     static auto _getTextWithDef = intercept::client::host::registerFunction("getText", "", userFunctionWrapper<getTextWithDef>, GameDataType::STRING, GameDataType::ARRAY);
     static auto _getArrayWithDef = intercept::client::host::registerFunction("getArray", "", userFunctionWrapper<getArrayWithDef>, GameDataType::ARRAY, GameDataType::ARRAY);
+    static auto _getBoolWithDef = intercept::client::host::registerFunction("getBool", "", userFunctionWrapper<getBoolWithDef>, GameDataType::BOOL, GameDataType::ARRAY);
+    static auto _getAnyWithDef = intercept::client::host::registerFunction("getAny", "", userFunctionWrapper<getAnyWithDef>, GameDataType::ANY, GameDataType::ARRAY);
 
 
 
