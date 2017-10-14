@@ -111,13 +111,6 @@ intercept::types::game_value binaryFuncOne(intercept::types::game_value left_arg
 LuaManager lua;
 
 
-game_value getNumberWithDef(intercept::types::game_value left_arg, intercept::types::game_value right_arg) {
-    if (sqf::is_number(left_arg))
-        return sqf::get_number(left_arg);
-    return right_arg;
-}
-
-
 void addListItem(r_string name, control ctrl, r_string configEntry) {
     static std::map<size_t, std::tuple<r_string,r_string,r_string,int>> cacheMap;
     auto getFromCache = [&]() {
@@ -240,7 +233,6 @@ void __cdecl intercept::pre_start() {
     _interceptEventFunction3 = intercept::client::host::registerFunction("Intercept_loopTest", "", userFunctionWrapper<redirectWrapNular>, GameDataType::ARRAY);
     _interceptEventFunction4 = intercept::client::host::registerFunction("Intercept_loopTestScript", "", userFunctionWrapper<redirectWrapNularScript>, GameDataType::ARRAY);
     _interceptEventFunction2 = intercept::client::host::registerFunction("Intercept_TFAR_preparePositionCoordinates_test", "", userFunctionWrapper<redirectWrap>, GameDataType::STRING, GameDataType::OBJECT, GameDataType::ARRAY);
-    _interceptEventFunction5 = intercept::client::host::registerFunction("getNumber", "", userFunctionWrapper<getNumberWithDef>, GameDataType::ANY, GameDataType::CONFIG, GameDataType::ANY);
     _interceptEventFunction6 = intercept::client::host::registerFunction("addListItems_acearsenal", "", userFunctionWrapper<addListItems_acearsenal>, GameDataType::NOTHING, GameDataType::ARRAY, GameDataType::CONTROL);
 
     auto x = client::host::list_plugin_interfaces("lua_iface"sv);

@@ -2,11 +2,16 @@
 #include <client/headers/intercept.hpp>
 
 using namespace intercept;
+
+
+#pragma region hashMap
 types::registered_sqf_function _createHashMap;
 types::registered_sqf_function _hashMapSet;
 types::registered_sqf_function _hashMapFind;
 types::registered_sqf_function _hashMapRemove;
 types::registered_sqf_function _hashMapContains;
+types::registered_sqf_function _hashMapCount;
+types::registered_sqf_function _hashMapSelect;
 static sqf_script_type GameDataHashMap_type;
 
 class GameDataHashMap : public game_data {
@@ -71,7 +76,7 @@ game_value hashSet(game_value hashMap, game_value args) {
     return {};
 }
 
-game_value hashFind(game_value toFind, game_value hashMap) {
+game_value hashFind(game_value hashMap, game_value toFind) {
     if (hashMap.is_nil()) return {};
     auto map = static_cast<GameDataHashMap*>(hashMap.data.getRef());
     auto found = map->map.find(toFind.hash());
@@ -95,6 +100,35 @@ game_value hashContains(game_value toFind, game_value hashMap) {
     return false;
 }
 
+game_value hashCount(game_value hashMap) {
+    if (hashMap.is_nil()) return 0;
+    auto map = static_cast<GameDataHashMap*>(hashMap.data.getRef());
+    return static_cast<float>(map->map.size());
+}
+
+#pragma endregion hashMap
+
+
+game_value getNumberWithDef(intercept::types::game_value right_arg) {
+    if (right_arg.size() != 2) return {};
+    if (sqf::is_number(right_arg[0]))
+        return sqf::get_number(right_arg[0]);
+    return right_arg[1];
+}
+
+game_value getTextWithDef(intercept::types::game_value right_arg) {
+    if (right_arg.size() != 2) return {};
+    if (sqf::is_number(right_arg[0]))
+        return sqf::get_text(right_arg[0]);
+    return right_arg[1];
+}
+game_value getArrayWithDef(intercept::types::game_value right_arg) {
+    if (right_arg.size() != 2) return {};
+    if (sqf::is_number(right_arg[0]))
+        return sqf::get_array(right_arg[0]);
+    return right_arg[1];
+}
+
 void cba::preStart() {
 
     auto codeType = client::host::registerType(r_string("HASHMAP"), r_string("hashMap"), r_string("Dis is a hashmap. It hashes things."), r_string("hashMap"), createGameDataHashMap);
@@ -102,9 +136,18 @@ void cba::preStart() {
 
     _createHashMap = client::host::registerFunction("createHashMap", "Creates a Hashmap", userFunctionWrapper<createHashMap>, codeType.first);
     _hashMapSet = client::host::registerFunction("set", "Sets a value in a Hashmap", userFunctionWrapper<hashSet>, GameDataType::NOTHING, codeType.first, GameDataType::ARRAY);
-    _hashMapFind = client::host::registerFunction("find", "Finds an element in a Hashmap", userFunctionWrapper<hashFind>, GameDataType::ANY, GameDataType::ANY, codeType.first);
+    _hashMapFind = client::host::registerFunction("find", "Finds an element in a Hashmap", userFunctionWrapper<hashFind>, GameDataType::ANY, codeType.first, GameDataType::ANY);
+    _hashMapSelect = client::host::registerFunction("select", "Finds an element in a Hashmap", userFunctionWrapper<hashFind>, GameDataType::ANY, codeType.first, GameDataType::ANY);
     _hashMapRemove = client::host::registerFunction("deleteAt", "Deletes an element in a Hashmap", userFunctionWrapper<hashRemove>, GameDataType::NOTHING, codeType.first, GameDataType::ANY);
     _hashMapContains = client::host::registerFunction("in", "Checks if given element is inside Hashmap", userFunctionWrapper<hashContains>, GameDataType::BOOL, GameDataType::ANY, codeType.first);
+    _hashMapCount = client::host::registerFunction("count", "Counts number of elements inside Hashmap", userFunctionWrapper<hashCount>, GameDataType::SCALAR, codeType.first);
+
+
+    static auto _getNumberWithDef = intercept::client::host::registerFunction("getNumber", "", userFunctionWrapper<getNumberWithDef>, GameDataType::SCALAR, GameDataType::ARRAY);
+    static auto _getTextWithDef = intercept::client::host::registerFunction("getText", "", userFunctionWrapper<getTextWithDef>, GameDataType::STRING, GameDataType::ARRAY);
+    static auto _getArrayWithDef = intercept::client::host::registerFunction("getArray", "", userFunctionWrapper<getArrayWithDef>, GameDataType::ARRAY, GameDataType::ARRAY);
+
+
 
 }
 
