@@ -1,3 +1,4 @@
+#define NOMINMAX
 #include "cba.h"
 #include <client/headers/intercept.hpp>
 
@@ -165,6 +166,59 @@ game_value popFront(game_value right_arg) {
     return elem;
 }
 
+game_value findCaseInsensitive(game_value left_arg, game_value right_arg) {
+    bool searchIsString = right_arg.type() == game_data_string::type_def;
+    auto& arr = left_arg.to_array();
+    for (int it = 0; it < left_arg.size() ; it++) {
+        auto& element = arr[it];
+          if (searchIsString && element.data && element.type() == game_data_string::type_def) {
+              if (static_cast<r_string>(element).compare_case_insensitive(static_cast<r_string>(right_arg).c_str())) return it;
+          } else {
+              if (element == right_arg) return it;
+          }
+    }
+    return -1;
+}
+
+game_value inArrayCaseInsensitive(game_value right_arg, game_value left_arg) {
+    bool searchIsString = right_arg.type() == game_data_string::type_def;
+    auto& arr = left_arg.to_array();
+    for (int it = 0; it < left_arg.size(); it++) {
+        auto& element = arr[it];
+        if (searchIsString && element.data && element.type() == game_data_string::type_def) {
+            if (static_cast<r_string>(element).compare_case_insensitive(static_cast<r_string>(right_arg).c_str())) return true;
+        } else {
+            if (element == right_arg) return true;
+        }
+    }
+    return false;
+}
+
+game_value stringStartsWith(game_value left_arg, game_value right_arg) {
+    auto leftStr = static_cast<sqf_string>(left_arg);
+    auto rightStr = static_cast<sqf_string>(right_arg);
+    if (rightStr.size() > leftStr.size()) return false;
+    return (strncmp(leftStr.c_str(), rightStr.c_str(), std::min(leftStr.size(), rightStr.size())) == 0);
+}
+
+game_value stringStartsWithCI(game_value left_arg, game_value right_arg) {
+    auto leftStr = static_cast<sqf_string>(left_arg);
+    auto rightStr = static_cast<sqf_string>(right_arg);
+    if (rightStr.size() > leftStr.size()) return false;
+    return (_strnicmp(leftStr.c_str(), rightStr.c_str(), std::min(leftStr.size(), rightStr.size())) == 0);
+}
+
+
+game_value arrayUnion(game_value left_arg, game_value right_arg) {
+    auto& leftArr = left_arg.to_array();
+    auto& rightArr = right_arg.to_array();
+    auto_array<game_value> output(leftArr);
+    for (auto& elem : rightArr) {
+        if (output.find(elem) != leftArr.end()) leftArr.emplace_back(elem);
+    }
+    return output;
+}
+
 void cba::preStart() {
 
     auto codeType = client::host::registerType(r_string("HASHMAP"), r_string("hashMap"), r_string("Dis is a hashmap. It hashes things."), r_string("hashMap"), createGameDataHashMap);
@@ -187,8 +241,11 @@ void cba::preStart() {
     static auto _selectLast = intercept::client::host::registerFunction("selectLast", "", userFunctionWrapper<selectLast>, GameDataType::ANY, GameDataType::ARRAY);
     static auto _popEnd = intercept::client::host::registerFunction("popEnd", "", userFunctionWrapper<popEnd>, GameDataType::ANY, GameDataType::ARRAY);
     static auto _popFront = intercept::client::host::registerFunction("popFront", "", userFunctionWrapper<popFront>, GameDataType::ANY, GameDataType::ARRAY);
-
-
+    static auto _findCI = intercept::client::host::registerFunction("findCI", "", userFunctionWrapper<findCaseInsensitive>, GameDataType::ANY, GameDataType::ARRAY, GameDataType::ANY);
+    static auto _inArrayCI = intercept::client::host::registerFunction("inCI", "", userFunctionWrapper<inArrayCaseInsensitive>, GameDataType::ANY, GameDataType::ANY, GameDataType::ARRAY);
+    static auto _startsWith = intercept::client::host::registerFunction("startsWith", "", userFunctionWrapper<stringStartsWith>, GameDataType::BOOL, GameDataType::STRING, GameDataType::STRING);
+    static auto _startsWithCI = intercept::client::host::registerFunction("startsWithCI", "", userFunctionWrapper<stringStartsWith>, GameDataType::BOOL, GameDataType::STRING, GameDataType::STRING);
+    static auto _arrayUnion = intercept::client::host::registerFunction("arrayUnion", "", userFunctionWrapper<arrayUnion>, GameDataType::ARRAY, GameDataType::ARRAY, GameDataType::ARRAY);
 
 }
 
