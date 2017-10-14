@@ -149,6 +149,22 @@ game_value getAnyWithDef(intercept::types::game_value right_arg) {
     return right_arg[1];
 }
 
+game_value selectLast(game_value right_arg) {
+    return right_arg.to_array().back();
+}
+
+game_value popEnd(game_value right_arg) {
+    auto elem = right_arg.to_array().back();
+    right_arg.to_array().erase(right_arg.to_array().end()-1);
+    return elem;
+}
+
+game_value popFront(game_value right_arg) {
+    auto elem = right_arg.to_array().front();
+    right_arg.to_array().erase(right_arg.to_array().begin());
+    return elem;
+}
+
 void cba::preStart() {
 
     auto codeType = client::host::registerType(r_string("HASHMAP"), r_string("hashMap"), r_string("Dis is a hashmap. It hashes things."), r_string("hashMap"), createGameDataHashMap);
@@ -168,6 +184,9 @@ void cba::preStart() {
     static auto _getArrayWithDef = intercept::client::host::registerFunction("getArray", "", userFunctionWrapper<getArrayWithDef>, GameDataType::ARRAY, GameDataType::ARRAY);
     static auto _getBoolWithDef = intercept::client::host::registerFunction("getBool", "", userFunctionWrapper<getBoolWithDef>, GameDataType::BOOL, GameDataType::ARRAY);
     static auto _getAnyWithDef = intercept::client::host::registerFunction("getAny", "", userFunctionWrapper<getAnyWithDef>, GameDataType::ANY, GameDataType::ARRAY);
+    static auto _selectLast = intercept::client::host::registerFunction("selectLast", "", userFunctionWrapper<selectLast>, GameDataType::ANY, GameDataType::ARRAY);
+    static auto _popEnd = intercept::client::host::registerFunction("popEnd", "", userFunctionWrapper<popEnd>, GameDataType::ANY, GameDataType::ARRAY);
+    static auto _popFront = intercept::client::host::registerFunction("popFront", "", userFunctionWrapper<popFront>, GameDataType::ANY, GameDataType::ARRAY);
 
 
 
