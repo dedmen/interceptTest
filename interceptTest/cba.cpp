@@ -1,7 +1,7 @@
 #define NOMINMAX
 #include "cba.h"
 #include <client/headers/intercept.hpp>
-
+#include <sstream>
 using namespace intercept;
 
 
@@ -13,6 +13,10 @@ types::registered_sqf_function _hashMapRemove;
 types::registered_sqf_function _hashMapContains;
 types::registered_sqf_function _hashMapCount;
 types::registered_sqf_function _hashMapSelect;
+types::registered_sqf_function _hashMapSetVar;
+types::registered_sqf_function _hashMapGetVarDef;
+types::registered_sqf_function _hashMapGetVarStr;
+types::registered_sqf_function _hashMapGetKeyList;
 static sqf_script_type GameDataHashMap_type;
 
 class GameDataHashMap : public game_data {
@@ -51,7 +55,7 @@ public:
         //}
         return serialization_return::no_error;
     }
-    std::map<size_t, game_value> map;
+    std::unordered_map<game_value, game_value> map;
 };
 
 game_data* createGameDataHashMap(param_archive* ar) {
@@ -73,22 +77,31 @@ game_value hashSet(game_value hashMap, game_value args) {
     auto map = static_cast<GameDataHashMap*>(hashMap.data.getRef());
 
 
-    map->map[args[0].hash()] = args[1];
+    map->map[args[0]] = args[1];
+    std::stringstream str;
+    str << "hashSetVar" << map << " " << static_cast<r_string>(args[0]) << "=" << static_cast<r_string>(args[1]) << "\n";
+    OutputDebugStringA(str.str().c_str());;
     return {};
 }
 
 game_value hashFind(game_value hashMap, game_value toFind) {
     if (hashMap.is_nil()) return {};
     auto map = static_cast<GameDataHashMap*>(hashMap.data.getRef());
-    auto found = map->map.find(toFind.hash());
-    if (found != map->map.end()) return found->second;
+    auto found = map->map.find(toFind);
+    if (found != map->map.end()) {
+
+        std::stringstream str;
+        str << "hashGetVar" << map << " " << static_cast<r_string>(toFind) << "=" << static_cast<r_string>(found->second) << "\n";
+        OutputDebugStringA(str.str().c_str());;
+        return found->second;
+    }
     return {};
 }
 
 game_value hashRemove(game_value hashMap, game_value toRemove) {
     if (hashMap.is_nil()) return {};
     auto map = static_cast<GameDataHashMap*>(hashMap.data.getRef());
-    auto found = map->map.find(toRemove.hash());
+    auto found = map->map.find(toRemove);
     if (found != map->map.end()) map->map.erase(found);
     return {};
 }
@@ -96,7 +109,7 @@ game_value hashRemove(game_value hashMap, game_value toRemove) {
 game_value hashContains(game_value toFind, game_value hashMap) {
     if (hashMap.is_nil()) return {};
     auto map = static_cast<GameDataHashMap*>(hashMap.data.getRef());
-    auto found = map->map.find(toFind.hash());
+    auto found = map->map.find(toFind);
     if (found != map->map.end()) return true;
     return false;
 }
@@ -106,6 +119,60 @@ game_value hashCount(game_value hashMap) {
     auto map = static_cast<GameDataHashMap*>(hashMap.data.getRef());
     return static_cast<float>(map->map.size());
 }
+
+
+game_value hashSetVar(game_value hashMap, game_value args) {
+    if (hashMap.is_nil() || args.size() < 2) return {}; //WTF U doin?
+    auto map = static_cast<GameDataHashMap*>(hashMap.data.getRef());
+
+
+    map->map[args[0]] = args[1];
+
+    std::stringstream str;
+    str << "hashSetVar" << map << " " << static_cast<r_string>(args[0]) << "=" << static_cast<r_string>(args[1]) << "\n";
+    OutputDebugStringA(str.str().c_str());;
+
+    return {};
+}
+
+game_value hashGetVarDef(game_value hashMap, game_value args) {
+    if (hashMap.is_nil() || args.size() < 2) return {};
+    auto map = static_cast<GameDataHashMap*>(hashMap.data.getRef());
+    auto found = map->map.find(args[0]);
+    if (found != map->map.end()) {
+
+        std::stringstream str;
+        str << "hashGetVarDef" << map << " " << static_cast<r_string>(args[0]) << "=" << static_cast<r_string>(found->second) << "\n";
+        OutputDebugStringA(str.str().c_str());;
+        return found->second;
+    }
+    return args[1];
+}
+
+game_value hashGetVarStr(game_value hashMap, game_value args) {
+    if (hashMap.is_nil()) return {};
+    auto map = static_cast<GameDataHashMap*>(hashMap.data.getRef());
+    auto found = map->map.find(args);
+    if (found != map->map.end()) {
+        std::stringstream str;
+        str << "hashGetVarStr" << map << " " << static_cast<r_string>(args) << "=" << static_cast<r_string>(found->second) << "\n";
+        OutputDebugStringA(str.str().c_str());;
+        return found->second;
+    }
+    return {};
+}
+
+game_value hashGetKeyList(game_value hashMap) {
+    if (hashMap.is_nil()) return 0;
+    auto_array<game_value> keys;
+    auto map = static_cast<GameDataHashMap*>(hashMap.data.getRef());
+    for (auto& k : map->map) {
+        keys.emplace_back(k.first);
+    }
+
+    return std::move(keys);
+}
+
 
 #pragma endregion hashMap
 
@@ -247,6 +314,11 @@ game_value logn(game_value left_arg, game_value right_arg) {
     return std::log(static_cast<float>(right_arg))/ std::log(static_cast<float>(left_arg));
 }
 
+game_value regexReplace(game_value left_arg, game_value right_arg) {
+    std::regex regr((std::string)right_arg[0]);
+    return std::regex_replace((std::string)left_arg, regr, (std::string)right_arg[1]);
+}
+
 
 void cba::preStart() {
 
@@ -260,7 +332,10 @@ void cba::preStart() {
     _hashMapRemove = client::host::registerFunction("deleteAt", "Deletes an element in a Hashmap", userFunctionWrapper<hashRemove>, GameDataType::NOTHING, codeType.first, GameDataType::ANY);
     _hashMapContains = client::host::registerFunction("in", "Checks if given element is inside Hashmap", userFunctionWrapper<hashContains>, GameDataType::BOOL, GameDataType::ANY, codeType.first);
     _hashMapCount = client::host::registerFunction("count", "Counts number of elements inside Hashmap", userFunctionWrapper<hashCount>, GameDataType::SCALAR, codeType.first);
-
+    _hashMapSetVar = client::host::registerFunction("setVariable", "", userFunctionWrapper<hashSetVar>, GameDataType::NOTHING, codeType.first, GameDataType::ARRAY);
+    _hashMapGetVarDef = client::host::registerFunction("getVariable", "", userFunctionWrapper<hashGetVarDef>, GameDataType::ANY, codeType.first, GameDataType::ARRAY);
+    _hashMapGetVarStr = client::host::registerFunction("getVariable", "", userFunctionWrapper<hashGetVarStr>, GameDataType::ANY, codeType.first, GameDataType::STRING);
+    _hashMapGetKeyList = client::host::registerFunction("allVariables", "", userFunctionWrapper<hashGetKeyList>, GameDataType::ARRAY, codeType.first);
 
     static auto _getNumberWithDef = intercept::client::host::registerFunction("getNumber", "", userFunctionWrapper<getNumberWithDef>, GameDataType::SCALAR, GameDataType::ARRAY);
     static auto _getTextWithDef = intercept::client::host::registerFunction("getText", "", userFunctionWrapper<getTextWithDef>, GameDataType::STRING, GameDataType::ARRAY);
@@ -280,6 +355,7 @@ void cba::preStart() {
     static auto _naturalLog = intercept::client::host::registerFunction("ln", "", userFunctionWrapper<naturalLog>, GameDataType::SCALAR, GameDataType::SCALAR);
     static auto _nthRoot = intercept::client::host::registerFunction("root", "", userFunctionWrapper<nthRoot>, GameDataType::SCALAR, GameDataType::SCALAR, GameDataType::SCALAR);
     static auto _logn = intercept::client::host::registerFunction("log", "", userFunctionWrapper<logn>, GameDataType::SCALAR, GameDataType::SCALAR, GameDataType::SCALAR);
+    static auto _regexReplace = intercept::client::host::registerFunction("regexReplace", "", userFunctionWrapper<regexReplace>, GameDataType::STRING, GameDataType::STRING, GameDataType::ARRAY);
 
 }
 

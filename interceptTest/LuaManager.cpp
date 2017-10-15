@@ -189,7 +189,7 @@ public:
     virtual void AddValue(int val) {
         std::stringstream str;
         str << this << " AddValue " << val << "\n";
-        OutputDebugStringA(str.str().c_str());;
+        OutputDebugStringA(str.str().c_str());
     }
     //#if _HELISIM_LARGE_OBJECTID
     virtual void AddValue(int64_t val) {

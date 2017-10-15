@@ -549,10 +549,10 @@ game_value TFAR::TFAR_fnc_processPlayerPositions(game_value arg) {
 
     if (_needNearPlayerScan) {
         __itt_task_begin(domain, __itt_null, __itt_null, handle_playerScan);
-        auto allu = sqf::all_units();
+        //auto allu = sqf::all_units();
         TFAR_currentNearPlayers.clear();
-        TFAR_currentNearPlayers.insert(allu.begin(), allu.end()); 
-        //TFAR_currentNearPlayers = TFAR_fnc_getNearPlayers();
+        //TFAR_currentNearPlayers.insert(allu.begin(), allu.end()); 
+        TFAR_currentNearPlayers = TFAR_fnc_getNearPlayers();
 
         for (auto& it : sqf::all_curators()) {
             auto _player = sqf::get_assigned_curator_unit(it);
