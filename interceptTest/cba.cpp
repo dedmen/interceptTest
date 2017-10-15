@@ -315,6 +315,7 @@ game_value logn(game_value left_arg, game_value right_arg) {
 }
 
 game_value regexReplace(game_value left_arg, game_value right_arg) {
+    if (right_arg.size() != 2) return "";
     std::regex regr((std::string)right_arg[0]);
     return std::regex_replace((std::string)left_arg, regr, (std::string)right_arg[1]);
 }
