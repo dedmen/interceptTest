@@ -72,15 +72,19 @@ game_value createHashMap() {
     return game_value(new GameDataHashMap());
 }
 
+//#define CBA_HASH_LOG
+
 game_value hashSet(game_value hashMap, game_value args) {
     if (hashMap.is_nil() || args.size() != 2) return {}; //WTF U doin u idiot?! Stop givin me that crap
     auto map = static_cast<GameDataHashMap*>(hashMap.data.getRef());
 
 
     map->map[args[0]] = args[1];
+#ifdef CBA_HASH_LOG
     std::stringstream str;
     str << "hashSetVar" << map << " " << static_cast<r_string>(args[0]) << "=" << static_cast<r_string>(args[1]) << "\n";
-    OutputDebugStringA(str.str().c_str());;
+    OutputDebugStringA(str.str().c_str());
+#endif
     return {};
 }
 
@@ -89,10 +93,11 @@ game_value hashFind(game_value hashMap, game_value toFind) {
     auto map = static_cast<GameDataHashMap*>(hashMap.data.getRef());
     auto found = map->map.find(toFind);
     if (found != map->map.end()) {
-
+    #ifdef CBA_HASH_LOG
         std::stringstream str;
         str << "hashGetVar" << map << " " << static_cast<r_string>(toFind) << "=" << static_cast<r_string>(found->second) << "\n";
-        OutputDebugStringA(str.str().c_str());;
+        OutputDebugStringA(str.str().c_str());
+    #endif
         return found->second;
     }
     return {};
@@ -127,10 +132,11 @@ game_value hashSetVar(game_value hashMap, game_value args) {
 
 
     map->map[args[0]] = args[1];
-
+#ifdef CBA_HASH_LOG
     std::stringstream str;
     str << "hashSetVar" << map << " " << static_cast<r_string>(args[0]) << "=" << static_cast<r_string>(args[1]) << "\n";
-    OutputDebugStringA(str.str().c_str());;
+    OutputDebugStringA(str.str().c_str());
+#endif
 
     return {};
 }
@@ -140,10 +146,11 @@ game_value hashGetVarDef(game_value hashMap, game_value args) {
     auto map = static_cast<GameDataHashMap*>(hashMap.data.getRef());
     auto found = map->map.find(args[0]);
     if (found != map->map.end()) {
-
+    #ifdef CBA_HASH_LOG
         std::stringstream str;
         str << "hashGetVarDef" << map << " " << static_cast<r_string>(args[0]) << "=" << static_cast<r_string>(found->second) << "\n";
-        OutputDebugStringA(str.str().c_str());;
+        OutputDebugStringA(str.str().c_str());
+    #endif
         return found->second;
     }
     return args[1];
@@ -154,9 +161,11 @@ game_value hashGetVarStr(game_value hashMap, game_value args) {
     auto map = static_cast<GameDataHashMap*>(hashMap.data.getRef());
     auto found = map->map.find(args);
     if (found != map->map.end()) {
+    #ifdef CBA_HASH_LOG
         std::stringstream str;
         str << "hashGetVarStr" << map << " " << static_cast<r_string>(args) << "=" << static_cast<r_string>(found->second) << "\n";
-        OutputDebugStringA(str.str().c_str());;
+        OutputDebugStringA(str.str().c_str());
+    #endif
         return found->second;
     }
     return {};
