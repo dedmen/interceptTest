@@ -329,6 +329,38 @@ game_value regexReplace(game_value left_arg, game_value right_arg) {
     return std::regex_replace((std::string)left_arg, regr, (std::string)right_arg[1]);
 }
 
+game_value nothing0() {
+    return {};
+}
+game_value nothing1(game_value) {
+    return {};
+}
+game_value nothing2(game_value, game_value) {
+    return {};
+}
+
+
+class codeWithCexp : public game_data {
+public:
+    r_string code_string;
+    struct {
+        uint32_t ref;
+        uint32_t count;
+
+    } *instrarr;
+    bool is_final;
+};
+
+
+game_value instructionCount(game_value code) {
+    if (code.is_nil()) return 0;
+    auto c = (codeWithCexp*) code.data.getRef();
+    if (!c->instrarr) return 0;
+    return (float)c->instrarr->count;
+
+    return {};
+}
+
 
 void cba::preStart() {
 
@@ -366,6 +398,10 @@ void cba::preStart() {
     static auto _nthRoot = intercept::client::host::registerFunction("root", "", userFunctionWrapper<nthRoot>, GameDataType::SCALAR, GameDataType::SCALAR, GameDataType::SCALAR);
     static auto _logn = intercept::client::host::registerFunction("log", "", userFunctionWrapper<logn>, GameDataType::SCALAR, GameDataType::SCALAR, GameDataType::SCALAR);
     static auto _regexReplace = intercept::client::host::registerFunction("regexReplace", "", userFunctionWrapper<regexReplace>, GameDataType::STRING, GameDataType::STRING, GameDataType::ARRAY);
+    static auto _nothing0 = intercept::client::host::registerFunction("nothingN", "", userFunctionWrapper<nothing0>, GameDataType::NOTHING);
+    static auto _nothing1 = intercept::client::host::registerFunction("nothing", "", userFunctionWrapper<nothing1>, GameDataType::NOTHING, GameDataType::ANY);
+    static auto _nothing2 = intercept::client::host::registerFunction("nothing", "", userFunctionWrapper<nothing2>, GameDataType::NOTHING, GameDataType::ANY, GameDataType::ANY);
+    static auto _instructionCOunt = intercept::client::host::registerFunction("instructionCount", "", userFunctionWrapper<instructionCount>, GameDataType::SCALAR, GameDataType::CODE);
 
 }
 

@@ -123,6 +123,7 @@
       <SDLCheck>true</SDLCheck>
       <AdditionalIncludeDirectories>I:\intercept\src;J:\Installs\IntelSWTools\VTune Amplifier XE 2017\include;I:\intercept\vcproj\test\interceptTest\interceptTest\lua;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <LanguageStandard>stdcpplatest</LanguageStandard>
+      <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
     </ClCompile>
     <Link>
       <AdditionalDependencies>intercept_client.lib;libittnotify.lib;%(AdditionalDependencies)</AdditionalDependencies>
