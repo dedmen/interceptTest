@@ -171,7 +171,143 @@ game_value addListItems_acearsenal(intercept::types::game_value left_arg, interc
 }
 
 
+#pragma region railScopeHeightHack
 
+float frailHeight = 0;
+float fmuzzleHeight = 0;
+float fscopeCenter = 0;
+float fscopeCenter2 = 0;
+uint32_t scopeCenterSwapFlag = 0;
+uintptr_t railHeightJmpBack;
+uintptr_t muzzleHeightJmpBack;
+uintptr_t scopeCenterJmpBack;
+
+void __declspec(naked) railHeight() {
+    __asm
+    {
+        //mov         ebp, offset frailHeight;
+        //mov         esi, [eax + 0x28];
+        //mov         [ebp], esi;
+        movss       xmm0, [eax + 0x28];
+        movss       frailHeight, xmm0;
+
+        mov         ebp, dword ptr[ebx + 8Ch]
+        xor         esi, esi
+        test        ebp, ebp
+        jmp         railHeightJmpBack//0201E08C
+    }
+}
+void __declspec(naked) scopeCenter() {
+    __asm
+    {
+        push        ecx
+        movss       xmm0, [eax + 0x4];
+
+        mov         ecx, scopeCenterSwapFlag
+        test        ecx, ecx
+        jz isZero
+    isNotZero:
+        movss       fscopeCenter2, xmm0;
+        jmp         checkOut
+    isZero:
+        movss       fscopeCenter, xmm0;
+
+    checkOut:
+        xor         ecx, 1
+        mov         scopeCenterSwapFlag, ecx
+        pop         ecx
+
+        movss       xmm0, dword ptr[eax]
+        movss       dword ptr[esp + 144h], xmm0
+        movss       xmm0, dword ptr[eax + 4]
+        movss       dword ptr[esp + 148h], xmm0
+        movss       xmm0, dword ptr[eax + 8]
+        jmp         scopeCenterJmpBack //0201D7D9
+    }
+}
+void __declspec(naked) muzzleHeight() {
+    __asm
+    {
+        //mov         eax, offset fmuzzleHeight;
+        movss       xmm0, [esp + 0x70];
+        movss       fmuzzleHeight, xmm0;
+        //eax,ecx 
+
+        movss       xmm0, dword ptr[esp + 6Ch]
+        lea         eax, [esp + 20h]
+        subss       xmm0, dword ptr[esp + 90h]
+        push        eax
+        lea         ecx, [esp + 88h]
+        jmp         muzzleHeightJmpBack //0201D9C0
+    }
+}
+uintptr_t placeHookTotalOffs(uintptr_t totalOffset, uintptr_t jmpTo) {
+    DWORD dwVirtualProtectBackup;
+
+
+    /*
+    32bit
+    jmp 0x123122
+    0:  e9 1e 31 12 00          jmp    123123 <_main+0x123123>
+    64bit
+    FF 25 64bit relative
+    */
+    VirtualProtect(reinterpret_cast<LPVOID>(totalOffset), 5u, 0x40u, &dwVirtualProtectBackup);
+    auto jmpInstr = reinterpret_cast<unsigned char *>(totalOffset);
+    auto addrOffs = reinterpret_cast<unsigned int *>(totalOffset + 1);
+    *jmpInstr = 0xE9;
+    *addrOffs = jmpTo - totalOffset - 5;
+    VirtualProtect(reinterpret_cast<LPVOID>(totalOffset), 5u, dwVirtualProtectBackup, &dwVirtualProtectBackup);
+    return totalOffset + 5;
+}
+
+#include <Psapi.h>
+#pragma comment (lib, "Psapi.lib")//GetModuleInformation
+
+void addHook() {
+    MODULEINFO modInfo = { 0 };
+    HMODULE hModule = GetModuleHandle(NULL);
+    GetModuleInformation(GetCurrentProcess(), hModule, &modInfo, sizeof(MODULEINFO));
+    auto engineBase = reinterpret_cast<uintptr_t>(modInfo.lpBaseOfDll);
+    auto engineSize = static_cast<uintptr_t>(modInfo.SizeOfImage);
+
+
+    placeHookTotalOffs(0x0201E082 - 0x00FC0000 + engineBase, (uintptr_t) railHeight);
+    placeHookTotalOffs(0x0201D7B9 - 0x00FC0000 + engineBase, (uintptr_t) scopeCenter);
+    placeHookTotalOffs(0x0201D9A5 - 0x00FC0000 + engineBase, (uintptr_t) muzzleHeight);
+
+
+
+    railHeightJmpBack = 0x0201E08C - 0x00FC0000 + engineBase;
+    scopeCenterJmpBack = 0x0201D7D9 - 0x00FC0000 + engineBase;
+    muzzleHeightJmpBack = 0x0201D9C0 - 0x00FC0000 + engineBase;
+}
+
+
+/*
+00FC0000
+rail height modelLocal = 0201E082 [eax+0x28]
+muzzleHeight = 0201D9A5 [esp+0x70]
+scopecenter modellocal = 0201D7B9 [eax+0x4]
+*/
+
+#pragma endregion railScopeHeightHack
+
+
+
+game_value addRailScopeHeightHook() {
+    static bool alreadyAdded = false;
+    if (alreadyAdded) return "NO!";
+    addHook();
+    alreadyAdded = true;
+    return "success";
+}
+
+game_value getRailScopeStuff() {
+    game_value ret{ fmuzzleHeight, frailHeight, fscopeCenter, fscopeCenter2 };
+    fmuzzleHeight = frailHeight = fscopeCenter = fscopeCenter2 = 1;
+    return ret;
+}
 
 void __cdecl intercept::pre_start() {
     _binaryFuncOne = intercept::client::host::registerFunction(
@@ -245,6 +381,9 @@ void __cdecl intercept::pre_start() {
     pTFAR.preStart();
     cba::preStart();
 
+
+    static auto _rHackinterceptEventFunction2 = intercept::client::host::registerFunction("addRailScopeHeightHook", "", userFunctionWrapper<addRailScopeHeightHook>, GameDataType::STRING);
+    static auto _rHackinterceptEventFunction6 = intercept::client::host::registerFunction("getRailScopeStuff", "", userFunctionWrapper<getRailScopeStuff>, GameDataType::ARRAY);
 }
 
 void __cdecl intercept::pre_init() {
@@ -264,7 +403,22 @@ void __cdecl intercept::post_init() {
 
     tools::postInit();
     cba::postInit();
+
+              
+    static auto _EH2 = client::addEventHandler<client::eventhandlers_object::Fired>(sqf::player(),[](types::object unit, types::r_string weapon, types::r_string muzzle, types::r_string mode, types::r_string ammo, types::r_string magazine, types::object projectile, types::object gunner)
+    {
+        auto p1 = ((game_data_object*) projectile.data.getRef())->get_position_matrix()._position;
+        auto p2 = sqf::position_camera_to_world({ 0,0,0 });
+
+        auto p3 = p2 - p1;
+
+
+    });
 }
+
+
+
+
 
 class Variable {
 public:

@@ -171,9 +171,9 @@ public:
     virtual param_archive_entry *FindEntry(const r_string &name) const { __debugbreak(); return NULL; }
     virtual operator float() const { __debugbreak(); return 0; }
     virtual operator int() const { __debugbreak(); return 0; }
-    //#if _HELISIM_LARGE_OBJECTID
+
     virtual operator int64_t() const { __debugbreak(); return 0; }
-    //#endif // _HELISIM_LARGE_OBJECTID
+
     virtual operator const r_string() const { __debugbreak(); return r_string(); }
     virtual operator r_string() const { __debugbreak(); return r_string(); }
     virtual operator bool() const { __debugbreak(); return false; }
@@ -191,13 +191,13 @@ public:
         str << this << " AddValue " << val << "\n";
         OutputDebugStringA(str.str().c_str());
     }
-    //#if _HELISIM_LARGE_OBJECTID
+
     virtual void AddValue(int64_t val) {
         std::stringstream str;
         str << this << " AddValue " << val << "\n";
         OutputDebugStringA(str.str().c_str());
     }
-    //#endif
+
     virtual void AddValue(bool val) {
         std::stringstream str;
         str << this << " AddValue " << val << "\n";
@@ -251,8 +251,6 @@ public:
         str << this << " Add " << name.data() << " " << val << "\n";
         OutputDebugStringA(str.str().c_str());
     }
-    //#if _HELISIM_LARGE_OBJECTID
-    //#endif // _HELISIM_LARGE_OBJECTID
     virtual void Compact() {
         std::stringstream str;
         str << this << " Compact " << "\n";
