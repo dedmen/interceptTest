@@ -330,6 +330,7 @@
     <ClCompile Include="lua\lzio.c">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">false</ExcludedFromBuild>
     </ClCompile>
+    <ClCompile Include="magGroupTest.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="TFAR.cpp" />
     <ClCompile Include="tools.cpp" />
@@ -365,6 +366,7 @@
     </ClInclude>
     <ClInclude Include="lua\lvm.h" />
     <ClInclude Include="lua\lzio.h" />
+    <ClInclude Include="magGroupTest.h" />
     <ClInclude Include="sol.hpp" />
     <ClInclude Include="TFAR.h" />
     <ClInclude Include="tools.h" />

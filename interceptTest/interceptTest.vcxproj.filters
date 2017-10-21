@@ -141,6 +141,9 @@
     <ClCompile Include="cba.cpp">
       <Filter>Quelldateien</Filter>
     </ClCompile>
+    <ClCompile Include="magGroupTest.cpp">
+      <Filter>Quelldateien</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="tools.h">
@@ -234,6 +237,9 @@
       <Filter>Headerdateien</Filter>
     </ClInclude>
     <ClInclude Include="cba.h">
+      <Filter>Headerdateien</Filter>
+    </ClInclude>
+    <ClInclude Include="magGroupTest.h">
       <Filter>Headerdateien</Filter>
     </ClInclude>
   </ItemGroup>
