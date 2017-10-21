@@ -228,20 +228,20 @@ void __declspec(naked) scopeCenter() {
     }
 }
 
-void __declspec(naked) ironCenter() {
-    __asm
-    {
-        movss       xmm5, [eax + 0x4]
-        movss       fironCenter, xmm5
-
-        movss       xmm5, dword ptr[eax]
-        movss       [esp + 60h], xmm5
-        movss       xmm6, dword ptr[eax + 4]
-        movss       dword ptr[esp + 64h], xmm6
-        movss       xmm7, dword ptr[eax + 8]
-        jmp         ironCenterJmpBack// 00BADC2A 0x0 base
-    }
-}
+//void __declspec(naked) ironCenter() {
+//    __asm
+//    {
+//        movss       xmm5, [eax + 0x4]
+//        movss       fironCenter, xmm5
+//
+//        movss       xmm5, dword ptr[eax]
+//        movss       [esp + 60h], xmm5
+//        movss       xmm6, dword ptr[eax + 4]
+//        movss       dword ptr[esp + 64h], xmm6
+//        movss       xmm7, dword ptr[eax + 8]
+//        jmp         ironCenterJmpBack// 00BADC2A 0x0 base
+//    }
+//}
 
 void __declspec(naked) muzzleHeight() {
     __asm
@@ -292,14 +292,16 @@ void addHook() {
 
     placeHookTotalOffs(0x0201E082 - 0x00FC0000 + engineBase, (uintptr_t) railHeight);
     placeHookTotalOffs(0x0201D7B9 - 0x00FC0000 + engineBase, (uintptr_t) scopeCenter);
-    placeHookTotalOffs(0x00BADC10 + engineBase, (uintptr_t) ironCenter);
+    //placeHookTotalOffs(0x00BADC10 + engineBase, (uintptr_t) ironCenter);
+    //placeHookTotalOffs(0x00BAD2C0 + engineBase, (uintptr_t) ironCenter);
     placeHookTotalOffs(0x0201D9A5 - 0x00FC0000 + engineBase, (uintptr_t) muzzleHeight);
 
 
 
     railHeightJmpBack = 0x0201E08C - 0x00FC0000 + engineBase;
     scopeCenterJmpBack = 0x0201D7D9 - 0x00FC0000 + engineBase;
-    ironCenterJmpBack = 0x00BADC2A + engineBase;
+    //ironCenterJmpBack = 0x00BADC2A + engineBase;
+    //ironCenterJmpBack = 0x00BAD2DA + engineBase;
     muzzleHeightJmpBack = 0x0201D9C0 - 0x00FC0000 + engineBase;
 }
 
