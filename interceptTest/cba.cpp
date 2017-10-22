@@ -367,20 +367,20 @@ game_value getObjectConfigFromObj(game_value obj) {
 
     for (auto& cls : { "CfgVehicles"sv, "CfgAmmo"sv, "CfgNonAIVehicles"sv }) {
         auto cfgClass = sqf::config_entry() >> cls >> type;
-        if (sqf::is_class(cfgClass)) return cfgClass;
+        if (sqf::is_class(cfgClass)) return static_cast<game_value>(cfgClass);
 
     }
-    return sqf::config_null();
+    return static_cast<game_value>(sqf::config_null());
 }
 
 game_value getObjectConfigFromStr(game_value className) {
     sqf_string type = className;
     for (auto& cls : { "CfgVehicles"sv, "CfgAmmo"sv, "CfgNonAIVehicles"sv }) {
         auto cfgClass = sqf::config_entry() >> cls >> type;
-        if (sqf::is_class(cfgClass)) return cfgClass;
+        if (sqf::is_class(cfgClass)) return static_cast<game_value>(cfgClass);
 
     }
-    return sqf::config_null();
+    return static_cast<game_value>(sqf::config_null());
 }
 
 game_value getItemConfigFromObj(game_value obj) {
@@ -388,21 +388,65 @@ game_value getItemConfigFromObj(game_value obj) {
 
     for (auto& cls : { "CfgWeapons"sv, "CfgMagazines"sv, "CfgGlasses"sv }) {
         auto cfgClass = sqf::config_entry() >> cls >> type;
-        if (sqf::is_class(cfgClass)) return cfgClass;
+        if (sqf::is_class(cfgClass)) return static_cast<game_value>(cfgClass);
 
     }
-    return sqf::config_null();
+    return static_cast<game_value>(sqf::config_null());
 }
 
 game_value getItemConfigFromStr(game_value className) {
     sqf_string type = className;
     for (auto& cls : { "CfgWeapons"sv, "CfgMagazines"sv, "CfgGlasses"sv }) {
         auto cfgClass = sqf::config_entry() >> cls >> type;
-        if (sqf::is_class(cfgClass)) return cfgClass;
+        if (sqf::is_class(cfgClass)) return static_cast<game_value>(cfgClass);
 
     }
-    return sqf::config_null();
+    return static_cast<game_value>(sqf::config_null());
 }
+
+
+//game_value turretPath(game_value unit) {
+//   https://github.com/CBATeam/CBA_A3/blob/master/addons/common/fnc_turretPath.sqf
+//
+//    auto vehicle = sqf::vehicle(unit);
+//
+//    auto turrets = sqf::all_turrets(vehicle,true);
+//    std::find_if(turrets.begin(),turrets.end(),[](sqf_string_const_ref name)
+//    {
+//        sqf::turret_unit(vehicle,)
+//    })
+//
+//
+//    (allTurrets[_vehicle, true] select{ (_vehicle turretUnit _x) isEqualTo _unit }) param[0, []]
+//
+//    sqf_string type = className;
+//    for (auto& cls : { "CfgWeapons"sv, "CfgMagazines"sv, "CfgGlasses"sv }) {
+//        auto cfgClass = sqf::config_entry() >> cls >> type;
+//        if (sqf::is_class(cfgClass)) return static_cast<game_value>(cfgClass);
+//
+//    }
+//    return static_cast<game_value>(sqf::config_null());
+//}
+
+
+game_value aliveGroup(game_value grp) {
+    for (auto& unit : sqf::units(static_cast<group>(grp)))
+        if (sqf::alive(unit)) return true;
+    return false;
+}
+
+game_value unarySpawn(game_value code) {
+    return sqf::spawn({}, code);
+}
+
+//#TODO
+/*
+ *
+ * alive _group
+
+Checking if there is at least one alive unit in the group. false for empty group or grpNull.
+ *
+ */
 
 void cba::preStart() {
 
@@ -448,6 +492,8 @@ void cba::preStart() {
     static auto _getObjectConfigFromStr = intercept::client::host::registerFunction("getObjectConfig", "", userFunctionWrapper<getObjectConfigFromStr>, GameDataType::CONFIG, GameDataType::STRING);
     static auto _getItemConfigFromObj = intercept::client::host::registerFunction("getItemConfig", "", userFunctionWrapper<getObjectConfigFromObj>, GameDataType::CONFIG, GameDataType::OBJECT);
     static auto _getItemConfigFromStr = intercept::client::host::registerFunction("getItemConfig", "", userFunctionWrapper<getObjectConfigFromStr>, GameDataType::CONFIG, GameDataType::STRING);
+    static auto _alive = intercept::client::host::registerFunction("alive", "", userFunctionWrapper<aliveGroup>, GameDataType::BOOL, GameDataType::GROUP);
+    static auto _unarySpawn = intercept::client::host::registerFunction("spawn", "", userFunctionWrapper<unarySpawn>, GameDataType::SCRIPT, GameDataType::CODE);
 }
 
 void cba::postInit() {
