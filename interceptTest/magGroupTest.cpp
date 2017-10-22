@@ -1,5 +1,6 @@
 #include "magGroupTest.h"
 #include <client/headers/intercept.hpp>
+using namespace intercept;
 
 uint32_t weaponInitGetMagJmpBack, magazineInitMagGroupJmpBack;
 class __dummyVtable {
@@ -40,6 +41,7 @@ void magGroupInit(uintptr_t mType, uintptr_t groupName) {
     std::string nameStr = static_cast<std::string>(*name);
     auto mtype = reinterpret_cast<magType*>(mType);
     ref<magType>* mtypePtr = reinterpret_cast<ref<magType>*>(&mType);
+    std::string magName = static_cast<std::string>(mtype->displayName);
 
     groups[nameStr].push_back(*mtypePtr);
 
@@ -134,6 +136,14 @@ uintptr_t placeHookTotalOffs(uintptr_t totalOffset, uintptr_t jmpTo);
 #include <Psapi.h>
 #pragma comment (lib, "Psapi.lib")//GetModuleInformation
 
+uintptr_t(_cdecl *findMagType)(int stat, const char* name);
+uintptr_t findMagStat;
+uintptr_t(__thiscall *magTypeConstr)(uintptr_t mt);
+uintptr_t(__thiscall *magTypeInit)(uintptr_t mt, const char* name);
+uintptr_t(__thiscall *addMagType)(uintptr_t stat, uintptr_t mag);
+uintptr_t allocB;
+
+
 void addHuuk() {
     MODULEINFO modInfo = { 0 };
     HMODULE hModule = GetModuleHandle(NULL);
@@ -146,6 +156,13 @@ void addHuuk() {
     weaponInitGetMagJmpBack = 0x00D88392 - 0x1D0000 + engineBase;
     placeHookTotalOffs(0x00D86854 - 0x1D0000 + engineBase, (uintptr_t) magazineInitMagGroup);
     magazineInitMagGroupJmpBack = 0x00D86864 - 0x1D0000 + engineBase;
+
+    findMagType = (uintptr_t(*)(int, const char*))(0x00E944D0 - 0xA30000 + engineBase);
+    magTypeConstr = (uintptr_t(__thiscall*)(uintptr_t))(0x15DF150 - 0xA30000 + engineBase);
+    magTypeInit = (uintptr_t(__thiscall*)(uintptr_t, const char*))(0x15E5AE0 - 0xA30000 + engineBase);
+    addMagType = (uintptr_t(__thiscall*)(uintptr_t, uintptr_t))(0xDB1EB0 - 0xA30000 + engineBase);
+    allocB = 0x25F0B40 - 0xA30000 + engineBase;
+    findMagStat = 0x28A5604 - 0xA30000 + engineBase;
 }
 
 
@@ -160,14 +177,27 @@ scopecenter modellocal = 0201D7B9 [eax+0x4]
 
 void magGroupTest::preStart() {
     addHuuk();
+    //#TODO and scope is not private
+    auto cfgProps = sqf::config_properties(sqf::config_entry() >> "cfgMagazines", "isClass _x && isArray (_x>>'magazineGroup')", true);
 
+    for (auto& entry : cfgProps) {
+        std::string classname = sqf::config_name(entry);
+        if (classname == "ACE_30Rnd_556x45_Stanag_M995_AP_mag")       __debugbreak();
+        r_string cnameR = classname;
+        uintptr_t found = findMagType(findMagStat,cnameR.data());
+        if (!found) {
+            
+            //typedef uintptr_t(__stdcall *allloc)(signed int);
+            //allloc allF = **((allloc**) (allocB + 4));    allF(632)
+            uintptr_t newMag = (uintptr_t)intercept::types::__internal::rv_allocator_allocate_generic(632);
+            magTypeConstr(newMag);
+            magTypeInit(newMag, cnameR.data());
+            addMagType(findMagStat, newMag);
+            //add refcount?
+        }
 
-
-
-
-
-
-
+    }
+    OutputDebugStringA("done");
 
 
 }
