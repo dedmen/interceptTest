@@ -383,6 +383,27 @@ game_value getObjectConfigFromStr(game_value className) {
     return sqf::config_null();
 }
 
+game_value getItemConfigFromObj(game_value obj) {
+    auto type = sqf::type_of(obj);
+
+    for (auto& cls : { "CfgWeapons"sv, "CfgMagazines"sv, "CfgGlasses"sv }) {
+        auto cfgClass = sqf::config_entry() >> cls >> type;
+        if (sqf::is_class(cfgClass)) return cfgClass;
+
+    }
+    return sqf::config_null();
+}
+
+game_value getItemConfigFromStr(game_value className) {
+    sqf_string type = className;
+    for (auto& cls : { "CfgWeapons"sv, "CfgMagazines"sv, "CfgGlasses"sv }) {
+        auto cfgClass = sqf::config_entry() >> cls >> type;
+        if (sqf::is_class(cfgClass)) return cfgClass;
+
+    }
+    return sqf::config_null();
+}
+
 void cba::preStart() {
 
     auto codeType = client::host::registerType(r_string("HASHMAP"), r_string("hashMap"), r_string("Dis is a hashmap. It hashes things."), r_string("hashMap"), createGameDataHashMap);
@@ -425,7 +446,8 @@ void cba::preStart() {
     static auto _instructionCount = intercept::client::host::registerFunction("instructionCount", "", userFunctionWrapper<instructionCount>, GameDataType::SCALAR, GameDataType::CODE);
     static auto _getObjectConfigFromObj = intercept::client::host::registerFunction("getObjectConfig", "", userFunctionWrapper<getObjectConfigFromObj>, GameDataType::CONFIG, GameDataType::OBJECT);
     static auto _getObjectConfigFromStr = intercept::client::host::registerFunction("getObjectConfig", "", userFunctionWrapper<getObjectConfigFromStr>, GameDataType::CONFIG, GameDataType::STRING);
-
+    static auto _getItemConfigFromObj = intercept::client::host::registerFunction("getItemConfig", "", userFunctionWrapper<getObjectConfigFromObj>, GameDataType::CONFIG, GameDataType::OBJECT);
+    static auto _getItemConfigFromStr = intercept::client::host::registerFunction("getItemConfig", "", userFunctionWrapper<getObjectConfigFromStr>, GameDataType::CONFIG, GameDataType::STRING);
 }
 
 void cba::postInit() {
