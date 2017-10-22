@@ -18,7 +18,46 @@ public:
 
 std::map<std::string, std::vector<ref<magType>>> groups;
 
+uintptr_t(_cdecl *findMagType)(int stat, const char* name);
+uintptr_t findMagStat;
+uintptr_t(__thiscall *magTypeConstr)(uintptr_t mt);
+uintptr_t(__thiscall *magTypeInit)(uintptr_t mt, const char* name);
+uintptr_t(__thiscall *addMagType)(uintptr_t stat, uintptr_t mag);
+uintptr_t allocB;
+
+
+
 void weaponGetMag(uintptr_t muzzle, uintptr_t magName) {
+    static bool first = true;
+    if (first) {
+        first = false;
+
+        //#TODO and scope is not private
+        auto cfgProps = sqf::config_properties(sqf::config_entry() >> "cfgMagazines", "isClass _x && isArray (_x>>'magazineGroup')", true);
+
+        for (auto& entry : cfgProps) {
+            std::string classname = sqf::config_name(entry);
+            if (classname == "ACE_30Rnd_556x45_Stanag_M995_AP_mag")       __debugbreak();
+            r_string cnameR = classname;
+            uintptr_t found = findMagType(findMagStat, cnameR.data());
+            if (!found) {
+
+                //typedef uintptr_t(__stdcall *allloc)(signed int);
+                //allloc allF = **((allloc**) (allocB + 4));    allF(632)
+                uintptr_t newMag = (uintptr_t) intercept::types::__internal::rv_allocator_allocate_generic(632);
+                magTypeConstr(newMag);
+                magTypeInit(newMag, cnameR.data());
+                addMagType(findMagStat, newMag);
+                //add refcount?
+            }
+
+        }
+        OutputDebugStringA("done");
+
+    }
+
+
+
     r_string name(reinterpret_cast<compact_array<char>*>(magName));
     std::string nameStr = static_cast<std::string>(name);
     auto_array<ref<magType>>* magTypes = reinterpret_cast<auto_array<ref<magType>>*>(muzzle + 0x3AC);
@@ -136,12 +175,7 @@ uintptr_t placeHookTotalOffs(uintptr_t totalOffset, uintptr_t jmpTo);
 #include <Psapi.h>
 #pragma comment (lib, "Psapi.lib")//GetModuleInformation
 
-uintptr_t(_cdecl *findMagType)(int stat, const char* name);
-uintptr_t findMagStat;
-uintptr_t(__thiscall *magTypeConstr)(uintptr_t mt);
-uintptr_t(__thiscall *magTypeInit)(uintptr_t mt, const char* name);
-uintptr_t(__thiscall *addMagType)(uintptr_t stat, uintptr_t mag);
-uintptr_t allocB;
+
 
 
 void addHuuk() {
@@ -177,27 +211,4 @@ scopecenter modellocal = 0201D7B9 [eax+0x4]
 
 void magGroupTest::preStart() {
     addHuuk();
-    //#TODO and scope is not private
-    auto cfgProps = sqf::config_properties(sqf::config_entry() >> "cfgMagazines", "isClass _x && isArray (_x>>'magazineGroup')", true);
-
-    for (auto& entry : cfgProps) {
-        std::string classname = sqf::config_name(entry);
-        if (classname == "ACE_30Rnd_556x45_Stanag_M995_AP_mag")       __debugbreak();
-        r_string cnameR = classname;
-        uintptr_t found = findMagType(findMagStat,cnameR.data());
-        if (!found) {
-            
-            //typedef uintptr_t(__stdcall *allloc)(signed int);
-            //allloc allF = **((allloc**) (allocB + 4));    allF(632)
-            uintptr_t newMag = (uintptr_t)intercept::types::__internal::rv_allocator_allocate_generic(632);
-            magTypeConstr(newMag);
-            magTypeInit(newMag, cnameR.data());
-            addMagType(findMagStat, newMag);
-            //add refcount?
-        }
-
-    }
-    OutputDebugStringA("done");
-
-
 }
