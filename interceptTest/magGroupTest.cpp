@@ -24,7 +24,7 @@ uintptr_t(__thiscall *magTypeConstr)(uintptr_t mt);
 uintptr_t(__thiscall *magTypeInit)(uintptr_t mt, const char* name);
 uintptr_t(__thiscall *addMagType)(uintptr_t stat, uintptr_t mag);
 uintptr_t allocB;
-
+uint32_t insideMagInit = 0;
 
 
 void weaponGetMag(uintptr_t muzzle, uintptr_t magName) {
@@ -45,6 +45,7 @@ void weaponGetMag(uintptr_t muzzle, uintptr_t magName) {
                 //typedef uintptr_t(__stdcall *allloc)(signed int);
                 //allloc allF = **((allloc**) (allocB + 4));    allF(632)
                 uintptr_t newMag = (uintptr_t) intercept::types::__internal::rv_allocator_allocate_generic(632);
+                insideMagInit = newMag;
                 magTypeConstr(newMag);
                 magTypeInit(newMag, cnameR.data());
                 addMagType(findMagStat, newMag);
@@ -53,7 +54,7 @@ void weaponGetMag(uintptr_t muzzle, uintptr_t magName) {
 
         }
         OutputDebugStringA("done");
-
+        insideMagInit = 0;
     }
 
 
@@ -144,7 +145,15 @@ void __declspec(naked) magazineInitMagGroup() {
         //ESP + 4 is magazineType
         //ECX is name of magGroup
         mov     magName, ecx
-        mov     eax, [esp +4]
+
+        mov         eax, insideMagInit
+        test        eax, eax
+        jnz checkOut       //If inside magInit we have it already and it already is in eax
+
+        //else grab from stack
+        mov     eax, [esp + 4]
+
+   checkOut:
         mov     mtype, eax
 
 
