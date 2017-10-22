@@ -362,6 +362,27 @@ game_value instructionCount(game_value code) {
 }
 
 
+game_value getObjectConfigFromObj(game_value obj) {
+    auto type = sqf::type_of(obj);
+
+    for (auto& cls : { "CfgVehicles"sv, "CfgAmmo"sv, "CfgNonAIVehicles"sv }) {
+        auto cfgClass = sqf::config_entry() >> cls >> type;
+        if (sqf::is_class(cfgClass)) return cfgClass;
+
+    }
+    return sqf::config_null();
+}
+
+game_value getObjectConfigFromStr(game_value className) {
+    sqf_string type = className;
+    for (auto& cls : { "CfgVehicles"sv, "CfgAmmo"sv, "CfgNonAIVehicles"sv }) {
+        auto cfgClass = sqf::config_entry() >> cls >> type;
+        if (sqf::is_class(cfgClass)) return cfgClass;
+
+    }
+    return sqf::config_null();
+}
+
 void cba::preStart() {
 
     auto codeType = client::host::registerType(r_string("HASHMAP"), r_string("hashMap"), r_string("Dis is a hashmap. It hashes things."), r_string("hashMap"), createGameDataHashMap);
@@ -401,7 +422,9 @@ void cba::preStart() {
     static auto _nothing0 = intercept::client::host::registerFunction("nothingN", "", userFunctionWrapper<nothing0>, GameDataType::NOTHING);
     static auto _nothing1 = intercept::client::host::registerFunction("nothing", "", userFunctionWrapper<nothing1>, GameDataType::NOTHING, GameDataType::ANY);
     static auto _nothing2 = intercept::client::host::registerFunction("nothing", "", userFunctionWrapper<nothing2>, GameDataType::NOTHING, GameDataType::ANY, GameDataType::ANY);
-    static auto _instructionCOunt = intercept::client::host::registerFunction("instructionCount", "", userFunctionWrapper<instructionCount>, GameDataType::SCALAR, GameDataType::CODE);
+    static auto _instructionCount = intercept::client::host::registerFunction("instructionCount", "", userFunctionWrapper<instructionCount>, GameDataType::SCALAR, GameDataType::CODE);
+    static auto _getObjectConfigFromObj = intercept::client::host::registerFunction("getObjectConfig", "", userFunctionWrapper<getObjectConfigFromObj>, GameDataType::CONFIG, GameDataType::OBJECT);
+    static auto _getObjectConfigFromStr = intercept::client::host::registerFunction("getObjectConfig", "", userFunctionWrapper<getObjectConfigFromStr>, GameDataType::CONFIG, GameDataType::STRING);
 
 }
 
