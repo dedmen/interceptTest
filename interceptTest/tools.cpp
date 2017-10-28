@@ -1,9 +1,12 @@
-﻿#include "tools.h"
+#define INTERCEPT_SQF_STRTYPE_RSTRING
+#include "tools.h"
 #include <client/headers/intercept.hpp>
 #include <fstream>
 #include <future>
 using namespace intercept;
 #include <ittnotify.h>
+
+#if 0
 
 types::registered_sqf_function _funcExport;
 types::registered_sqf_function _initFunc;
@@ -1318,6 +1321,7 @@ public:
     bool willPrintOnDestruct;
 };
 
+
 game_value initFunctions(game_value _this) {
     __itt_task_begin(domain_initF, __itt_null, __itt_null, handle_initFunctions);
     scopedTimer initFunctionsTimer("initFunctions");
@@ -2126,13 +2130,13 @@ game_value bis_fnc_itemType(game_value arg) {
     }
     return { "","" };
 }
-
+#endif
 
 
 void tools::init() {
-    _funcExport = client::host::registerFunction("Intercept_bis_fnc_exportFunctionsToWiki", "", userFunctionWrapper<exportFuncs>, GameDataType::NOTHING, GameDataType::ARRAY);
-    _initFunc = client::host::registerFunction("Intercept_InitFunctions", "", userFunctionWrapper<initFunctions>, GameDataType::NOTHING, GameDataType::ANY);
-    _bis_fnc_itemType = client::host::registerFunction("Intercept_bis_fnc_itemType", "", userFunctionWrapper<bis_fnc_itemType>, GameDataType::ARRAY, GameDataType::STRING);
+    //_funcExport = client::host::registerFunction("Intercept_bis_fnc_exportFunctionsToWiki", "", userFunctionWrapper<exportFuncs>, GameDataType::NOTHING, GameDataType::ARRAY);
+    //_initFunc = client::host::registerFunction("Intercept_InitFunctions", "", userFunctionWrapper<initFunctions>, GameDataType::NOTHING, GameDataType::ANY);
+    //_bis_fnc_itemType = client::host::registerFunction("Intercept_bis_fnc_itemType", "", userFunctionWrapper<bis_fnc_itemType>, GameDataType::ARRAY, GameDataType::STRING);
 
 }
 

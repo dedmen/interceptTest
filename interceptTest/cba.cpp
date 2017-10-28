@@ -1,4 +1,5 @@
 #define NOMINMAX
+#define INTERCEPT_SQF_STRTYPE_RSTRING
 #include "cba.h"
 #include <client/headers/intercept.hpp>
 #include <sstream>
@@ -365,7 +366,7 @@ game_value instructionCount(game_value code) {
 game_value getObjectConfigFromObj(game_value obj) {
     auto type = sqf::type_of(obj);
 
-    for (auto& cls : { "CfgVehicles"sv, "CfgAmmo"sv, "CfgNonAIVehicles"sv }) {
+    for (std::string_view cls : { "CfgVehicles"sv, "CfgAmmo"sv, "CfgNonAIVehicles"sv }) {
         auto cfgClass = sqf::config_entry() >> cls >> type;
         if (sqf::is_class(cfgClass)) return static_cast<game_value>(cfgClass);
 
@@ -405,28 +406,15 @@ game_value getItemConfigFromStr(game_value className) {
 }
 
 
-//game_value turretPath(game_value unit) {
-//   https://github.com/CBATeam/CBA_A3/blob/master/addons/common/fnc_turretPath.sqf
-//
-//    auto vehicle = sqf::vehicle(unit);
-//
-//    auto turrets = sqf::all_turrets(vehicle,true);
-//    std::find_if(turrets.begin(),turrets.end(),[](sqf_string_const_ref name)
-//    {
-//        sqf::turret_unit(vehicle,)
-//    })
-//
-//
-//    (allTurrets[_vehicle, true] select{ (_vehicle turretUnit _x) isEqualTo _unit }) param[0, []]
-//
-//    sqf_string type = className;
-//    for (auto& cls : { "CfgWeapons"sv, "CfgMagazines"sv, "CfgGlasses"sv }) {
-//        auto cfgClass = sqf::config_entry() >> cls >> type;
-//        if (sqf::is_class(cfgClass)) return static_cast<game_value>(cfgClass);
-//
-//    }
-//    return static_cast<game_value>(sqf::config_null());
-//}
+//https://github.com/CBATeam/CBA_A3/blob/master/addons/common/fnc_turretPath.sqf
+game_value turretPath(game_value unit) {
+    auto vehicle = sqf::vehicle(unit);
+
+    for (auto& turret : sqf::all_turrets(vehicle, true)) {
+        if (sqf::turret_unit(vehicle, turret) == unit) return turret;
+    }
+    return { auto_array<game_value>() }; //empty array
+}
 
 
 game_value aliveGroup(game_value grp) {
@@ -436,17 +424,127 @@ game_value aliveGroup(game_value grp) {
 }
 
 game_value unarySpawn(game_value code) {
-    return sqf::spawn({}, code);
+    return static_cast<game_value>(sqf::spawn({}, code));
 }
 
-//#TODO
-/*
- *
- * alive _group
+game_value hasItem(game_value obj, game_value classn) {
+    r_string classname = classn;
+    auto containsString = [&classname](const sqf_return_string_list& list)
+    {
+        for (auto& item : list)
+            if (item == classname) return true;
+        return false;
+    };
 
-Checking if there is at least one alive unit in the group. false for empty group or grpNull.
- *
- */
+    if (containsString(sqf::get_item_cargo(sqf::uniform_container(obj)).types)) return true;
+    if (containsString(sqf::get_item_cargo(sqf::vest_container(obj)).types)) return true;
+    if (containsString(sqf::assigned_items(obj))) return true;
+
+    if (sqf::goggles(obj) == classname) return true;
+    if (sqf::headgear(obj) == classname) return true;
+    if (sqf::hmd(obj) == classname) return true;
+
+    if (containsString(sqf::get_item_cargo(sqf::backpack_container(obj)).types)) return true;
+
+    return false;
+}
+
+game_value getObjPosRaw(game_value obj) {
+    return sqf::model_to_world_visual_world(obj, {0,0,0});
+}
+
+game_value CBA_oldUnit;
+game_value CBA_oldGroup;
+game_value CBA_oldLeader;
+r_string CBA_oldWeapon;
+game_value CBA_oldLoadout;
+sqf::rv_unit_loadout CBA_oldLoadoutNoAmmo;
+game_value CBA_oldVehicle;
+game_value CBA_oldTurret;
+int CBA_oldVisionMode;
+r_string CBA_oldCameraView;
+bool CBA_oldVisibleMap;
+
+game_value CBA_playerEH_EachFrame() {
+    static game_value_static CBA_fnc_currentUnit = sqf::get_variable(sqf::mission_namespace(), "CBA_fnc_currentUnit");
+    static game_value_static CBA_fnc_localEvent = sqf::get_variable(sqf::mission_namespace(), "CBA_fnc_localEvent");
+
+    object _player = sqf::call(CBA_fnc_currentUnit);
+    if (_player != CBA_oldUnit) {
+        sqf::call(CBA_fnc_localEvent, { "cba_common_unitEvent", { _player , CBA_oldUnit } });
+        CBA_oldUnit = _player;
+    }
+
+    game_value _data = sqf::get_group(_player);
+    if (_data != CBA_oldGroup) {
+        sqf::call(CBA_fnc_localEvent,{ "cba_common_groupEvent",{ _data , CBA_oldGroup } });
+        CBA_oldGroup = _data;
+    }
+
+    _data = sqf::leader(_player);
+    if (_data != CBA_oldLeader) {
+        sqf::call(CBA_fnc_localEvent, { "cba_common_leaderEvent",{ _data , CBA_oldLeader } });
+        CBA_oldLeader = _data;
+    }
+
+    _data = sqf::current_weapon(_player);
+    if (_data != CBA_oldWeapon) {
+        CBA_oldWeapon = _data;
+        sqf::call(CBA_fnc_localEvent, { "cba_common_weaponEvent",{ _player , _data } });
+    }
+
+    _data = sqf::get_unit_loadout(_player);
+    if (_data != CBA_oldLoadout) {
+        CBA_oldLoadout = _data;
+        auto loadout = sqf::rv_unit_loadout(_data);
+        // we don't want to trigger this just because your ammo counter decreased.
+
+        //remove ammo
+        loadout.primary.primary_muzzle_magazine.ammo = -1;
+        loadout.primary.primary_muzzle_magazine.count = -1;
+        loadout.primary.secondary_muzzle_magazine.ammo = -1;
+        loadout.primary.secondary_muzzle_magazine.count = -1;
+        loadout.secondary.primary_muzzle_magazine.ammo = -1;
+        loadout.secondary.primary_muzzle_magazine.count = -1;
+        loadout.secondary.secondary_muzzle_magazine.ammo = -1;
+        loadout.secondary.secondary_muzzle_magazine.count = -1;
+        loadout.handgun.primary_muzzle_magazine.ammo = -1;
+        loadout.handgun.primary_muzzle_magazine.count = -1;
+        loadout.handgun.secondary_muzzle_magazine.ammo = -1;
+        loadout.handgun.secondary_muzzle_magazine.count = -1;
+
+        if (!(loadout == CBA_oldLoadoutNoAmmo)) {
+            CBA_oldLoadoutNoAmmo = std::move(loadout);
+            sqf::call(CBA_fnc_localEvent, { "cba_common_loadoutEvent",{ _player , _data } });
+        }
+    }
+
+    _data = sqf::vehicle(_player);
+    if (_data != CBA_oldVehicle) {
+        CBA_oldVehicle = _data;
+        sqf::call(CBA_fnc_localEvent, { "cba_common_vehicleEvent",{ _player , _data } });
+    }
+
+    _data = turretPath(_player);
+    if (_data != CBA_oldTurret) {
+        CBA_oldTurret = _data;
+        sqf::call(CBA_fnc_localEvent, { "cba_common_turretEvent",{ _player , _data } });
+    }
+
+    auto visionMode = sqf::current_vision_mode(_player);
+    if (visionMode != CBA_oldVisionMode) {
+        CBA_oldVisionMode = visionMode;
+        sqf::call(CBA_fnc_localEvent, { "cba_common_visionModeEvent",{ _player , visionMode } });
+    }
+
+    auto camView = sqf::camera_view();
+    if (camView != CBA_oldCameraView) {
+        CBA_oldCameraView = camView;
+        sqf::call(CBA_fnc_localEvent, { "cba_common_cameraViewEvent",{ _player , camView } });
+    }
+    return {};
+}
+
 
 void cba::preStart() {
 
@@ -494,6 +592,24 @@ void cba::preStart() {
     static auto _getItemConfigFromStr = intercept::client::host::registerFunction("getItemConfig", "", userFunctionWrapper<getObjectConfigFromStr>, GameDataType::CONFIG, GameDataType::STRING);
     static auto _alive = intercept::client::host::registerFunction("alive", "", userFunctionWrapper<aliveGroup>, GameDataType::BOOL, GameDataType::GROUP);
     static auto _unarySpawn = intercept::client::host::registerFunction("spawn", "", userFunctionWrapper<unarySpawn>, GameDataType::SCRIPT, GameDataType::CODE);
+    static auto _turretPath = intercept::client::host::registerFunction("turretPath", "", userFunctionWrapper<turretPath>, GameDataType::ARRAY, GameDataType::OBJECT);
+    static auto _hasItem = intercept::client::host::registerFunction("hasItem", "", userFunctionWrapper<hasItem>, GameDataType::BOOL, GameDataType::OBJECT, GameDataType::STRING);
+    static auto _mwmwww = intercept::client::host::registerFunction("modelToWorldWorldWorldVisualWorldWorldVisualWorldVisualASL", "", userFunctionWrapper<getObjPosRaw>, GameDataType::ARRAY, GameDataType::OBJECT);
+    static auto _playerEH = intercept::client::host::registerFunction("CBA_Intercept_playerEH", "", userFunctionWrapper<CBA_playerEH_EachFrame>, GameDataType::NOTHING);
+}
+
+void cba::preInit() {
+    CBA_oldUnit = sqf::obj_null();
+    CBA_oldGroup = sqf::grp_null();
+    CBA_oldLeader = sqf::obj_null();
+    CBA_oldWeapon = ""sv;
+    CBA_oldLoadout = game_value{};
+    CBA_oldLoadoutNoAmmo = game_value{};
+    CBA_oldVehicle = sqf::obj_null();
+    CBA_oldTurret = game_value{};
+    CBA_oldVisionMode = -1;
+    CBA_oldCameraView = ""sv;
+    CBA_oldVisibleMap = false;
 }
 
 void cba::postInit() {

@@ -1,3 +1,4 @@
+#define INTERCEPT_SQF_STRTYPE_RSTRING
 #include "magGroupTest.h"
 #include <client/headers/intercept.hpp>
 using namespace intercept;
@@ -36,9 +37,8 @@ void weaponGetMag(uintptr_t muzzle, uintptr_t magName) {
         auto cfgProps = sqf::config_properties(sqf::config_entry() >> "cfgMagazines", "isClass _x && isArray (_x>>'magazineGroup')", true);
 
         for (auto& entry : cfgProps) {
-            std::string classname = sqf::config_name(entry);
-            if (classname == "ACE_30Rnd_556x45_Stanag_M995_AP_mag")       __debugbreak();
-            r_string cnameR = classname;
+            r_string cnameR = sqf::config_name(entry);
+            //if (classname == "ACE_30Rnd_556x45_Stanag_M995_AP_mag")       __debugbreak();
             uintptr_t found = findMagType(findMagStat, cnameR.data());
             if (!found) {
 

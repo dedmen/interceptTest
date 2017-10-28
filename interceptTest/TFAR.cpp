@@ -137,7 +137,7 @@ game_value TFAR::TFAR_fnc_preparePositionCoordinates(TFAR_unit& unit) {
     __itt_task_begin(domain, __itt_null, __itt_null, handle_TFAR_fnc_preparePositionCoordinates);
     object _unit = unit.getUnit();
     bool _nearPlayer = unit.get_isNearPlayer();
-    std::string _unitName = unit.getUnitName();
+    std::string _unitName = (std::string)unit.getUnitName();
 
     auto _isSpectating = unit.get_TFAR_forceSpectator();
     auto _isRemotePlayer = !sqf::is_equal_to(_unit, TFAR_currentUnit.getUnit());
@@ -198,7 +198,7 @@ game_value TFAR::TFAR_fnc_preparePositionCoordinates(TFAR_unit& unit) {
                         _frequencies.push_back(freq + code);
                     };
 
-                    auto _radio_id = sqf::net_id((object)_x[0]);
+                    auto _radio_id = (std::string)sqf::net_id((object)_x[0]);
                     float lrVolume = sqf::call(TFAR_fnc_getLrVolume, _x);
                     vector3 pos = unit.getPosASL();
                     std::string radioInfo = _radio_id + "\xA";
@@ -307,9 +307,9 @@ game_value TFAR::TFAR_fnc_getConfigProperty(const std::string& classname, const 
 }
 
 std::string TFAR::TFAR_fnc_vehicleID(object& _vehicle) {
-    auto _netID = sqf::net_id(_vehicle);
+    auto _netID = (std::string)sqf::net_id(_vehicle);
     //static auto TFAR_fnc_getConfigProperty = sqf::get_variable(sqf::mission_namespace(), "TFAR_fnc_getConfigProperty");
-    auto typeOf = sqf::type_of(_vehicle);
+    auto typeOf = (std::string)sqf::type_of(_vehicle);
 
     float _hasIntercom = TFAR_fnc_getConfigProperty(typeOf, "TFAR_hasIntercom", 0.f);
     float _intercomSlot = -1;
@@ -319,7 +319,7 @@ std::string TFAR::TFAR_fnc_vehicleID(object& _vehicle) {
     };
 
 
-    return sqf::format({"%1\x10%2\x10%3\x10%4",_netID,
+    return (std::string)sqf::format({"%1\x10%2\x10%3\x10%4",_netID,
         //#TODO isTurnedOut
         //false ? "turnout" : 
         TFAR_fnc_getConfigProperty(typeOf, "tf_isolatedAmount", 0.f),
@@ -402,7 +402,7 @@ game_value TFAR::TFAR_fnc_sendPlayerInfo(TFAR_unit& unit) {
     auto&[TFAR_isSpeaking, TFAR_isReceiving, TFAR_killedEHAttached] = flags[_player];
     auto _request = TFAR_fnc_preparePositionCoordinates(unit);
 
-    auto result = sqf::call_extension("task_force_radio_pipe", _request);
+    auto result = (std::string)sqf::call_extension("task_force_radio_pipe", _request);
 
 
     if ((result != "OK") && result.length() != 2) {
@@ -457,13 +457,13 @@ std::set<object> TFAR::TFAR_fnc_getNearPlayers() {
 
     auto myPos = TFAR_currentUnit.getPos();
     float maxVoiceVolume = sqf::get_variable(sqf::mission_namespace(), "TF_max_voice_volume", 20.f);
-    auto nearUnits = sqf::near_entities(myPos, {"Man"}, maxVoiceVolume + 40.f);
+    auto nearUnits = sqf::near_entities(myPos, {r_string("Man"sv)}, maxVoiceVolume + 40.f);
 
     nearUnits.insert(nearUnits.end(), myGroupUnits.begin(), myGroupUnits.end());
     //nearUnits.push_back(TFAR_currentUnit); //#TODO add TFAR_currentUnit if it's not already in there
 
     //_allUnits pushBackUnique TFAR_currentUnit;//Will be duplicate in normal play but in spectator the group units will be missing
-    auto nearVehicles = sqf::near_entities(myPos, {"LandVehicle","Air","Ship"}, maxVoiceVolume + 40.f);
+    auto nearVehicles = sqf::near_entities(myPos, {"LandVehicle"sv,"Air"sv,"Ship"sv}, maxVoiceVolume + 40.f);
     for (auto& it : nearVehicles) {
         auto crew = sqf::crew(it);
         nearUnits.insert(nearUnits.end(), crew.begin(), crew.end());

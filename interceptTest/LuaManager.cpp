@@ -1,3 +1,4 @@
+#define INTERCEPT_SQF_STRTYPE_RSTRING
 #include "LuaManager.h"
 #include <client/headers/intercept.hpp>
 #include <sstream>
@@ -68,7 +69,7 @@ public:
     lua_object(object o) : obj(o) {}
     object obj;
     std::string getName() const {
-        return sqf::name(obj);
+        return (std::string)sqf::name(obj);
     }
 };
 

@@ -411,6 +411,7 @@ void __cdecl intercept::pre_start() {
 
 void __cdecl intercept::pre_init() {
     pTFAR.preInit();
+    cba::preInit();
 }
 
 
@@ -647,15 +648,15 @@ void __cdecl intercept::on_frame() {
         auto pos = sqf::world_to_screen(worldPos);
         if (pos.x == 0.f || pos.y == 0.f) continue;
         auto group = sqf::get_group(unit);
-        auto unitName = sqf::name(unit);
+        auto unitName = (std::string)sqf::name(unit);
         auto leader = sqf::leader(group);
         std::string texture = "";
         if (sqf::is_equal_to(leader, unit)) {
-            unitName += " (" + sqf::group_id(group) + ")";
+            unitName += " (" + (std::string)sqf::group_id(group) + ")";
         } else {
             intercept::sqf::draw_line_3d(worldPos + vector3{ 0.f,0.f,1.f }, sqf::get_pos(leader) + vector3{ 0.f,0.f,1.f }, { 1.f,0.f,1.f,1.f });
         }
-        auto team = sqf::assigned_team(unit);
+        auto team = (std::string)sqf::assigned_team(unit);
         rv_color color = { 1.f,0.f,1.f,1.f };
         if (team.compare("RED") == 0)
             color = { 1.f,0.f,0.f,1.f };
