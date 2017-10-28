@@ -469,7 +469,7 @@ game_value CBA_playerEH_EachFrame() {
     static game_value_static CBA_fnc_currentUnit = sqf::get_variable(sqf::mission_namespace(), "CBA_fnc_currentUnit");
     static game_value_static CBA_fnc_localEvent = sqf::get_variable(sqf::mission_namespace(), "CBA_fnc_localEvent");
 
-    object _player = sqf::call(CBA_fnc_currentUnit);
+    object _player = sqf::get_variable(sqf::mission_namespace(), "bis_fnc_moduleRemoteControl_unit", sqf::player());
     if (_player != CBA_oldUnit) {
         sqf::call(CBA_fnc_localEvent, { "cba_common_unitEvent", { _player , CBA_oldUnit } });
         CBA_oldUnit = _player;
