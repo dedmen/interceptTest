@@ -8,6 +8,7 @@
 #include "TFAR.h"
 #include "cba.h"
 #include "magGroupTest.h"
+#include "scriptProfiler.h"
 
 using namespace intercept;
 types::registered_sqf_function _interceptEventFunction;
@@ -404,7 +405,7 @@ void __cdecl intercept::pre_start() {
     pTFAR.preStart();
     cba::preStart();
     magGroupTest::preStart();
-
+    profiler.preStart();
     static auto _rHackinterceptEventFunction2 = intercept::client::host::registerFunction("addRailScopeHeightHook", "", userFunctionWrapper<addRailScopeHeightHook>, GameDataType::STRING);
     static auto _rHackinterceptEventFunction6 = intercept::client::host::registerFunction("getRailScopeStuff", "", userFunctionWrapper<getRailScopeStuff>, GameDataType::ARRAY);
 }
@@ -412,6 +413,7 @@ void __cdecl intercept::pre_start() {
 void __cdecl intercept::pre_init() {
     pTFAR.preInit();
     cba::preInit();
+    profiler.preInit();
 }
 
 

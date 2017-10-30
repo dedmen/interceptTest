@@ -548,7 +548,7 @@ game_value CBA_playerEH_EachFrame() {
 
 void cba::preStart() {
 
-    auto codeType = client::host::registerType(r_string("HASHMAP"), r_string("hashMap"), r_string("Dis is a hashmap. It hashes things."), r_string("hashMap"), createGameDataHashMap);
+    auto codeType = client::host::registerType("HASHMAP"sv, "hashMap"sv, "Dis is a hashmap. It hashes things."sv, "hashMap"sv, createGameDataHashMap);
     GameDataHashMap_type = codeType.second;
 
     _createHashMap = client::host::registerFunction("createHashMap", "Creates a Hashmap", userFunctionWrapper<createHashMap>, codeType.first);
