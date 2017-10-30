@@ -1,8 +1,10 @@
 #include "scriptProfiler.h"
 #include <client/headers/intercept.hpp>
 #include <sstream>
+#include <numeric>
 
 using namespace intercept;
+using namespace std::chrono_literals;
 static sqf_script_type GameDataProfileScope_type;
 
 class GameDataProfileScope : public game_data {
@@ -15,7 +17,7 @@ public:
     ~GameDataProfileScope() override {
         auto timeDiff = std::chrono::high_resolution_clock::now() - start;
         auto runtime = std::chrono::duration_cast<chrono::microseconds>(timeDiff);
-        profiler.endScope(scopeID,name,runtime);    
+        profiler.endScope(scopeID, name, runtime);
     }
 
     bool get_as_bool() const override { return true; }
@@ -49,15 +51,25 @@ game_value createProfileScope(game_value name) {
     return game_value(new GameDataProfileScope(name));
 }
 
+game_value profilerSleep() {
+    std::this_thread::sleep_for(17ms);
+    return {};
+}
 
-profileScope::~profileScope() {}
-intercept::types::r_string profileScope::getAsString() {
-    return name;
+game_value profilerCaptureFrame() {
+    profiler.record = true;
+    profiler.forceCapture = true;
+    return {};
 }
-profileLog::~profileLog() {}
-intercept::types::r_string profileLog::getAsString() {
-    return message;
+
+game_value profilerCaptureSlowFrame(game_value threshold) {
+    profiler.record = true;
+    profiler.slowCheck = chrono::milliseconds(static_cast<float>(threshold));
+    return {};
 }
+
+
+
 scriptProfiler::scriptProfiler() {}
 
 
@@ -68,17 +80,25 @@ void scriptProfiler::preStart() {
     auto codeType = client::host::registerType("ProfileScope"sv, "ProfileScope"sv, "Dis is a profile scope. It profiles things."sv, "ProfileScope"sv, createGameDataProfileScope);
     GameDataProfileScope_type = codeType.second;
     static auto _createProfileScope = client::host::registerFunction("createProfileScope", "Creates a ProfileScope", userFunctionWrapper<createProfileScope>, codeType.first, GameDataType::STRING);
-
-
-
+    static auto _profilerSleep = client::host::registerFunction("profilerBlockingSleep", "Pauses the engine for 17ms. Used for testing.", userFunctionWrapper<profilerSleep>, GameDataType::NOTHING);
+    static auto _profilerCaptureFrame = client::host::registerFunction("profilerCaptureFrame", "Captures the next frame", userFunctionWrapper<profilerCaptureFrame>, GameDataType::NOTHING);
+    static auto _profilerCaptureSlowFrame = client::host::registerFunction("profilerCaptureSlowFrame", "Captures the first frame that hits the threshold in ms", userFunctionWrapper<profilerCaptureSlowFrame>, GameDataType::NOTHING, GameDataType::SCALAR);
 }
+
 void scriptProfiler::preInit() {
     static auto EHHandle = client::addMissionEventHandler<client::eventhandlers_mission::Draw3D>([this]() {
-        auto log = generateLog();
-        sqf::copy_to_clipboard(log);
-        frameStart = std::chrono::high_resolution_clock::now();
-        elements.clear(); //this is recursive but not a problem because only scopes can have sub elements > 1 deep. And they are still held alive by scopes array.
-        scopes.clear(); //#TODO recursive...
+        if (record && shouldCapture()) { //We always want to log if a capture is ready don't we?
+            auto log = generateLog();//#TODO move this into a capture() function
+            sqf::copy_to_clipboard(log);
+            forceCapture = false;
+            record = false;
+        }
+        if (record) {
+            frameStart = std::chrono::high_resolution_clock::now();
+            elements.clear(); //this is recursive but not a problem because only scopes can have sub elements > 1 deep. And they are still held alive by scopes array.
+            scopes.clear(); //#TODO recursive...
+        }
+
     });
 }
 
@@ -134,7 +154,7 @@ void scriptProfiler::iterateElementTree(std::function<void(profileElement*, size
                 func(node, depth);
                 node->curElement = 0; // Reset counter for next traversal.
                 node = node->parent;
-                depth --;
+                depth--;
             }
         }
     }
@@ -152,29 +172,45 @@ intercept::types::r_string scriptProfiler::generateLog() {
     chrono::milliseconds totalRuntime = std::chrono::duration_cast<chrono::milliseconds>(std::chrono::high_resolution_clock::now() - baseTimeReference);
 
     output << "* THREAD! YEAH!\n";
-    output << "total; " << 0.0 << "; " << totalRuntime.count() <<";\"Frame "<< sqf::diag_frameno() << "\"";
+    output << "total; " << 0.0 << "; " << totalRuntime.count() << ";\"Frame " << sqf::diag_frameno() << "\"";
 
 
     auto iterateFunc = [&output, &baseTimeReference](profileElement* element, size_t depth) {
-        for (size_t i = 0; i < depth+1; ++i) {
+        for (size_t i = 0; i < depth + 1; ++i) {
             output << " ";
         }
         chrono::milliseconds startTime = std::chrono::duration_cast<chrono::milliseconds>(element->getStartTime() - baseTimeReference);
         switch (element->type) {
 
-            case profileElementType::scope: {
-                output << "scope; " << startTime.count() << "; " << std::chrono::duration_cast<chrono::milliseconds>(element->getRunTime()).count() << ";\"" << element->getAsString() <<"\"";
-            }
-            break;
-            case profileElementType::log: {
-                output << "scope; " << startTime.count() << "; " << 0.0 << ";\"" << element->getAsString() << "\"";
-            }
-            break;
+        case profileElementType::scope:
+        {
+            output << "scope; " << startTime.count() << "; " << std::chrono::duration_cast<chrono::milliseconds>(element->getRunTime()).count() << ";\"" << element->getAsString() << "\"";
         }
-        
+        break;
+        case profileElementType::log:
+        {
+            output << "scope; " << startTime.count() << "; " << 0.0 << ";\"" << element->getAsString() << "\"";
+        }
+        break;
+        }
+
     };
 
     iterateElementTree(iterateFunc);
 
     return r_string(output.str());
+}
+
+chrono::milliseconds scriptProfiler::totalScriptRuntime() {
+    return std::accumulate(elements.begin(), elements.end(), chrono::milliseconds(0), [](const std::shared_ptr<profileElement>& element) -> chrono::milliseconds {
+        if (element->type != profileElementType::scope) return chrono::milliseconds(0);
+        return element->getRunTime();
+    });
+}
+
+bool scriptProfiler::shouldCapture() {
+    if (forceCapture) return true;
+    if (elements.empty()) return false;
+    if (slowCheck.count() != 0.0) return (totalScriptRuntime() > slowCheck);
+    return false;
 }
