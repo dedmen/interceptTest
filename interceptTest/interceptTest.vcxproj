@@ -332,6 +332,9 @@
     </ClCompile>
     <ClCompile Include="magGroupTest.cpp" />
     <ClCompile Include="main.cpp" />
+    <ClCompile Include="scriptProfiler.cpp">
+      <AdditionalIncludeDirectories Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">C:\dev\projects\interceptTest\interceptTest\lua;C:\dev\projects\intercept\src;C:\Program Files %28x86%29\IntelSWTools\VTune Amplifier XE 2017\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+    </ClCompile>
     <ClCompile Include="TFAR.cpp" />
     <ClCompile Include="tools.cpp" />
   </ItemGroup>
@@ -367,6 +370,7 @@
     <ClInclude Include="lua\lvm.h" />
     <ClInclude Include="lua\lzio.h" />
     <ClInclude Include="magGroupTest.h" />
+    <ClInclude Include="scriptProfiler.h" />
     <ClInclude Include="sol.hpp" />
     <ClInclude Include="TFAR.h" />
     <ClInclude Include="tools.h" />
