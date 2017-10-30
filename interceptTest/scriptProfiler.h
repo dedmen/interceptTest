@@ -71,6 +71,13 @@ public:
     //Only returns the time scripts ran. Will have gaps inbetween where none were executed. Basically sums up all top level scope runtimes
     chrono::milliseconds totalScriptRuntime();
     bool shouldCapture();
+    void capture();
+
+
+
+
+
+
     std::vector<std::shared_ptr<profileElement>> elements; //tree structure
     std::map<uint64_t, std::shared_ptr<profileScope>> scopes; //map of scopes
     uint64_t lastScopeID = 1;
@@ -79,6 +86,7 @@ public:
     bool record = false;
     chrono::milliseconds slowCheck{ 0 };
     std::chrono::high_resolution_clock::time_point frameStart;
+    bool waitingForCapture;
 };
 
 inline scriptProfiler profiler{};

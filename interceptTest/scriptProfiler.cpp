@@ -68,6 +68,12 @@ game_value profilerCaptureSlowFrame(game_value threshold) {
     return {};
 }
 
+game_value profilerLog(game_value message) {
+    if (profiler.record) {
+        profiler.addLog(message);
+    }
+    return {};
+}
 
 
 scriptProfiler::scriptProfiler() {}
@@ -83,17 +89,18 @@ void scriptProfiler::preStart() {
     static auto _profilerSleep = client::host::registerFunction("profilerBlockingSleep", "Pauses the engine for 17ms. Used for testing.", userFunctionWrapper<profilerSleep>, GameDataType::NOTHING);
     static auto _profilerCaptureFrame = client::host::registerFunction("profilerCaptureFrame", "Captures the next frame", userFunctionWrapper<profilerCaptureFrame>, GameDataType::NOTHING);
     static auto _profilerCaptureSlowFrame = client::host::registerFunction("profilerCaptureSlowFrame", "Captures the first frame that hits the threshold in ms", userFunctionWrapper<profilerCaptureSlowFrame>, GameDataType::NOTHING, GameDataType::SCALAR);
+    static auto _profilerLog = client::host::registerFunction("profilerLog", "Logs message to capture", userFunctionWrapper<profilerLog>, GameDataType::NOTHING, GameDataType::STRING);
 }
 
 void scriptProfiler::preInit() {
     static auto EHHandle = client::addMissionEventHandler<client::eventhandlers_mission::Draw3D>([this]() {
         if (record && shouldCapture()) { //We always want to log if a capture is ready don't we?
-            auto log = generateLog();//#TODO move this into a capture() function
-            sqf::copy_to_clipboard(log);
-            forceCapture = false;
-            record = false;
+            if (currentScope == nullptr)
+                capture();
+            else
+                waitingForCapture = true; //Wait till we left all scopes
         }
-        if (record) {
+        if (record && !waitingForCapture) {//If we are waiting for capture don't clear everything
             frameStart = std::chrono::high_resolution_clock::now();
             elements.clear(); //this is recursive but not a problem because only scopes can have sub elements > 1 deep. And they are still held alive by scopes array.
             scopes.clear(); //#TODO recursive...
@@ -103,6 +110,7 @@ void scriptProfiler::preInit() {
 }
 
 uint64_t scriptProfiler::startNewScope() {
+    if (!record) return -1;
     auto newScopeID = lastScopeID++;
     auto newScope = std::make_shared<profileScope>(newScopeID);
     scopes[newScopeID] = newScope;
@@ -117,6 +125,7 @@ uint64_t scriptProfiler::startNewScope() {
 }
 
 void scriptProfiler::endScope(uint64_t scopeID, intercept::types::r_string name, chrono::microseconds runtime) {
+    if (!record) return;
     auto& scope = scopes[scopeID];
     scope->name = name;
     scope->runtime = runtime;
@@ -124,6 +133,8 @@ void scriptProfiler::endScope(uint64_t scopeID, intercept::types::r_string name,
         if (currentScope != scope.get()) __debugbreak(); //wut?
         currentScope = dynamic_cast<profileScope*>(scope->parent);
         if (scope->parent && !currentScope) __debugbreak(); //wutwatwut?!! 
+    } else if (waitingForCapture) {
+        capture();
     }
 }
 
@@ -213,4 +224,12 @@ bool scriptProfiler::shouldCapture() {
     if (elements.empty()) return false;
     if (slowCheck.count() != 0.0) return (totalScriptRuntime() > slowCheck);
     return false;
+}
+
+void scriptProfiler::capture() {
+    auto log = generateLog();
+    sqf::copy_to_clipboard(log);
+    forceCapture = false;
+    record = false;
+    waitingForCapture = false;
 }
