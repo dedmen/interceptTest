@@ -144,7 +144,7 @@
     <ClCompile Include="magGroupTest.cpp">
       <Filter>Quelldateien</Filter>
     </ClCompile>
-    <ClCompile Include="scriptProfiler.cpp">
+    <ClCompile Include="diagStuff.cpp">
       <Filter>Quelldateien</Filter>
     </ClCompile>
   </ItemGroup>
@@ -245,8 +245,13 @@
     <ClInclude Include="magGroupTest.h">
       <Filter>Headerdateien</Filter>
     </ClInclude>
-    <ClInclude Include="scriptProfiler.h">
+    <ClInclude Include="diagStuff.h">
       <Filter>Headerdateien</Filter>
     </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <MASM Include="x64hook.asm">
+      <Filter>Quelldateien</Filter>
+    </MASM>
   </ItemGroup>
 </Project>

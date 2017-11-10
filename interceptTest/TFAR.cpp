@@ -220,7 +220,7 @@ game_value TFAR::TFAR_fnc_preparePositionCoordinates(TFAR_unit& unit) {
             auto swRadiosList = sqf::call(TFAR_fnc_radiosList, _unit);
             auto swRadioCount = swRadiosList.size();
             for (int Index = 0; Index < swRadioCount; Index++) {
-                auto _x = swRadiosList[Index]; //#TODO make sure _x is array
+                r_string _x = swRadiosList[Index]; //#TODO make sure _x is array
                 if (sqf::call(TFAR_fnc_getSwSpeakers, _x)) {
                     std::vector<std::string> _frequencies;
                     std::string freq = sqf::call(TFAR_fnc_getSwFrequency, _x);
@@ -235,7 +235,7 @@ game_value TFAR::TFAR_fnc_preparePositionCoordinates(TFAR_unit& unit) {
 
                     float swVolume = sqf::call(TFAR_fnc_getSwVolume, _x);
                     vector3 pos = unit.getPosASL();
-                    std::string radioInfo = _x + "\xA";
+                    r_string radioInfo = _x + "\xA";
                     bool first = true;
                     for (auto& it : _frequencies) {
                         if (!first) radioInfo += "|" + it;

@@ -3,10 +3,11 @@
 #include <client/headers/intercept.hpp>
 using namespace intercept;
 
+#ifndef X64
+
 uint32_t weaponInitGetMagJmpBack, magazineInitMagGroupJmpBack;
 class __dummyVtable {
-    char pad_0x0000[0x10]; //missunderstanding crap.. might as well be empty class
-
+    [[maybe_unused]] char pad_0x0000[0x10]; //missunderstanding crap.. might as well be empty class
 };
 
 class magType : public refcount, public __dummyVtable {
@@ -208,7 +209,7 @@ void addHuuk() {
     findMagStat = 0x28A5604 - 0xA30000 + engineBase;
 }
 
-
+#endif
 /*
 00FC0000
 rail height modelLocal = 0201E082 [eax+0x28]
@@ -219,5 +220,7 @@ scopecenter modellocal = 0201D7B9 [eax+0x4]
 #pragma endregion railScopeHeightHack
 
 void magGroupTest::preStart() {
+#ifndef X64
     addHuuk();
+#endif
 }

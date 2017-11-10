@@ -8,7 +8,7 @@
 #include "TFAR.h"
 #include "cba.h"
 #include "magGroupTest.h"
-#include "scriptProfiler.h"
+#include "diagStuff.h"
 
 using namespace intercept;
 types::registered_sqf_function _interceptEventFunction;
@@ -173,6 +173,43 @@ game_value addListItems_acearsenal(intercept::types::game_value left_arg, interc
 }
 
 
+uintptr_t placeHookTotalOffs(uintptr_t totalOffset, uintptr_t jmpTo) {
+    DWORD dwVirtualProtectBackup;
+
+
+    /*
+    32bit
+    jmp 0x123122
+    0:  e9 1e 31 12 00          jmp    123123 <_main+0x123123>
+    64bit
+    FF 25 64bit relative
+    */
+#ifdef X64
+    //auto distance = std::max(totalOffset, jmpTo) - std::min(totalOffset, jmpTo);
+    // if distance < 2GB (2147483648) we could use the 32bit relative jmp
+    VirtualProtect(reinterpret_cast<LPVOID>(totalOffset), 14u, 0x40u, &dwVirtualProtectBackup);
+    auto jmpInstr = reinterpret_cast<unsigned char*>(totalOffset);
+    auto addrOffs = reinterpret_cast<uint32_t*>(totalOffset + 1);
+    *jmpInstr = 0x68; //push DWORD
+    *addrOffs = static_cast<uint32_t>(jmpTo) /*- totalOffset - 6*/;//offset
+    *reinterpret_cast<uint32_t*>(totalOffset + 5) = 0x042444C7; //MOV [RSP+4],
+    *reinterpret_cast<uint32_t*>(totalOffset + 9) = static_cast<uint64_t>(jmpTo) >> 32;//DWORD
+    *reinterpret_cast<unsigned char*>(totalOffset + 13) = 0xc3;//ret
+    VirtualProtect(reinterpret_cast<LPVOID>(totalOffset), 14u, dwVirtualProtectBackup, &dwVirtualProtectBackup);
+    return totalOffset + 14;
+#else
+    VirtualProtect(reinterpret_cast<LPVOID>(totalOffset), 5u, 0x40u, &dwVirtualProtectBackup);
+    auto jmpInstr = reinterpret_cast<unsigned char *>(totalOffset);
+    auto addrOffs = reinterpret_cast<unsigned int *>(totalOffset + 1);
+    *jmpInstr = 0xE9;
+    *addrOffs = jmpTo - totalOffset - 5;
+    VirtualProtect(reinterpret_cast<LPVOID>(totalOffset), 5u, dwVirtualProtectBackup, &dwVirtualProtectBackup);
+    return totalOffset + 5;
+#endif
+}
+
+
+#ifndef X64
 #pragma region railScopeHeightHack
 
 float frailHeight = 0;
@@ -261,25 +298,7 @@ void __declspec(naked) muzzleHeight() {
         jmp         muzzleHeightJmpBack //0201D9C0
     }
 }
-uintptr_t placeHookTotalOffs(uintptr_t totalOffset, uintptr_t jmpTo) {
-    DWORD dwVirtualProtectBackup;
 
-
-    /*
-    32bit
-    jmp 0x123122
-    0:  e9 1e 31 12 00          jmp    123123 <_main+0x123123>
-    64bit
-    FF 25 64bit relative
-    */
-    VirtualProtect(reinterpret_cast<LPVOID>(totalOffset), 5u, 0x40u, &dwVirtualProtectBackup);
-    auto jmpInstr = reinterpret_cast<unsigned char *>(totalOffset);
-    auto addrOffs = reinterpret_cast<unsigned int *>(totalOffset + 1);
-    *jmpInstr = 0xE9;
-    *addrOffs = jmpTo - totalOffset - 5;
-    VirtualProtect(reinterpret_cast<LPVOID>(totalOffset), 5u, dwVirtualProtectBackup, &dwVirtualProtectBackup);
-    return totalOffset + 5;
-}
 
 #include <Psapi.h>
 #pragma comment (lib, "Psapi.lib")//GetModuleInformation
@@ -332,6 +351,7 @@ game_value getRailScopeStuff() {
     fmuzzleHeight = frailHeight = fscopeCenter = fscopeCenter2 = fironCenter = 1;
     return ret;
 }
+#endif
 
 void __cdecl intercept::pre_start() {
     _binaryFuncOne = intercept::client::host::registerFunction(
@@ -405,15 +425,17 @@ void __cdecl intercept::pre_start() {
     pTFAR.preStart();
     cba::preStart();
     magGroupTest::preStart();
-    profiler.preStart();
+    diagStuff::preStart();
+#ifndef X64
     static auto _rHackinterceptEventFunction2 = intercept::client::host::registerFunction("addRailScopeHeightHook", "", userFunctionWrapper<addRailScopeHeightHook>, GameDataType::STRING);
     static auto _rHackinterceptEventFunction6 = intercept::client::host::registerFunction("getRailScopeStuff", "", userFunctionWrapper<getRailScopeStuff>, GameDataType::ARRAY);
+#endif
 }
 
 void __cdecl intercept::pre_init() {
     pTFAR.preInit();
     cba::preInit();
-    profiler.preInit();
+
 }
 
 
@@ -430,7 +452,6 @@ void __cdecl intercept::post_init() {
     tools::postInit();
     cba::postInit();
 
-              
     static auto _EH2 = client::addEventHandler<client::eventhandlers_object::Fired>(sqf::player(),[](types::object unit, types::r_string weapon, types::r_string muzzle, types::r_string mode, types::r_string ammo, types::r_string magazine, types::object projectile, types::object gunner)
     {
         auto p1 = ((game_data_object*) projectile.data.getRef())->get_position_matrix()._position;
