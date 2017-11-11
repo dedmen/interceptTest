@@ -179,3 +179,227 @@ void diagStuff::preStart() {
     static auto mfunc = intercept::client::host::registerFunction("setDrawMode", "", userFunctionWrapper<drawMode>, GameDataType::NOTHING, GameDataType::STRING);
 
 }
+
+
+
+
+class diagbits {  //&arma3_x64.exe + 0x2707400
+public:
+    __int8 N00000146; //0x0000 
+    __int8 N0000014C; //0x0001 
+    __int8 N00000169; //0x0002 
+    __int8 N00000196; //0x0003 
+    __int8 N0000016A; //0x0004 
+    __int8 N0000014D; //0x0005 
+    __int8 N0000016C; //0x0006 
+    __int8 N0000014E; //0x0007 
+    __int8 N00000145; //0x0008 
+    __int8 N00000150; //0x0009 
+    __int8 N00000170; //0x000A 
+    __int8 N0000019E; //0x000B 
+    __int8 N00000171; //0x000C 
+    __int8 N00000151; //0x000D 
+    __int8 N00000173; //0x000E 
+    __int8 N00000152; //0x000F 
+    __int8 CostMap; //0x0010 first bit
+    __int8 LockMap; //0x0011 
+    __int8 Combat; //0x0012 
+    __int8 Force; //0x0013 
+    __int8 Animation; //0x0014 works
+    __int8 Damage; //0x0015 
+    __int8 Collision; //0x0016 
+    __int8 Transparent; //0x0017 
+    __int8 Sound; //0x0018 
+    __int8 SoundControllers; //0x0019 
+    __int8 HDR; //0x001A 
+    __int8 Path; //0x001B 
+    __int8 Network; //0x001C 
+    __int8 ManCollision; //0x001D 
+    __int8 Wind; //0x001E 
+    __int8 Rumble; //0x001F 
+    __int8 AutoAction; //0x0020 
+    __int8 Model; //0x0021 works
+    __int8 MapScale; //0x0022 
+    __int8 ID; //0x0023 
+    __int8 Ambient; //0x0024 
+    __int8 Updates; //0x0025 
+    __int8 EAX; //0x0026 
+    __int8 MatLOD; //0x0027 
+    __int8 Roads; //0x0028 
+    __int8 Light; //0x0029 
+    __int8 ContactJoints; //0x002A 
+    __int8 PermanentJoints; //0x002B 
+    __int8 BBTree; //0x002C 
+    __int8 Phys; //0x002D 
+    __int8 Resource; //0x002E works
+    __int8 FSM; //0x002F works
+    __int8 Prune; //0x0030 
+    __int8 LogAnimPaths; //0x0031 
+    __int8 Streaming; //0x0032 
+    __int8 MouseSensitivity; //0x0033 
+    __int8 UIControls; //0x0034 works
+    __int8 CursorTargetObject; //0x0035 works
+    __int8 Terrain; //0x0036 
+    __int8 Temperature; //0x0037 Temperature
+    __int8 TIHistogram; //0x0038 Seems implemented
+    __int8 PathFind; //0x0039 
+    __int8 MinObjectDistance; //0x003A 
+    __int8 OperCache; //0x003B 
+    __int8 ShowGCollision; //0x003C 
+    __int8 ShowGRoadway; //0x003D 
+    __int8 LateInit; //0x003E 
+    __int8 Convoy; //0x003F 
+    __int8 ProfileScripts; //0x0040 
+    __int8 CombatMode; //0x0041 
+    __int8 EPE; //0x0042 works
+    __int8 EPEDraw; //0x0043 
+    __int8 Shots; //0x0044 
+    __int8 Impact; //0x0045 
+    __int8 Radius; //0x0046 
+    __int8 Speed; //0x0047 
+    __int8 Mines; //0x0048 
+    __int8 MinesDetect; //0x0049 
+    __int8 Anomalies; //0x004A 
+    __int8 Fatigue; //0x004B 
+    __int8 Complexity; //0x004C workd
+    __int8 pruneX; //0x004D 
+    __int8 Scene; //0x004E 
+    __int8 Weather; //0x004F 
+    __int8 LogicalWater; //0x0050 
+    __int8 CameraTransform; //0x0051 
+    __int8 AmbLife; //0x0052 
+    __int8 DamageSimulator; //0x0053 
+    __int8 DEHitPoints; //0x0054 
+    __int8 DEHitPointsText; //0x0055 
+    __int8 SoldierTransform; //0x0056 
+    __int8 Buoyancy; //0x0057 
+    __int8 WaterSplash; //0x0058 
+    __int8 Effects; //0x0059 
+    __int8 SimulWeather; //0x005A 
+    __int8 ParticleGen; //0x005B 
+    __int8 Visibility; //0x005C 
+    __int8 EPESimul; //0x005D 
+    __int8 BBox; //0x005E 
+    __int8 AnimSrcUnit; //0x005F 
+    __int8 AnimSrcTarget; //0x0060 
+    __int8 VisualStates; //0x0061 Lags the game.. So probably does something
+    __int8 VisualStatesIcon; //0x0062 
+    __int8 VisualStatesWeapon; //0x0063 
+    __int8 Joystick; //0x0064 
+    __int8 Gearbox; //0x0065 
+    __int8 Impulse; //0x0066 
+    __int8 Destruct; //0x0067 
+    __int8 MoveForces; //0x0068 
+    __int8 ObjMatrix; //0x0069 
+    __int8 PXMatrix; //0x006A 
+    __int8 Suspension; //0x006B 
+    __int8 EPEPerf; //0x006C 
+    __int8 EPEStats; //0x006D 
+    __int8 EPEForce; //0x006E 
+    __int8 EPEVehicle; //0x006F 
+    __int8 Formations; //0x0070 works. But looks like it's waypoint
+    __int8 Waypoints; //0x0071 
+    __int8 ParticleNames; //0x0072 works
+    __int8 WingVortices; //0x0073 
+    __int8 FootSteps; //0x0074 works 
+    __int8 Keyboard; //0x0075 
+    __int8 Particles; //0x0076 
+    __int8 ObjNames; //0x0077 
+    __int8 ObjIds; //0x0078 
+    __int8 PXCollision; //0x0079 
+    __int8 SoundMap; //0x007A 
+    __int8 DynLights; //0x007B 
+    __int8 Head; //0x007C 
+    __int8 Clutter; //0x007D 
+    __int8 LightGrid; //0x007E 
+    __int8 RagDoll; //0x007F 
+    __int8 RagDollMP; //0x0080 
+    __int8 Attributes; //0x0081 
+    __int8 Locality; //0x0082 
+    __int8 PP; //0x0083 
+    __int8 RestrictedZones; //0x0084 
+    __int8 WaterObjects; //0x0085 
+    __int8 Impulses; //0x0086 
+    __int8 ProtocolExpressions; //0x0087 
+    __int8 DrawCOM; //0x0088 
+    __int8 BodyRemove; //0x0089 
+    __int8 WreckRemove; //0x008A 
+    __int8 Aiming; //0x008B 
+    __int8 viewDensity; //0x008C 
+    __int8 Exhaust; //0x008D 
+    __int8 Throwing; //0x008E 
+    __int8 ModelLights; //0x008F 
+    __int8 DestructEffects; //0x0090 
+    __int8 UnitStats; //0x0091 
+    __int8 Land; //0x0092 
+    __int8 AnimationCode; //0x0093 
+    __int8 Camera; //0x0094 
+    __int8 InvisibleVehicle; //0x0095 
+    __int8 WorldObjects; //0x0096 sound scene stuff
+    __int8 WeaponResting; //0x0097 
+    __int8 Matrices; //0x0098 
+    __int8 Zoom; //0x0099 
+    __int8 PerfInfo; //0x009A 
+    __int8 ObjPassCount; //0x009B works
+    __int8 RotAxisOffset; //0x009C 
+    __int8 ParticleVis; //0x009D 
+    __int8 ParticleVisJobs; //0x009E 
+    __int8 Rain; //0x009F 
+    __int8 DlcContent; //0x00A0 
+    __int8 DlcChecks; //0x00A1 
+    __int8 StatsManager; //0x00A2 
+    __int8 StatsAchievements; //0x00A3 
+    __int8 StatsGlobal; //0x00A4 
+    __int8 Supply; //0x00A5 
+    __int8 WeaponSway; //0x00A6 
+    __int8 WeaponMatrices; //0x00A7 
+    __int8 ParticlesInput; //0x00A8 
+    __int8 DlcUsage; //0x00A9 
+    __int8 DlcPopup; //0x00AA 
+    __int8 SurfaceUnder; //0x00AB Works
+    __int8 Turret; //0x00AC 
+    __int8 Ropes; //0x00AD 
+    __int8 WeaponDistortion; //0x00AE 
+    __int8 Recoil; //0x00AF 
+    __int8 Breathing; //0x00B0 
+    __int8 Suppress; //0x00B1 
+    __int8 SuppressMap; //0x00B2 
+    __int8 FFVInertia; //0x00B3 
+    __int8 FFVObstruction; //0x00B4 
+    __int8 AttachedOn; //0x00B5 
+    __int8 CharRotations; //0x00B6 
+    __int8 WeaponDeployment; //0x00B7 
+    __int8 CameraShake; //0x00B8 
+    __int8 FriendsManager; //0x00B9 
+    __int8 SoundBullet; //0x00BA  Super sonic crack sources
+    __int8 LeaderboardsManager; //0x00BB 
+    __int8 AISkill; //0x00BC 
+    __int8 AIDriving; //0x00BD 
+    __int8 AISteering; //0x00BE 
+    __int8 AIAiming; //0x00BF 
+    __int8 AIGroup; //0x00C0 
+    __int8 AIBrain; //0x00C1 
+    __int8 AIDynamicError; //0x00C2 
+    __int8 AISuppression; //0x00C3 
+    __int8 AICover; //0x00C4 
+    __int8 AIAvoidCollision; //0x00C5 
+    __int8 AIConvoy; //0x00C6 
+    __int8 AIWeapon; //0x00C7 
+    __int8 InteractiveAreas3DEN; //0x00C8 
+    __int8 RenderLODs; //0x00C9 
+    __int8 Analytics; //0x00CA 
+    __int8 ObjectListCells; //0x00CB 
+    __int8 Performance; //0x00CC 
+    __int8 VehicleTransport; //0x00CD 
+    __int8 LightSimple; //0x00CE 
+    __int8 MobileWeaponSwitch; //0x00CF 
+    __int8 SlopeCollision; //0x00D0 
+    __int8 SoundEnv; //0x00D1 
+    __int8 SensorsVehicle; //0x00D2 works
+    __int8 SensorsAmmo; //0x00D3 
+    __int8 DynSimGrid; //0x00D4  works
+    __int8 DynSimEntities; //0x00D5  works
+    __int8 DynSimGroups; //0x00D6 works
+
+
+};//Size=0x04B0
