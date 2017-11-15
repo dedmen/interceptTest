@@ -121,7 +121,7 @@ void objectDraw() {
 }
 
 
-game_value drawMode(game_value mode) {
+game_value drawMode(game_value_parameter mode) {
     r_string m = mode;
 
 
@@ -361,7 +361,7 @@ struct diagbitsS {  //&arma3_x64.exe + 0x2707400
 #include <Psapi.h>
 #pragma comment (lib, "Psapi.lib")//GetModuleInformation
 
-game_value diagBit(game_value mode) {
+game_value diagBit(game_value_parameter mode) {
     float m = mode;
     int offs = (int) m;
     MODULEINFO modInfo = { 0 };
@@ -388,10 +388,10 @@ void diagStuff::preStart() {
     auto engineSize = static_cast<uintptr_t>(modInfo.SizeOfImage);
 
 
-    placeHookTotalOffs(engineBase + 0x0000000000F8DAC0, (uintptr_t) objectDrawHook);
-    ObjectForDrawingJmpBack = engineBase + 0x0000000000F8DAE5;
-    placeHookTotalOffs(engineBase + 0x0000000000F8EA2D, (uintptr_t) objectDrawHookEnd);
-    ObjectForDrawingEndJmpBack = engineBase + 0x0000000000F8EA49;
+    //placeHookTotalOffs(engineBase + 0x0000000000F8DAC0, (uintptr_t) objectDrawHook);
+    //ObjectForDrawingJmpBack = engineBase + 0x0000000000F8DAE5;
+    //placeHookTotalOffs(engineBase + 0x0000000000F8EA2D, (uintptr_t) objectDrawHookEnd);
+    //ObjectForDrawingEndJmpBack = engineBase + 0x0000000000F8EA49;
 
 
     static auto mfunc = intercept::client::host::registerFunction("setDrawMode", "", userFunctionWrapper<drawMode>, GameDataType::NOTHING, GameDataType::STRING);

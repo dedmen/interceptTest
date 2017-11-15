@@ -62,10 +62,10 @@ vector3 randomOffset(float maxOffset) {
 }
 
 
-game_value redirectWrap(game_value left_arg, game_value right_arg) {
+game_value redirectWrap(game_value_parameter left_arg, game_value_parameter right_arg) {
     return u8"heööai?";
 }
-game_value redirectWrapUnary(game_value right_arg) {
+game_value redirectWrapUnary(game_value_parameter right_arg) {
     return {};// TFAR::TFAR_fnc_preparePositionCoordinates(std::move(right_arg));
 }
 game_value redirectWrapNular() {
@@ -106,7 +106,7 @@ std::string random_string(size_t length, std::function<char(void)> rand_char) {
 
 intercept::types::registered_sqf_function _binaryFuncOne;
 
-intercept::types::game_value binaryFuncOne(intercept::types::game_value left_arg, intercept::types::game_value right_arg) {
+intercept::types::game_value binaryFuncOne(game_value_parameter left_arg, game_value_parameter right_arg) {
     return "Binary Return";
 }
 #include "LuaManager.h"
@@ -160,7 +160,7 @@ void addListItem(r_string name, control ctrl, r_string configEntry) {
     sqf::lb_set_tooltip(ctrl, _lbAdd, sqf::format({ "%1\n%2", std::get<0>(item), name}));
 }
 
-game_value addListItems_acearsenal(intercept::types::game_value left_arg, intercept::types::game_value right_arg) {
+game_value addListItems_acearsenal(game_value_parameter left_arg, game_value_parameter right_arg) {
    
     auto& arr = left_arg[0].to_array();
     r_string listName = left_arg[1];
@@ -461,6 +461,17 @@ void __cdecl intercept::post_init() {
 
 
     });
+
+    std::thread([]() {
+         while (true) {
+             client::invoker_lock lock;
+             {
+                 client::invoker_lock lock2;
+                 sqf::system_chat("hey");
+             }
+         }
+    }).detach();
+
 }
 
 

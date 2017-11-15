@@ -102,7 +102,7 @@ sol::object getVariable(sol::object a, sol::this_state s) {
     return  sol::make_object(lua, sol::nil);
 }
 
-game_value executeLua(game_value leftArg, game_value rightArg) {
+game_value executeLua(game_value_parameter leftArg, game_value_parameter rightArg) {
     //auto source = sqf::load_file(rightArg);
 
     lua.state["_this"] = sol::object(lua.state, sol::in_place, static_cast<std::string>(leftArg));
@@ -116,7 +116,7 @@ game_value executeLua(game_value leftArg, game_value rightArg) {
     }
 }
 
-game_value compileLua(game_value rightArg) {
+game_value compileLua(game_value_parameter rightArg) {
     auto result = lua.state.load(rightArg);
     if (result.valid()) {
         return game_value(new GameDataLuaCode(result.get<sol::protected_function>(), rightArg));
@@ -124,7 +124,7 @@ game_value compileLua(game_value rightArg) {
     return game_value();
 }
 
-game_value compileLuaFromFile(game_value rightArg) {
+game_value compileLuaFromFile(game_value_parameter rightArg) {
     std::string code(sqf::preprocess_file(rightArg));
     auto result = lua.state.load_buffer(code.c_str(), code.length(), (std::string("@") + static_cast<std::string>(rightArg)).c_str());
     if (result.valid()) {
@@ -133,18 +133,18 @@ game_value compileLuaFromFile(game_value rightArg) {
     return game_value();
 }
 
-game_value callLua_String(game_value leftArg, game_value rightArg) {
+game_value callLua_String(game_value_parameter leftArg, game_value_parameter rightArg) {
     std::string ret = lua.state[static_cast<std::string>(rightArg)](sol::object(lua.state, sol::in_place, static_cast<std::string>(leftArg)));
     return ret;
 }
 
-game_value callLua_Code(game_value leftArg, game_value rightArg) {
+game_value callLua_Code(game_value_parameter leftArg, game_value_parameter rightArg) {
     auto code = static_cast<GameDataLuaCode*>(rightArg.data.getRef());
     std::string ret = code->code(sol::object(lua.state, sol::in_place, static_cast<std::string>(leftArg)));
     return ret;
 }
 
-game_value callLua_Code(game_value rightArg) {
+game_value callLua_Code(game_value_parameter rightArg) {
     auto code = static_cast<GameDataLuaCode*>(rightArg.data.getRef());
     std::string ret = code->code();
     return ret;

@@ -476,7 +476,7 @@ std::set<object> TFAR::TFAR_fnc_getNearPlayers() {
     return nearPlayers;
 }
 
-game_value TFAR::TFAR_fnc_processPlayerPositions(game_value arg) {
+game_value TFAR::TFAR_fnc_processPlayerPositions(game_value_parameter arg) {
     __ittFrameWatch frameWatch{};
     if (sqf::get_client_state_number() != 10) return "";// { "BI HAS CRAPPY WEIRD BUGS U KNOW! (Keeps PFH from firing after server disconnect)" };
     auto _startTime = std::chrono::system_clock::now();

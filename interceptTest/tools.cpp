@@ -2142,39 +2142,39 @@ void tools::init() {
 
 void tools::postInit() {
 
-    auto orig = sqf::get_variable(sqf::mission_namespace(), "bis_fnc_itemType");
-    auto c = static_cast<game_data_code*>(orig.data.getRef());
-    if (c->is_final)
-        OutputDebugString("isFinal\n");
-    c->is_final = false;
-
-    auto newCode = sqf::compile("Intercept_bis_fnc_itemType _this;");
-    auto nc = static_cast<game_data_code*>(newCode.data.getRef());
-    sqf::set_variable(sqf::mission_namespace(), "bis_fnc_itemType2", newCode);
-    // sqf::set_variable(sqf::mission_namespace(), "bis_fnc_itemType", newCode);
-
-    auto _1 = c->code_string;
-    auto _2 = c->instruction_array;
-    auto _3 = c->instruction_array_max_size;
-    auto _4 = c->instruction_array_size;
-
-
-    c->code_string = nc->code_string;
-    c->instruction_array = nc->instruction_array;
-    c->instruction_array_max_size = nc->instruction_array_max_size;
-    c->instruction_array_size = nc->instruction_array_size;
-
-    nc->code_string = _1;
-    nc->instruction_array = _2;
-    nc->instruction_array_max_size = _3;
-    nc->instruction_array_size = _4;
-
-    auto orig2 = sqf::get_variable(sqf::mission_namespace(), "bis_fnc_itemType");
-    auto c2 = static_cast<game_data_code*>(orig.data.getRef());
-    if (c2->is_final)
-        OutputDebugString("is still Final\n");
-    c2->is_final = true;
-    if (c2->is_final)
-        OutputDebugString("is again Final\n");
+    //auto orig = sqf::get_variable(sqf::mission_namespace(), "bis_fnc_itemType");
+    //auto c = static_cast<game_data_code*>(orig.data.getRef());
+    //if (c->is_final)
+    //    OutputDebugString("isFinal\n");
+    //c->is_final = false;
+    //
+    //auto newCode = sqf::compile("Intercept_bis_fnc_itemType _this;");
+    //auto nc = static_cast<game_data_code*>(newCode.data.getRef());
+    //sqf::set_variable(sqf::mission_namespace(), "bis_fnc_itemType2", newCode);
+    //// sqf::set_variable(sqf::mission_namespace(), "bis_fnc_itemType", newCode);
+    //
+    //auto _1 = c->code_string;
+    //auto _2 = c->instruction_array;
+    //auto _3 = c->instruction_array_max_size;
+    //auto _4 = c->instruction_array_size;
+    //
+    //
+    //c->code_string = nc->code_string;
+    //c->instruction_array = nc->instruction_array;
+    //c->instruction_array_max_size = nc->instruction_array_max_size;
+    //c->instruction_array_size = nc->instruction_array_size;
+    //
+    //nc->code_string = _1;
+    //nc->instruction_array = _2;
+    //nc->instruction_array_max_size = _3;
+    //nc->instruction_array_size = _4;
+    //
+    //auto orig2 = sqf::get_variable(sqf::mission_namespace(), "bis_fnc_itemType");
+    //auto c2 = static_cast<game_data_code*>(orig.data.getRef());
+    //if (c2->is_final)
+    //    OutputDebugString("is still Final\n");
+    //c2->is_final = true;
+    //if (c2->is_final)
+    //    OutputDebugString("is again Final\n");
 
 }

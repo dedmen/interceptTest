@@ -75,7 +75,7 @@ game_value createHashMap() {
 
 //#define CBA_HASH_LOG
 
-game_value hashSet(game_value hashMap, game_value args) {
+game_value hashSet(game_value_parameter hashMap, game_value_parameter args) {
     if (hashMap.is_nil() || args.size() != 2) return {}; //WTF U doin u idiot?! Stop givin me that crap
     auto map = static_cast<GameDataHashMap*>(hashMap.data.getRef());
 
@@ -89,7 +89,7 @@ game_value hashSet(game_value hashMap, game_value args) {
     return {};
 }
 
-game_value hashFind(game_value hashMap, game_value toFind) {
+game_value hashFind(game_value_parameter hashMap, game_value_parameter toFind) {
     if (hashMap.is_nil()) return {};
     auto map = static_cast<GameDataHashMap*>(hashMap.data.getRef());
     auto found = map->map.find(toFind);
@@ -104,7 +104,7 @@ game_value hashFind(game_value hashMap, game_value toFind) {
     return {};
 }
 
-game_value hashRemove(game_value hashMap, game_value toRemove) {
+game_value hashRemove(game_value_parameter hashMap, game_value_parameter toRemove) {
     if (hashMap.is_nil()) return {};
     auto map = static_cast<GameDataHashMap*>(hashMap.data.getRef());
     auto found = map->map.find(toRemove);
@@ -112,7 +112,7 @@ game_value hashRemove(game_value hashMap, game_value toRemove) {
     return {};
 }
 
-game_value hashContains(game_value toFind, game_value hashMap) {
+game_value hashContains(game_value_parameter toFind, game_value_parameter hashMap) {
     if (hashMap.is_nil()) return {};
     auto map = static_cast<GameDataHashMap*>(hashMap.data.getRef());
     auto found = map->map.find(toFind);
@@ -120,14 +120,14 @@ game_value hashContains(game_value toFind, game_value hashMap) {
     return false;
 }
 
-game_value hashCount(game_value hashMap) {
+game_value hashCount(game_value_parameter hashMap) {
     if (hashMap.is_nil()) return 0;
     auto map = static_cast<GameDataHashMap*>(hashMap.data.getRef());
     return static_cast<float>(map->map.size());
 }
 
 
-game_value hashSetVar(game_value hashMap, game_value args) {
+game_value hashSetVar(game_value_parameter hashMap, game_value_parameter args) {
     if (hashMap.is_nil() || args.size() < 2) return {}; //WTF U doin?
     auto map = static_cast<GameDataHashMap*>(hashMap.data.getRef());
 
@@ -142,7 +142,7 @@ game_value hashSetVar(game_value hashMap, game_value args) {
     return {};
 }
 
-game_value hashGetVarDef(game_value hashMap, game_value args) {
+game_value hashGetVarDef(game_value_parameter hashMap, game_value_parameter args) {
     if (hashMap.is_nil() || args.size() < 2) return {};
     auto map = static_cast<GameDataHashMap*>(hashMap.data.getRef());
     auto found = map->map.find(args[0]);
@@ -157,7 +157,7 @@ game_value hashGetVarDef(game_value hashMap, game_value args) {
     return args[1];
 }
 
-game_value hashGetVarStr(game_value hashMap, game_value args) {
+game_value hashGetVarStr(game_value_parameter hashMap, game_value_parameter args) {
     if (hashMap.is_nil()) return {};
     auto map = static_cast<GameDataHashMap*>(hashMap.data.getRef());
     auto found = map->map.find(args);
@@ -172,7 +172,7 @@ game_value hashGetVarStr(game_value hashMap, game_value args) {
     return {};
 }
 
-game_value hashGetKeyList(game_value hashMap) {
+game_value hashGetKeyList(game_value_parameter hashMap) {
     if (hashMap.is_nil()) return 0;
     auto_array<game_value> keys;
     auto map = static_cast<GameDataHashMap*>(hashMap.data.getRef());
@@ -187,26 +187,26 @@ game_value hashGetKeyList(game_value hashMap) {
 #pragma endregion hashMap
 
 
-game_value getNumberWithDef(intercept::types::game_value right_arg) {
+game_value getNumberWithDef(game_value_parameter right_arg) {
     if (right_arg.size() != 2) return {};
     if (sqf::is_number(right_arg[0]))
         return sqf::get_number(right_arg[0]);
     return right_arg[1];
 }
 
-game_value getTextWithDef(intercept::types::game_value right_arg) {
+game_value getTextWithDef(game_value_parameter right_arg) {
     if (right_arg.size() != 2) return {};
     if (sqf::is_number(right_arg[0]))
         return sqf::get_text(right_arg[0]);
     return right_arg[1];
 }
-game_value getArrayWithDef(intercept::types::game_value right_arg) {
+game_value getArrayWithDef(game_value_parameter right_arg) {
     if (right_arg.size() != 2) return {};
     if (sqf::is_number(right_arg[0]))
         return sqf::get_array(right_arg[0]);
     return right_arg[1];
 }
-game_value getBoolWithDef(intercept::types::game_value right_arg) {
+game_value getBoolWithDef(game_value_parameter right_arg) {
     if (right_arg.size() != 2) return {};
     if (sqf::is_number(right_arg[0]))
         return sqf::get_number(right_arg[0]) > 0.f;
@@ -216,7 +216,7 @@ game_value getBoolWithDef(intercept::types::game_value right_arg) {
     return right_arg[1];
 }
 
-game_value getAnyWithDef(intercept::types::game_value right_arg) {
+game_value getAnyWithDef(game_value_parameter right_arg) {
     if (right_arg.size() != 2) return {};
     if (sqf::is_number(right_arg[0]))
         return sqf::get_number(right_arg[0]);
@@ -227,29 +227,29 @@ game_value getAnyWithDef(intercept::types::game_value right_arg) {
     return right_arg[1];
 }
 
-game_value selectLast(game_value right_arg) {
+game_value selectLast(game_value_parameter right_arg) {
     return right_arg.to_array().back();
 }
 
-game_value popEnd(game_value right_arg) {
+game_value popEnd(game_value_parameter right_arg) {
     auto elem = right_arg.to_array().back();
     right_arg.to_array().erase(right_arg.to_array().end()-1);
     return elem;
 }
 
-game_value popFront(game_value right_arg) {
+game_value popFront(game_value_parameter right_arg) {
     auto elem = right_arg.to_array().front();
     right_arg.to_array().erase(right_arg.to_array().begin());
     return elem;
 }
 
-game_value pushFront(game_value left_arg, game_value right_arg) {
+game_value pushFront(game_value_parameter left_arg, game_value_parameter right_arg) {
     auto& arr = left_arg.to_array();
     arr.emplace(arr.begin(), right_arg);
     return {};
 }
 
-game_value pushFrontUnique(game_value left_arg, game_value right_arg) {
+game_value pushFrontUnique(game_value_parameter left_arg, game_value_parameter right_arg) {
     auto& arr = left_arg.to_array();
     if (arr.find(right_arg) == arr.end()) {
         arr.emplace(arr.begin(), right_arg);
@@ -259,7 +259,7 @@ game_value pushFrontUnique(game_value left_arg, game_value right_arg) {
 }
 
 
-game_value findCaseInsensitive(game_value left_arg, game_value right_arg) {
+game_value findCaseInsensitive(game_value_parameter left_arg, game_value_parameter right_arg) {
     bool searchIsString = right_arg.type() == game_data_string::type_def;
     auto& arr = left_arg.to_array();
     for (int it = 0; it < left_arg.size() ; it++) {
@@ -273,7 +273,7 @@ game_value findCaseInsensitive(game_value left_arg, game_value right_arg) {
     return -1;
 }
 
-game_value inArrayCaseInsensitive(game_value right_arg, game_value left_arg) {
+game_value inArrayCaseInsensitive(game_value_parameter right_arg, game_value_parameter left_arg) {
     bool searchIsString = right_arg.type() == game_data_string::type_def;
     auto& arr = left_arg.to_array();
     for (int it = 0; it < left_arg.size(); it++) {
@@ -287,14 +287,14 @@ game_value inArrayCaseInsensitive(game_value right_arg, game_value left_arg) {
     return false;
 }
 
-game_value stringStartsWith(game_value left_arg, game_value right_arg) {
+game_value stringStartsWith(game_value_parameter left_arg, game_value_parameter right_arg) {
     auto leftStr = static_cast<sqf_string>(left_arg);
     auto rightStr = static_cast<sqf_string>(right_arg);
     if (rightStr.size() > leftStr.size()) return false;
     return (strncmp(leftStr.c_str(), rightStr.c_str(), std::min(leftStr.size(), rightStr.size())) == 0);
 }
 
-game_value stringStartsWithCI(game_value left_arg, game_value right_arg) {
+game_value stringStartsWithCI(game_value_parameter left_arg, game_value_parameter right_arg) {
     auto leftStr = static_cast<sqf_string>(left_arg);
     auto rightStr = static_cast<sqf_string>(right_arg);
     if (rightStr.size() > leftStr.size()) return false;
@@ -302,7 +302,7 @@ game_value stringStartsWithCI(game_value left_arg, game_value right_arg) {
 }
 
 
-game_value arrayUnion(game_value left_arg, game_value right_arg) {
+game_value arrayUnion(game_value_parameter left_arg, game_value_parameter right_arg) {
     auto& leftArr = left_arg.to_array();
     auto& rightArr = right_arg.to_array();
     auto_array<game_value> output(leftArr);
@@ -312,19 +312,19 @@ game_value arrayUnion(game_value left_arg, game_value right_arg) {
     return output;
 }
 
-game_value naturalLog(game_value right_arg) {
+game_value naturalLog(game_value_parameter right_arg) {
     return log(static_cast<float>(right_arg));
 }
 
-game_value nthRoot(game_value left_arg, game_value right_arg) {
+game_value nthRoot(game_value_parameter left_arg, game_value_parameter right_arg) {
     return std::pow(static_cast<float>(right_arg), 1.0f / static_cast<float>(left_arg));
 }
 
-game_value logn(game_value left_arg, game_value right_arg) {
+game_value logn(game_value_parameter left_arg, game_value_parameter right_arg) {
     return std::log(static_cast<float>(right_arg))/ std::log(static_cast<float>(left_arg));
 }
 
-game_value regexReplace(game_value left_arg, game_value right_arg) {
+game_value regexReplace(game_value_parameter left_arg, game_value_parameter right_arg) {
     if (right_arg.size() != 2) return "";
     std::regex regr((std::string)right_arg[0]);
     return std::regex_replace((std::string)left_arg, regr, (std::string)right_arg[1]);
@@ -333,10 +333,10 @@ game_value regexReplace(game_value left_arg, game_value right_arg) {
 game_value nothing0() {
     return {};
 }
-game_value nothing1(game_value) {
+game_value nothing1(game_value_parameter) {
     return {};
 }
-game_value nothing2(game_value, game_value) {
+game_value nothing2(game_value_parameter, game_value_parameter) {
     return {};
 }
 
@@ -353,7 +353,7 @@ public:
 };
 
 
-game_value instructionCount(game_value code) {
+game_value instructionCount(game_value_parameter code) {
     if (code.is_nil()) return 0;
     auto c = (codeWithCexp*) code.data.getRef();
     if (!c->instrarr) return 0;
@@ -363,7 +363,7 @@ game_value instructionCount(game_value code) {
 }
 
 
-game_value getObjectConfigFromObj(game_value obj) {
+game_value getObjectConfigFromObj(game_value_parameter obj) {
     auto type = sqf::type_of(obj);
 
     for (std::string_view cls : { "CfgVehicles"sv, "CfgAmmo"sv, "CfgNonAIVehicles"sv }) {
@@ -374,7 +374,7 @@ game_value getObjectConfigFromObj(game_value obj) {
     return static_cast<game_value>(sqf::config_null());
 }
 
-game_value getObjectConfigFromStr(game_value className) {
+game_value getObjectConfigFromStr(game_value_parameter className) {
     sqf_string type = className;
     for (auto& cls : { "CfgVehicles"sv, "CfgAmmo"sv, "CfgNonAIVehicles"sv }) {
         auto cfgClass = sqf::config_entry() >> cls >> type;
@@ -384,7 +384,7 @@ game_value getObjectConfigFromStr(game_value className) {
     return static_cast<game_value>(sqf::config_null());
 }
 
-game_value getItemConfigFromObj(game_value obj) {
+game_value getItemConfigFromObj(game_value_parameter obj) {
     auto type = sqf::type_of(obj);
 
     for (auto& cls : { "CfgWeapons"sv, "CfgMagazines"sv, "CfgGlasses"sv }) {
@@ -395,7 +395,7 @@ game_value getItemConfigFromObj(game_value obj) {
     return static_cast<game_value>(sqf::config_null());
 }
 
-game_value getItemConfigFromStr(game_value className) {
+game_value getItemConfigFromStr(game_value_parameter className) {
     sqf_string type = className;
     for (auto& cls : { "CfgWeapons"sv, "CfgMagazines"sv, "CfgGlasses"sv }) {
         auto cfgClass = sqf::config_entry() >> cls >> type;
@@ -407,7 +407,7 @@ game_value getItemConfigFromStr(game_value className) {
 
 
 //https://github.com/CBATeam/CBA_A3/blob/master/addons/common/fnc_turretPath.sqf
-game_value turretPath(game_value unit) {
+game_value turretPath(game_value_parameter unit) {
     auto vehicle = sqf::vehicle(unit);
 
     for (auto& turret : sqf::all_turrets(vehicle, true)) {
@@ -417,17 +417,17 @@ game_value turretPath(game_value unit) {
 }
 
 
-game_value aliveGroup(game_value grp) {
+game_value aliveGroup(game_value_parameter grp) {
     for (auto& unit : sqf::units(static_cast<group>(grp)))
         if (sqf::alive(unit)) return true;
     return false;
 }
 
-game_value unarySpawn(game_value code) {
+game_value unarySpawn(game_value_parameter code) {
     return static_cast<game_value>(sqf::spawn({}, code));
 }
 
-game_value hasItem(game_value obj, game_value classn) {
+game_value hasItem(game_value_parameter obj, game_value_parameter classn) {
     r_string classname = classn;
     auto containsString = [&classname](const sqf_return_string_list& list)
     {
@@ -449,7 +449,7 @@ game_value hasItem(game_value obj, game_value classn) {
     return false;
 }
 
-game_value getObjPosRaw(game_value obj) {
+game_value getObjPosRaw(game_value_parameter obj) {
     return sqf::model_to_world_visual_world(obj, {0,0,0});
 }
 
@@ -545,6 +545,12 @@ game_value CBA_playerEH_EachFrame() {
     return {};
 }
 
+game_value compareBoolNumber(game_value_parameter left, game_value_parameter right) {
+    return static_cast<bool>(left) == (static_cast<float>(right) != 0.f);
+}
+game_value compareNumberBool(game_value_parameter left, game_value_parameter right) {
+    return static_cast<bool>(right) == (static_cast<float>(left) != 0.f);
+}
 
 void cba::preStart() {
 
@@ -596,6 +602,8 @@ void cba::preStart() {
     static auto _hasItem = intercept::client::host::registerFunction("hasItem", "", userFunctionWrapper<hasItem>, GameDataType::BOOL, GameDataType::OBJECT, GameDataType::STRING);
     static auto _mwmwww = intercept::client::host::registerFunction("modelToWorldWorldWorldVisualWorldWorldVisualWorldVisualASL", "", userFunctionWrapper<getObjPosRaw>, GameDataType::ARRAY, GameDataType::OBJECT);
     static auto _playerEH = intercept::client::host::registerFunction("CBA_Intercept_playerEH", "", userFunctionWrapper<CBA_playerEH_EachFrame>, GameDataType::NOTHING);
+    static auto _cmpBoolNumber = intercept::client::host::registerFunction("==", "", userFunctionWrapper<compareBoolNumber>, GameDataType::BOOL, GameDataType::BOOL, GameDataType::SCALAR);
+    static auto _cmpNumberBool = intercept::client::host::registerFunction("==", "", userFunctionWrapper<compareNumberBool>, GameDataType::BOOL, GameDataType::SCALAR, GameDataType::BOOL);
 }
 
 void cba::preInit() {

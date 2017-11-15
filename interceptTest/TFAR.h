@@ -68,7 +68,7 @@ public:
     static std::set<object> TFAR_fnc_getNearPlayers();
 
 
-    static game_value TFAR_fnc_processPlayerPositions(game_value arg);
+    static game_value TFAR_fnc_processPlayerPositions(game_value_parameter arg);
     intercept::types::registered_sqf_function _itfarProcP;
 };
 
