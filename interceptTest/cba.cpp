@@ -1,5 +1,6 @@
 #define NOMINMAX
 #define INTERCEPT_SQF_STRTYPE_RSTRING
+
 #include "cba.h"
 #include <client/headers/intercept.hpp>
 #include <sstream>
@@ -233,7 +234,7 @@ game_value selectLast(game_value_parameter right_arg) {
 
 game_value popEnd(game_value_parameter right_arg) {
     auto elem = right_arg.to_array().back();
-    right_arg.to_array().erase(right_arg.to_array().end()-1);
+    right_arg.to_array().erase(right_arg.to_array().end() - 1);
     return elem;
 }
 
@@ -262,13 +263,13 @@ game_value pushFrontUnique(game_value_parameter left_arg, game_value_parameter r
 game_value findCaseInsensitive(game_value_parameter left_arg, game_value_parameter right_arg) {
     bool searchIsString = right_arg.type() == game_data_string::type_def;
     auto& arr = left_arg.to_array();
-    for (int it = 0; it < left_arg.size() ; it++) {
+    for (int it = 0; it < left_arg.size(); it++) {
         auto& element = arr[it];
-          if (searchIsString && element.data && element.type() == game_data_string::type_def) {
-              if (static_cast<r_string>(element).compare_case_insensitive(static_cast<r_string>(right_arg).c_str())) return it;
-          } else {
-              if (element == right_arg) return it;
-          }
+        if (searchIsString && element.data && element.type() == game_data_string::type_def) {
+            if (static_cast<r_string>(element).compare_case_insensitive(static_cast<r_string>(right_arg).c_str())) return it;
+        } else {
+            if (element == right_arg) return it;
+        }
     }
     return -1;
 }
@@ -321,7 +322,7 @@ game_value nthRoot(game_value_parameter left_arg, game_value_parameter right_arg
 }
 
 game_value logn(game_value_parameter left_arg, game_value_parameter right_arg) {
-    return std::log(static_cast<float>(right_arg))/ std::log(static_cast<float>(left_arg));
+    return std::log(static_cast<float>(right_arg)) / std::log(static_cast<float>(left_arg));
 }
 
 game_value regexReplace(game_value_parameter left_arg, game_value_parameter right_arg) {
@@ -357,7 +358,7 @@ game_value instructionCount(game_value_parameter code) {
     if (code.is_nil()) return 0;
     auto c = (codeWithCexp*) code.data.getRef();
     if (!c->instrarr) return 0;
-    return (float)c->instrarr->count;
+    return (float) c->instrarr->count;
 
     return {};
 }
@@ -429,8 +430,7 @@ game_value unarySpawn(game_value_parameter code) {
 
 game_value hasItem(game_value_parameter obj, game_value_parameter classn) {
     r_string classname = classn;
-    auto containsString = [&classname](const sqf_return_string_list& list)
-    {
+    auto containsString = [&classname](const sqf_return_string_list& list) {
         for (auto& item : list)
             if (item == classname) return true;
         return false;
@@ -450,7 +450,7 @@ game_value hasItem(game_value_parameter obj, game_value_parameter classn) {
 }
 
 game_value getObjPosRaw(game_value_parameter obj) {
-    return sqf::model_to_world_visual_world(obj, {0,0,0});
+    return sqf::model_to_world_visual_world(obj, { 0,0,0 });
 }
 
 game_value CBA_oldUnit;
@@ -477,7 +477,7 @@ game_value CBA_playerEH_EachFrame() {
 
     game_value _data = sqf::get_group(_player);
     if (_data != CBA_oldGroup) {
-        sqf::call(CBA_fnc_localEvent,{ "cba_common_groupEvent",{ _data , CBA_oldGroup } });
+        sqf::call(CBA_fnc_localEvent, { "cba_common_groupEvent",{ _data , CBA_oldGroup } });
         CBA_oldGroup = _data;
     }
 
@@ -552,6 +552,22 @@ game_value compareNumberBool(game_value_parameter left, game_value_parameter rig
     return static_cast<bool>(right) == (static_cast<float>(left) != 0.f);
 }
 
+class GameInstructionSetLVar : public game_instruction {
+public:
+    r_string vName;
+    game_value val;
+    bool exec(types::__internal::game_state* state, void* t) override {
+        auto sv = client::host::functions.get_engine_allocator()->setvar_func;
+        sv(vName.c_str(), val);
+        return false;
+    }
+    int stack_size(void* t) const override { return 0; };
+    r_string get_name() const override { return "GameInstructionSetLVar"sv; };
+    ~GameInstructionSetLVar() override {};
+
+};
+
+
 void cba::preStart() {
 
     auto codeType = client::host::registerType("HASHMAP"sv, "hashMap"sv, "Dis is a hashmap. It hashes things."sv, "hashMap"sv, createGameDataHashMap);
@@ -604,6 +620,289 @@ void cba::preStart() {
     static auto _playerEH = intercept::client::host::registerFunction("CBA_Intercept_playerEH", "", userFunctionWrapper<CBA_playerEH_EachFrame>, GameDataType::NOTHING);
     static auto _cmpBoolNumber = intercept::client::host::registerFunction("==", "", userFunctionWrapper<compareBoolNumber>, GameDataType::BOOL, GameDataType::BOOL, GameDataType::SCALAR);
     static auto _cmpNumberBool = intercept::client::host::registerFunction("==", "", userFunctionWrapper<compareNumberBool>, GameDataType::BOOL, GameDataType::SCALAR, GameDataType::BOOL);
+    static auto _andNumberBool = intercept::client::host::registerFunction("&&", "", [](uintptr_t, game_value_parameter left, game_value_parameter right) -> game_value {
+        return static_cast<bool>(right) && static_cast<float>(left) != 0.f;
+    }, GameDataType::BOOL, GameDataType::SCALAR, GameDataType::BOOL);
+    static auto _andBoolNumber = intercept::client::host::registerFunction("&&", "", [](uintptr_t, game_value_parameter left, game_value_parameter right) -> game_value {
+        return static_cast<bool>(left) && static_cast<float>(right) != 0.f;
+    }, GameDataType::BOOL, GameDataType::BOOL, GameDataType::SCALAR);
+    static auto _andNumberNumber = intercept::client::host::registerFunction("&&", "", [](uintptr_t, game_value_parameter left, game_value_parameter right) -> game_value {
+        return static_cast<float>(left) != 0.f && static_cast<float>(right) != 0.f;
+    }, GameDataType::BOOL, GameDataType::SCALAR, GameDataType::SCALAR);
+    static auto _isEqTo = intercept::client::host::registerFunction(u8"iForEach"sv, "", [](uintptr_t, game_value_parameter left, game_value_parameter right) -> game_value {
+        auto& arr = left.to_array();
+        for (auto& element : arr)
+            sqf::call(right, element);
+        return {};
+    }, GameDataType::NOTHING, GameDataType::ARRAY, GameDataType::CODE);
+    static auto _isEqTo2 = intercept::client::host::registerFunction(u8"iForEach2"sv, "", [](uintptr_t, game_value_parameter left, game_value_parameter right) -> game_value {
+        auto& arr = left.to_array();
+
+        //static game_value_static _xassignment = sqf::compile("private _x = 123; _x");
+        //auto baseCode = static_cast<game_data_code*>(_xassignment.data.get());
+        auto bodyCode = static_cast<game_data_code*>(right.data.get());
+
+        //auto curElInstruction = static_cast<game_instruction_constant*>(baseCode->instructions->get(1).get());
+        ref<GameInstructionSetLVar> curElInstruction = rv_allocator<GameInstructionSetLVar>::createSingle();
+        curElInstruction->vName = "_x";
+        auto oldInstructions = bodyCode->instructions;
+        ref<compact_array<ref<game_instruction>>> newInstr = compact_array<ref<game_instruction>>::create(*oldInstructions, oldInstructions->size() + 1);
+
+        //std::_Move_no_deprecate(newInstr->data() + 1, newInstr->data() + oldInstructions->size(), newInstr->data() + 3);
+
+        std::_Copy_no_deprecate(oldInstructions->data() + 1, oldInstructions->data() + oldInstructions->size(), newInstr->data() + 2);
+        //newInstr->data()[0] = baseCode->instructions->get(0);
+
+
+        newInstr->data()[1] = curElInstruction;
+
+        //newInstr->data()[1] = baseCode->instructions->get(1);
+
+        bodyCode->instructions = newInstr;
+
+        for (auto& element : arr) {
+            curElInstruction->val.data = element.data;
+            sqf::call2(right);
+        }
+
+        bodyCode->instructions = oldInstructions;
+
+        return {};
+    }, GameDataType::NOTHING, GameDataType::ARRAY, GameDataType::CODE);
+    static auto _isEqTo3 = intercept::client::host::registerFunction(u8"iForEach3"sv, "", [](uintptr_t, game_value_parameter left, game_value_parameter right) -> game_value {
+        auto& arr = left.to_array();
+        for (auto& element : arr)
+            sqf::call2(right);
+        return {};
+    }, GameDataType::NOTHING, GameDataType::ARRAY, GameDataType::CODE);
+    static auto _currentUnit = intercept::client::host::registerFunction("currentUnit"sv, "Returns the current Unit (CBA_fnc_currentUnit)"sv, [](uintptr_t) -> game_value {
+        auto obj = sqf::get_variable(sqf::mission_namespace(), "");
+        if (obj.is_null()) return sqf::player();
+        return obj;
+    }, GameDataType::OBJECT);
+
+
+    static auto _sl = intercept::client::host::registerFunction("startLoadingScreen"sv, "Fuck the establishment!"sv, [](uintptr_t, game_value_parameter right) -> game_value {
+        sqf::diag_log({ "startloadingscreen", right });
+        if (right.size() > 1) {
+            //sqf::start_loading_screen(right[0], right[1]);
+        } else {
+            //sqf::start_loading_screen(right[0]);
+        }
+        return {};
+    }, GameDataType::NOTHING, GameDataType::ARRAY);
+    static auto _rl = intercept::client::host::registerFunction("endLoadingScreen"sv, "REALLYBRO!"sv, [](uintptr_t) -> game_value {
+        sqf::diag_log("endloadingscreen");
+        //sqf::end_loading_screen();
+        return  {};
+    }, GameDataType::NOTHING);
+
+
+
+
+
+
+
+
+
+    static auto _sinh = intercept::client::host::registerFunction("sinh"sv, ""sv, [](uintptr_t, game_value_parameter right) -> game_value {
+        return std::sinh(right);
+    }, GameDataType::SCALAR, GameDataType::SCALAR);
+
+    static auto _cosh = intercept::client::host::registerFunction("cosh"sv, ""sv, [](uintptr_t, game_value_parameter right) -> game_value {
+        return std::cosh(right);
+    }, GameDataType::SCALAR, GameDataType::SCALAR);
+
+    static auto _tanh = intercept::client::host::registerFunction("tanh"sv, ""sv, [](uintptr_t, game_value_parameter right) -> game_value {
+        return std::tanh(right);
+    }, GameDataType::SCALAR, GameDataType::SCALAR);
+
+    static auto _asinh = intercept::client::host::registerFunction("asinh"sv, ""sv, [](uintptr_t, game_value_parameter right) -> game_value {
+        return std::asinh(right);
+    }, GameDataType::SCALAR, GameDataType::SCALAR);
+
+    static auto _acosh = intercept::client::host::registerFunction("acosh"sv, ""sv, [](uintptr_t, game_value_parameter right) -> game_value {
+        return std::acosh(right);
+    }, GameDataType::SCALAR, GameDataType::SCALAR);
+
+    static auto _atanh = intercept::client::host::registerFunction("atanh"sv, ""sv, [](uintptr_t, game_value_parameter right) -> game_value {
+        return std::atanh(right);
+    }, GameDataType::SCALAR, GameDataType::SCALAR);
+
+
+
+    static auto _catenaryConnect = intercept::client::host::registerFunction("catenaryConnect"sv, ""sv, [](uintptr_t, game_value_parameter left, game_value_parameter right) -> game_value {
+        vector3 posStart = left;
+        vector3 posEnd = right;
+        vector2 posStart2D = left;
+        vector2 posEnd2D = right;
+
+        ////////////////////
+        // STEP 1 - get the 2d catenary curve
+        ////////////////////
+        auto _distMap = posStart2D.distance(posEnd2D);
+        auto _distHeight = posEnd.z - posStart.z;
+        auto _ropeFactor = 1.01; // rope length factor - 1% longer, edit this
+        auto _ropeLength = sqrt(_distMap*_distMap + _distHeight*_distHeight) * _ropeFactor; // rope length
+
+        if (_distMap == 0) return { {} };
+        if (_ropeLength == 0) return { {} };
+
+        // approximate constant "a" via newton's method
+        float a = 1;
+        for (int i = 0; i < 1000; ++i) {
+            a = a -
+                (2 * a * std::sinh(_distMap / 2 / a) - sqrt(_ropeLength*_ropeLength - _distHeight*_distHeight)) /
+                (2 * std::sinh(_distMap / 2 / a) - _distMap / a * std::cosh(_distMap / 2 / a));
+        }
+
+        auto _fnc_catenary = [a](float x) {return a*std::cosh(x / a); };
+
+        auto _x1 = a * std::atanh(_distHeight / _ropeLength) - _distMap / 2;
+        auto _x2 = a * std::atanh(_distHeight / _ropeLength) + _distMap / 2;
+        auto _y1 = _fnc_catenary(_x1);
+        auto _y2 = _fnc_catenary(_x2);
+
+        ////////////////////
+        // STEP 2 - get array of positions on 2d catenary
+        ////////////////////
+        vector2 _posLast = { _x1, _y1 }; // begin with posStartC
+        vector2 _posEndC = { _x2, _y2 };
+        auto_array<vector2> _catenaryPositions;
+        _catenaryPositions.emplace_back(_posLast);
+
+        while (_posLast.distance(_posEndC) > 1) { // continue until end of caterny is reached
+            auto _u = _posLast.x;
+            auto _y = _posLast.y;
+
+            auto _uMin = _u;
+            auto _uMax = _u + 1;
+
+            // find the next "u"
+            while (abs(_uMin - _uMax) > 0.0001) { // continue until the next point is about 1 meter away linear distance
+                _y = _fnc_catenary(_u);
+
+                if (_posLast.distance({ _u,_y }) > 1) { // too far apart
+                    _uMax = _u;
+                } else { // too close
+                    _uMin = _u;
+                }
+
+                _u = (_uMin + _uMax) / 2;
+            }
+
+            _y = _fnc_catenary(_u);
+
+            _posLast = { _u, _y };
+            _catenaryPositions.emplace_back(_posLast);
+        }
+
+        _catenaryPositions.emplace_back(_posEndC);
+
+        ////////////////////
+        // STEP 3 - convert 2d positions on catenary to world positions
+        ////////////////////
+
+        //Remove duplicates
+        _catenaryPositions.erase(std::unique(_catenaryPositions.begin(), _catenaryPositions.end()), _catenaryPositions.end());
+        game_value gval(std::move(_catenaryPositions));
+        sqf::diag_log(gval); // WIP
+        return gval;
+    }, GameDataType::ARRAY, GameDataType::ARRAY, GameDataType::ARRAY);
+
+
+}
+
+
+struct pfh {
+    game_value func;
+    float delay;
+    float delta;
+    float timeAdded;
+    game_value args;
+    int handle;
+    bool del{ false };
+
+    pfh(game_value _1, float _2, float _3, float _4, game_value _5, float _6) {
+        func = _1;
+        delay = _2;
+        delta = _3;
+        timeAdded = _4;
+        args = _5;
+        handle = _6;
+    }
+
+
+};
+std::vector<std::shared_ptr<pfh>> perFrameHandlerArray;
+float PFHHandle = 0.f;
+
+struct waitAndExecHandler {
+    float time;
+    game_value func;
+    game_value args;
+    waitAndExecHandler(float _1, game_value _2, game_value _3) {
+        time = _1;
+        func = _2;
+        args = _3;
+    }
+    bool operator< (const waitAndExecHandler& other) {
+        return time < other.time;
+    }
+};
+std::vector<std::shared_ptr<waitAndExecHandler>> waitAndExecArray;
+bool waitAndExecArrayIsSorted;
+
+//arg,func
+std::vector<std::pair<game_value, game_value>> nextFrameBufferA;
+std::vector<std::pair<game_value, game_value>> nextFrameBufferB;
+int nextFrameNo;
+
+struct waitUntilAndExecHandler {
+    game_value args;
+    game_value cond;
+    game_value func;
+    waitUntilAndExecHandler(game_value _1, game_value _2, game_value _3) {
+        args = _1;
+        cond = _2;
+        func = _3;
+    }
+    waitUntilAndExecHandler(game_value _1, game_value _2, game_value _3, float _4, game_value _5) {
+        args = _1;
+        cond = _2;
+        func = _3;
+        timeout = _4;
+        timeOutCode = _5;
+    }
+    float timeout{ 0.f };
+    game_value timeOutCode;
+    bool done{ false };
+};
+std::vector<std::shared_ptr<waitUntilAndExecHandler>> waitUntilAndExecArray;
+
+void swapFuncs(game_value orig, game_value newCode) {
+    auto c = static_cast<game_data_code*>(orig.data.getRef());
+
+    auto nc = static_cast<game_data_code*>(newCode.data.getRef());
+
+    auto _1 = c->code_string;
+    auto _2 = c->instructions;
+    auto _3 = c->_dummy1;
+    auto _4 = c->_dummy;
+    auto _5 = c->is_final;
+
+
+    c->code_string = nc->code_string;
+    c->instructions = nc->instructions;
+    c->_dummy1 = nc->_dummy1;
+    c->_dummy = nc->_dummy;
+    c->is_final = nc->is_final;
+
+    nc->code_string = _1;
+    nc->instructions = _2;
+    nc->_dummy1 = _3;
+    nc->_dummy = _4;
+    nc->is_final = _5;
 }
 
 void cba::preInit() {
@@ -618,6 +917,309 @@ void cba::preInit() {
     CBA_oldVisionMode = -1;
     CBA_oldCameraView = ""sv;
     CBA_oldVisibleMap = false;
+    sqf::set_variable(sqf::mission_namespace(), "CBA_missionTime", 0);
+
+
+    static auto onFrame = client::generate_custom_callback([](game_value_parameter arg) -> game_value {
+        auto sv = client::host::functions.get_engine_allocator()->setvar_func;
+        sv("_tickTime", sqf::diag_ticktime());
+        auto tickTime = sqf::diag_ticktime();     //chrono seconds
+
+
+        sqf::call2(sqf::get_variable(sqf::mission_namespace(), "CBA_common_fnc_missionTimePFH"));
+
+        //call FUNC(missionTimePFH);
+
+
+
+
+        // Execute per frame handlers
+
+        perFrameHandlerArray.erase(
+            std::remove_if(perFrameHandlerArray.begin(), perFrameHandlerArray.end(), [](const std::shared_ptr<pfh>& it) {
+            return it->del;
+        }), perFrameHandlerArray.end());
+
+        auto pfhcopy = perFrameHandlerArray;
+        for (auto& handler : pfhcopy) {
+            if (tickTime > handler->delta) {
+                handler->delta += handler->delay;
+                sv("_args", handler->args);
+                sv("_handle", handler->handle);
+
+                sqf::call2(handler->func, { handler->args, handler->handle });
+            }
+        }
+
+        // Execute wait and execute functions
+        // Sort the queue if necessary
+        if (!waitAndExecArrayIsSorted) {
+            std::sort(waitAndExecArray.begin(), waitAndExecArray.end());
+            waitAndExecArrayIsSorted = true;
+        };
+
+        float CBA_missionTime = sqf::get_variable(sqf::mission_namespace(), "CBA_missionTime");
+        bool _delete = false;
+        auto waxcpy = waitAndExecArray;
+        for (auto& handler : waxcpy) {
+            if (handler->time > CBA_missionTime) break;
+            if (handler->args.is_nil())
+                sqf::call2(handler->func);
+            else
+                sqf::call2(handler->func, handler->args);
+            handler->time = 0.f;
+            _delete = true;
+        }
+
+        if (_delete) {
+            waitAndExecArray.erase(
+                std::remove_if(waitAndExecArray.begin(), waitAndExecArray.end(), [](const std::shared_ptr<waitAndExecHandler>& hand) {
+                return hand->time == 0.f;
+            }), waitAndExecArray.end());
+        }
+
+        // Execute the exec next frame functions
+
+        for (auto& handler : nextFrameBufferA) {
+            sqf::call2(handler.second, handler.first);
+        }
+
+        // Swap double-buffer:
+        std::swap(nextFrameBufferA, nextFrameBufferB);
+        nextFrameBufferB.clear();
+        nextFrameNo = sqf::diag_frameno() + 1;
+
+
+        // Execute the waitUntilAndExec functions:
+
+
+        _delete = false;
+        auto wuaxcpy = waitUntilAndExecArray;
+        for (auto& handler : wuaxcpy) {
+
+            if (handler->timeout != 0.f && handler->timeout > CBA_missionTime) {
+                sqf::call2(handler->timeOutCode, handler->args);
+                handler->done = true;
+                _delete = true;
+            } else if (sqf::call2(handler->cond, handler->args)) {
+                sqf::call2(handler->func, handler->args);
+                handler->done = true;
+                _delete = true;
+            }
+        }
+
+        if (_delete) {
+            waitUntilAndExecArray.erase(
+                std::remove_if(waitUntilAndExecArray.begin(), waitUntilAndExecArray.end(), [](const std::shared_ptr<waitUntilAndExecHandler>& hand) {
+                return hand->done;
+            }), waitUntilAndExecArray.end());
+        }
+
+        return {};
+    });
+    auto orig = sqf::get_variable(sqf::mission_namespace(), "cba_common_fnc_onFrame");
+    auto newCode = sqf::compile(onFrame.first);
+
+    swapFuncs(orig, newCode);
+
+
+
+    static auto addPFH = client::generate_custom_callback([](game_value_parameter arg) -> game_value {
+        /*
+        _function - The function you wish to execute. <CODE>
+        _delay    - The amount of time in seconds between executions, 0 for every frame. (optional, default: 0) <NUMBER>
+        _args     - Parameters passed to the function executing. This will be the same array every execution. (optional) <ANY>
+        */
+        game_value function = arg[0];
+        float delay = 0;
+        game_value args;
+
+        if (arg.size() > 1)
+            delay = arg[1];
+        if (arg.size() > 2)
+            args = arg[2];
+
+        perFrameHandlerArray.emplace_back(
+            std::make_shared<pfh>(
+                function, delay, sqf::diag_ticktime(), sqf::diag_ticktime(), args, PFHHandle)
+
+        );
+
+        PFHHandle += 1.f;
+
+        return PFHHandle - 1.f;
+    });
+    orig = sqf::get_variable(sqf::mission_namespace(), "CBA_fnc_addPerFrameHandler");
+    newCode = sqf::compile(addPFH.first);
+
+    swapFuncs(orig, newCode);
+
+
+    static auto remPFH = client::generate_custom_callback([](game_value_parameter arg) -> game_value {
+        int handle = arg;
+        for (auto& handler : perFrameHandlerArray) {
+            if (handle > handler->handle) {
+                handler->del = true;
+            }
+        }
+
+        return {};
+    });
+    orig = sqf::get_variable(sqf::mission_namespace(), "CBA_fnc_removePerFrameHandler");
+    newCode = sqf::compile(remPFH.first);
+
+    swapFuncs(orig, newCode);
+
+
+
+
+
+
+    auto pfhs = sqf::get_variable(sqf::mission_namespace(), "CBA_common_perFrameHandlerArray");
+
+    PFHHandle = pfhs.size();
+
+    for (auto& it : pfhs.to_array()) {
+        perFrameHandlerArray.emplace_back(std::make_shared<pfh>(it[0], it[1], it[2], it[3], it[4], it[5]));
+    }
+
+
+    static auto nextFrame = client::generate_custom_callback([](game_value_parameter arg) -> game_value {
+        /*
+        _function - The function you wish to execute. <CODE>
+        _args     - Parameters passed to the function executing. This will be the same array every execution. (optional) <ANY>
+        */
+
+
+        game_value function;
+        game_value args;
+        if (arg.type_enum() == GameDataType::CODE) {
+            function = arg;
+        } else {
+            function = arg[0];
+            if (arg.size() > 1)
+                args = arg[1];
+        }
+
+
+
+
+
+        if (sqf::diag_frameno() != nextFrameNo) {
+            nextFrameBufferA.emplace_back(args, function);
+        } else {
+            nextFrameBufferB.emplace_back(args, function);
+        }
+
+        return {};
+    });
+    orig = sqf::get_variable(sqf::mission_namespace(), "CBA_fnc_execNextFrame");
+    newCode = sqf::compile(nextFrame.first);
+
+    swapFuncs(orig, newCode);
+
+
+    auto fba = sqf::get_variable(sqf::mission_namespace(), "CBA_common_nextFrameBufferA");
+    auto fbb = sqf::get_variable(sqf::mission_namespace(), "CBA_common_nextFrameBufferB");
+
+    for (auto& it : fba.to_array()) {
+        nextFrameBufferA.emplace_back(it[0], it[1]);
+    }
+    for (auto& it : fbb.to_array()) {
+        nextFrameBufferB.emplace_back(it[0], it[1]);
+    }
+
+
+
+    static auto waitUntilExec = client::generate_custom_callback([](game_value_parameter arg) -> game_value {
+        /*
+        _condition   - The function to evaluate as condition. <CODE>
+        _statement   - The function to run once the condition is true. <CODE>
+        _args        - Parameters passed to the functions (statement and condition) executing. (optional) <ANY>
+        _timeout     - Timeout for the condition in seconds. (optional) <NUMBER>
+        _timeoutCode - Will execute instead of _statement if the condition times out. (optional) <CODE>
+        */
+        game_value cond = arg[0];
+        game_value function = arg[1];
+        game_value args;
+        float timeout = 0.f;
+        game_value timeoutCode;
+
+        if (arg.size() > 2)
+            args = arg[2];
+        if (arg.size() > 3)
+            timeout = arg[3];
+        if (arg.size() > 4)
+            timeoutCode = arg[4];
+
+        if (timeout == 0.f) {
+            waitUntilAndExecArray.emplace_back(std::make_shared<waitUntilAndExecHandler>(args, cond, function));
+        } else {
+            waitUntilAndExecArray.emplace_back(
+
+                std::make_shared<waitUntilAndExecHandler>(
+                    args, cond, function, timeout + static_cast<float>(sqf::get_variable(sqf::mission_namespace(), "CBA_missionTime")), timeoutCode
+                    ));
+        }
+
+        return {};
+    });
+    orig = sqf::get_variable(sqf::mission_namespace(), "CBA_fnc_waitUntilAndExecute");
+    newCode = sqf::compile(waitUntilExec.first);
+
+    swapFuncs(orig, newCode);
+
+
+    auto waux = sqf::get_variable(sqf::mission_namespace(), "CBA_common_waitUntilAndExecArray");
+
+    for (auto& it : waux.to_array()) {
+        waitUntilAndExecArray.emplace_back(std::make_shared<waitUntilAndExecHandler>(it[0], it[1], it[2]));
+    }
+
+
+
+
+    static auto waitExec = client::generate_custom_callback([](game_value_parameter arg) -> game_value {
+        /*
+        _function - The function you wish to execute. <CODE>
+        _args     - Parameters passed to the function executing. (optional) <ANY>
+        _delay    - The amount of time in seconds before the code is executed. (optional, default: 0) <NUMBER>
+        */
+        game_value function = arg[0];
+        game_value args;
+        float delay = 0.f;
+
+        if (arg.size() > 1)
+            args = arg[1];
+        if (arg.size() > 2)
+            delay = arg[2];
+
+        waitAndExecArray.emplace_back(
+            std::make_shared<waitAndExecHandler>(
+                static_cast<float>(sqf::get_variable(sqf::mission_namespace(), "CBA_missionTime")) + delay,
+                function, args));
+
+        waitAndExecArrayIsSorted = false;
+
+        return {};
+    });
+    orig = sqf::get_variable(sqf::mission_namespace(), "CBA_fnc_waitAndExecute");
+    newCode = sqf::compile(waitExec.first);
+
+    swapFuncs(orig, newCode);
+
+
+    auto wax = sqf::get_variable(sqf::mission_namespace(), "CBA_common_waitAndExecArray");
+
+    for (auto& it : wax.to_array()) {
+        waitAndExecArray.emplace_back(std::make_shared<waitAndExecHandler>(it[0], it[1], it[2]));
+    }
+    waitAndExecArrayIsSorted = false;
+
+
+
+
+
 }
 
 void cba::postInit() {

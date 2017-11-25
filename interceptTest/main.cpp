@@ -462,15 +462,20 @@ void __cdecl intercept::post_init() {
 
     });
 
-    std::thread([]() {
-         while (true) {
-             client::invoker_lock lock;
-             {
-                 client::invoker_lock lock2;
-                 sqf::system_chat("hey");
-             }
-         }
-    }).detach();
+    //std::thread([]() {
+    //    auto player_data = std::vector<std::tuple<game_value,game_value,game_value>>();
+    //     while (true) {
+    //         client::invoker_lock lock;
+    //         auto players = intercept::sqf::playable_units();
+    //         for (auto const& current_player : players) {
+    //             player_data.emplace_back(
+    //                 intercept::sqf::name(current_player),
+    //                 intercept::sqf::group_id(intercept::sqf::group_get(current_player)),
+    //                 intercept::sqf::get_pos(current_player)
+    //             );
+    //         }
+    //     }
+    //}).detach();
 
 }
 
@@ -537,13 +542,14 @@ public:
 
 Vehicle* vec = nullptr;
 float getCameraZoom() {
-    return sqf::world_to_screen(sqf::position_camera_to_world({ 0,3,4 })).distance({ .5f,.5f })*
+    return sqf::world_to_screen(sqf::position_camera_to_world({ 0,3,4 }))->distance({ .5f,.5f })*
         (sqf::get_resolution().ui_scale / 2.f);
 }
 __itt_string_handle* handle_task1 = __itt_string_handle_create("task1");
 __itt_string_handle* handle_task2 = __itt_string_handle_create("task2");
 __itt_string_handle* handle_task3 = __itt_string_handle_create("task3");
 __itt_string_handle* handle_task4 = __itt_string_handle_create("task4");
+extern __itt_domain* domain;
 
 // This function is exported and is called by the host each frame.
 void __cdecl intercept::on_frame() {
@@ -552,33 +558,52 @@ void __cdecl intercept::on_frame() {
     //auto _group = sqf::get_group(_player);
 
     //auto start = std::chrono::high_resolution_clock::now();
-    //__itt_task_begin(domain, __itt_null, __itt_null, handle_task1);
-    //for (int Index = 0; Index < 32; Index++) {
-    //    sqf::join(_allUnits, _group);
+    //auto code = sqf::get_variable(sqf::mission_namespace(), "interceptTestCode");
+    //game_value arg = "12312312";
+    //if (!code.is_nil()) {
+    //    __itt_resume();
+    //    __itt_task_begin(domain, __itt_null, __itt_null, handle_task4);
+    //    for (int Index = 0; Index < 32; Index++) {
+    //        sqf::call2(code, arg);
+    //    }
+    //    __itt_task_end(domain);
+    //    __itt_task_begin(domain, __itt_null, __itt_null, handle_task3);
+    //    for (int Index = 0; Index < 32; Index++) {
+    //        sqf::call2(code);
+    //    }
+    //    __itt_task_end(domain);
+    //    __itt_pause();
+    //    auto end = std::chrono::high_resolution_clock::now();
+    //    auto runt = "n"+std::to_string(std::chrono::duration_cast<microseconds>(end - start).count());
+    //    sqf::system_chat(runt);
+    //    OutputDebugStringA(runt.c_str());
     //}
-    //__itt_task_end(domain);
-    //auto end = std::chrono::high_resolution_clock::now();
+
+    //if (!code.is_nil()) {
+    //    for (int Index = 0; Index < 32; Index++) {
+    //        sqf::call(code, arg);
+    //    }
+    //    auto end = std::chrono::high_resolution_clock::now();
+    //    auto runt = "o"+std::to_string(std::chrono::duration_cast<microseconds>(end - start).count());
+    //    sqf::system_chat(runt);
+    //    OutputDebugStringA(runt.c_str());
+    //}
 
 
-    /*
-     return;
-     if (!vec) {
-         std::vector<std::string> classes{ "B_Quadbike_01_F","B_LSV_01_armed_F","B_Boat_Transport_01_F","B_Lifeboat" };
-         std::uniform_int_distribution<int> dist(0, classes.size() - 1);//Get random classname
-         vec = new Vehicle(classes.at(dist(e2)), intercept::sqf::get_pos(sqf::player()) + vector3{ 0,15,0 });
-         intercept::sqf::set_variable(intercept::sqf::mission_namespace(), "intercept_test", "teeeest");
-     } else {
-         vec->turn();
-         if (vec->timeAlive() > 4s) {
-             delete vec;
-             vec = nullptr;
-         }
-     }
-     intercept::sqf::set_variable(intercept::sqf::mission_namespace(), "intercept_testxxxxx", "teeeest");
-
-
-
-
+   
+     //if (!vec) {
+     //    std::vector<std::string> classes{ "B_Quadbike_01_F","B_LSV_01_armed_F","B_Boat_Transport_01_F","B_Lifeboat" };
+     //    std::uniform_int_distribution<int> dist(0, classes.size() - 1);//Get random classname
+     //    vec = new Vehicle(classes.at(dist(e2)), intercept::sqf::get_pos(sqf::player()) + vector3{ 0,15,0 });
+     //    intercept::sqf::set_variable(intercept::sqf::mission_namespace(), "intercept_test", "teeeest");
+     //} else {
+     //    vec->turn();
+     //    if (vec->timeAlive() > 4s) {
+     //        delete vec;
+     //        vec = nullptr;
+     //    }
+     //}
+     /*
 
      intercept::sqf::rv_color color = std::vector<game_value>{ 1.0f, 0.0f, 0.0f, 1.0f };
 
@@ -679,7 +704,7 @@ void __cdecl intercept::on_frame() {
 
     for (auto& unit : sqf::all_players()) {
         auto worldPos = sqf::get_pos(unit);
-        auto pos = sqf::world_to_screen(worldPos);
+        auto pos = *sqf::world_to_screen(worldPos);
         if (pos.x == 0.f || pos.y == 0.f) continue;
         auto group = sqf::get_group(unit);
         auto unitName = (std::string)sqf::name(unit);
