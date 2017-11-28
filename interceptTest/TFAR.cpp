@@ -108,7 +108,7 @@ vector3 TFAR::TFAR_fnc_defaultPositionCoordinates(TFAR_unit& unit, bool forceSpe
     if (forceSpectator) return sqf::agl_to_asl(sqf::position_camera_to_world({0,0,0}));
     auto _unit = unit.getUnit();
 
-    auto p2 = static_cast<game_data_object*>(_unit.data.getRef())->get_head_pos();
+    auto p2 = static_cast<game_data_object*>(_unit.data.get())->get_head_pos();
     if (p2.valid)
         return p2._cameraPositionWorld;
     auto _current_eyepos = unit.getEyePos();

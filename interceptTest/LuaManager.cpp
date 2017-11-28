@@ -139,13 +139,13 @@ game_value callLua_String(game_value_parameter leftArg, game_value_parameter rig
 }
 
 game_value callLua_Code(game_value_parameter leftArg, game_value_parameter rightArg) {
-    auto code = static_cast<GameDataLuaCode*>(rightArg.data.getRef());
+    auto code = static_cast<GameDataLuaCode*>(rightArg.data.get());
     std::string ret = code->code(sol::object(lua.state, sol::in_place, static_cast<std::string>(leftArg)));
     return ret;
 }
 
 game_value callLua_Code(game_value_parameter rightArg) {
-    auto code = static_cast<GameDataLuaCode*>(rightArg.data.getRef());
+    auto code = static_cast<GameDataLuaCode*>(rightArg.data.get());
     std::string ret = code->code();
     return ret;
 }

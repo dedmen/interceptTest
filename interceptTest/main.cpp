@@ -9,6 +9,7 @@
 #include "cba.h"
 #include "magGroupTest.h"
 #include "diagStuff.h"
+#include "gamecfg.h"
 
 using namespace intercept;
 types::registered_sqf_function _interceptEventFunction;
@@ -75,7 +76,7 @@ game_value redirectWrapNular() {
     output.reserve(allUnits.size());
 
     for (auto& unit : allUnits) {
-        output.emplace_back(reinterpret_cast<game_data_object*>(unit.data.getRef())->get_position_matrix()._position);
+        output.emplace_back(reinterpret_cast<game_data_object*>(unit.data.get())->get_position_matrix()._position);
     }
 
     return std::move(output);
@@ -426,6 +427,7 @@ void __cdecl intercept::pre_start() {
     cba::preStart();
     magGroupTest::preStart();
     diagStuff::preStart();
+    gamecfg::preStart();
 #ifndef X64
     static auto _rHackinterceptEventFunction2 = intercept::client::host::registerFunction("addRailScopeHeightHook", "", userFunctionWrapper<addRailScopeHeightHook>, GameDataType::STRING);
     static auto _rHackinterceptEventFunction6 = intercept::client::host::registerFunction("getRailScopeStuff", "", userFunctionWrapper<getRailScopeStuff>, GameDataType::ARRAY);
@@ -454,7 +456,7 @@ void __cdecl intercept::post_init() {
 
     static auto _EH2 = client::addEventHandler<client::eventhandlers_object::Fired>(sqf::player(),[](types::object unit, types::r_string weapon, types::r_string muzzle, types::r_string mode, types::r_string ammo, types::r_string magazine, types::object projectile, types::object gunner)
     {
-        auto p1 = ((game_data_object*) projectile.data.getRef())->get_position_matrix()._position;
+        auto p1 = ((game_data_object*) projectile.data.get())->get_position_matrix()._position;
         auto p2 = sqf::position_camera_to_world({ 0,0,0 });
 
         auto p3 = p2 - p1;
@@ -564,12 +566,12 @@ void __cdecl intercept::on_frame() {
     //    __itt_resume();
     //    __itt_task_begin(domain, __itt_null, __itt_null, handle_task4);
     //    for (int Index = 0; Index < 32; Index++) {
-    //        sqf::call2(code, arg);
+    //        sqf::call(code, arg);
     //    }
     //    __itt_task_end(domain);
     //    __itt_task_begin(domain, __itt_null, __itt_null, handle_task3);
     //    for (int Index = 0; Index < 32; Index++) {
-    //        sqf::call2(code);
+    //        sqf::call(code);
     //    }
     //    __itt_task_end(domain);
     //    __itt_pause();
@@ -631,8 +633,8 @@ void __cdecl intercept::on_frame() {
          //testy2.emplace(testy2.end(), 3);
          //std::vector<std::string> entries = intercept::sqf::config_classes("true", intercept::sqf::config_entry(intercept::sqf::config_file()) >> "CfgFunctions" >> "A3");
          //sqf::set_variable(sqf::mission_namespace(), "testVar", intercept::sqf::config_entry(intercept::sqf::config_file()) >> "CfgFunctions" >> "A3");
-    //auto p = ((game_data_object*) sqf::player().data.getRef())->get_position_matrix();
-    //auto p2 = ((game_data_object*) sqf::player().data.getRef())->get_head_pos();
+    //auto p = ((game_data_object*) sqf::player().data.get())->get_position_matrix();
+    //auto p2 = ((game_data_object*) sqf::player().data.get())->get_head_pos();
     //sqf::system_chat(sqf::format({ "%1",p._position }));
     auto uavObject = sqf::get_connected_uav(sqf::player());
     if (uavObject.is_null()) return;

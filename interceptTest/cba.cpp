@@ -78,7 +78,7 @@ game_value createHashMap() {
 
 game_value hashSet(game_value_parameter hashMap, game_value_parameter args) {
     if (hashMap.is_nil() || args.size() != 2) return {}; //WTF U doin u idiot?! Stop givin me that crap
-    auto map = static_cast<GameDataHashMap*>(hashMap.data.getRef());
+    auto map = static_cast<GameDataHashMap*>(hashMap.data.get());
 
 
     map->map[args[0]] = args[1];
@@ -92,7 +92,7 @@ game_value hashSet(game_value_parameter hashMap, game_value_parameter args) {
 
 game_value hashFind(game_value_parameter hashMap, game_value_parameter toFind) {
     if (hashMap.is_nil()) return {};
-    auto map = static_cast<GameDataHashMap*>(hashMap.data.getRef());
+    auto map = static_cast<GameDataHashMap*>(hashMap.data.get());
     auto found = map->map.find(toFind);
     if (found != map->map.end()) {
     #ifdef CBA_HASH_LOG
@@ -107,7 +107,7 @@ game_value hashFind(game_value_parameter hashMap, game_value_parameter toFind) {
 
 game_value hashRemove(game_value_parameter hashMap, game_value_parameter toRemove) {
     if (hashMap.is_nil()) return {};
-    auto map = static_cast<GameDataHashMap*>(hashMap.data.getRef());
+    auto map = static_cast<GameDataHashMap*>(hashMap.data.get());
     auto found = map->map.find(toRemove);
     if (found != map->map.end()) map->map.erase(found);
     return {};
@@ -115,7 +115,7 @@ game_value hashRemove(game_value_parameter hashMap, game_value_parameter toRemov
 
 game_value hashContains(game_value_parameter toFind, game_value_parameter hashMap) {
     if (hashMap.is_nil()) return {};
-    auto map = static_cast<GameDataHashMap*>(hashMap.data.getRef());
+    auto map = static_cast<GameDataHashMap*>(hashMap.data.get());
     auto found = map->map.find(toFind);
     if (found != map->map.end()) return true;
     return false;
@@ -123,14 +123,14 @@ game_value hashContains(game_value_parameter toFind, game_value_parameter hashMa
 
 game_value hashCount(game_value_parameter hashMap) {
     if (hashMap.is_nil()) return 0;
-    auto map = static_cast<GameDataHashMap*>(hashMap.data.getRef());
+    auto map = static_cast<GameDataHashMap*>(hashMap.data.get());
     return static_cast<float>(map->map.size());
 }
 
 
 game_value hashSetVar(game_value_parameter hashMap, game_value_parameter args) {
     if (hashMap.is_nil() || args.size() < 2) return {}; //WTF U doin?
-    auto map = static_cast<GameDataHashMap*>(hashMap.data.getRef());
+    auto map = static_cast<GameDataHashMap*>(hashMap.data.get());
 
 
     map->map[args[0]] = args[1];
@@ -145,7 +145,7 @@ game_value hashSetVar(game_value_parameter hashMap, game_value_parameter args) {
 
 game_value hashGetVarDef(game_value_parameter hashMap, game_value_parameter args) {
     if (hashMap.is_nil() || args.size() < 2) return {};
-    auto map = static_cast<GameDataHashMap*>(hashMap.data.getRef());
+    auto map = static_cast<GameDataHashMap*>(hashMap.data.get());
     auto found = map->map.find(args[0]);
     if (found != map->map.end()) {
     #ifdef CBA_HASH_LOG
@@ -160,7 +160,7 @@ game_value hashGetVarDef(game_value_parameter hashMap, game_value_parameter args
 
 game_value hashGetVarStr(game_value_parameter hashMap, game_value_parameter args) {
     if (hashMap.is_nil()) return {};
-    auto map = static_cast<GameDataHashMap*>(hashMap.data.getRef());
+    auto map = static_cast<GameDataHashMap*>(hashMap.data.get());
     auto found = map->map.find(args);
     if (found != map->map.end()) {
     #ifdef CBA_HASH_LOG
@@ -176,7 +176,7 @@ game_value hashGetVarStr(game_value_parameter hashMap, game_value_parameter args
 game_value hashGetKeyList(game_value_parameter hashMap) {
     if (hashMap.is_nil()) return 0;
     auto_array<game_value> keys;
-    auto map = static_cast<GameDataHashMap*>(hashMap.data.getRef());
+    auto map = static_cast<GameDataHashMap*>(hashMap.data.get());
     for (auto& k : map->map) {
         keys.emplace_back(k.first);
     }
@@ -356,7 +356,7 @@ public:
 
 game_value instructionCount(game_value_parameter code) {
     if (code.is_nil()) return 0;
-    auto c = (codeWithCexp*) code.data.getRef();
+    auto c = (codeWithCexp*) code.data.get();
     if (!c->instrarr) return 0;
     return (float) c->instrarr->count;
 
@@ -566,6 +566,18 @@ public:
     ~GameInstructionSetLVar() override {};
 
 };
+//#define INTEL_NO_ITTNOTIFY_API
+#include <ittnotify.h>
+
+__itt_string_handle* handle_c_task1 = __itt_string_handle_create("catenarybisec");
+__itt_string_handle* handle_c_task2 = __itt_string_handle_create("catenarynewton");
+__itt_string_handle* handle_c_task3 = __itt_string_handle_create("estimateSegmentCount");
+__itt_string_handle* handle_c_task4 = __itt_string_handle_create("catenaryCalc");
+__itt_string_handle* handle_c_task5 = __itt_string_handle_create("catenarytoWorld");
+__itt_string_handle* handle_c_task6 = __itt_string_handle_create("toGV");
+__itt_string_handle* handle_stringtest = __itt_string_handle_create("stringtest");
+extern __itt_domain* domain;
+
 
 
 void cba::preStart() {
@@ -643,7 +655,7 @@ void cba::preStart() {
         auto bodyCode = static_cast<game_data_code*>(right.data.get());
 
         //auto curElInstruction = static_cast<game_instruction_constant*>(baseCode->instructions->get(1).get());
-        ref<GameInstructionSetLVar> curElInstruction = rv_allocator<GameInstructionSetLVar>::createSingle();
+        ref<GameInstructionSetLVar> curElInstruction = rv_allocator<GameInstructionSetLVar>::create_single();
         curElInstruction->vName = "_x";
         auto oldInstructions = bodyCode->instructions;
         ref<compact_array<ref<game_instruction>>> newInstr = compact_array<ref<game_instruction>>::create(*oldInstructions, oldInstructions->size() + 1);
@@ -662,7 +674,7 @@ void cba::preStart() {
 
         for (auto& element : arr) {
             curElInstruction->val.data = element.data;
-            sqf::call2(right);
+            sqf::call(right);
         }
 
         bodyCode->instructions = oldInstructions;
@@ -672,7 +684,7 @@ void cba::preStart() {
     static auto _isEqTo3 = intercept::client::host::registerFunction(u8"iForEach3"sv, "", [](uintptr_t, game_value_parameter left, game_value_parameter right) -> game_value {
         auto& arr = left.to_array();
         for (auto& element : arr)
-            sqf::call2(right);
+            sqf::call(right);
         return {};
     }, GameDataType::NOTHING, GameDataType::ARRAY, GameDataType::CODE);
     static auto _currentUnit = intercept::client::host::registerFunction("currentUnit"sv, "Returns the current Unit (CBA_fnc_currentUnit)"sv, [](uintptr_t) -> game_value {
@@ -731,84 +743,153 @@ void cba::preStart() {
 
 
 
-    static auto _catenaryConnect = intercept::client::host::registerFunction("catenaryConnect"sv, ""sv, [](uintptr_t, game_value_parameter left, game_value_parameter right) -> game_value {
-        vector3 posStart = left;
-        vector3 posEnd = right;
-        vector2 posStart2D = left;
-        vector2 posEnd2D = right;
+    static auto _catenaryConnect = intercept::client::host::registerFunction("catenaryConnect"sv, ""sv, [](uintptr_t, game_value_parameter right) -> game_value {
+        if (right.size() < 3) {
+            /* too few arguments */
+            return  { {} };
+        }
+        #define MAX_ITERATIONS_BISECTION 20
+        #define MAX_ITERATIONS_NEWTON 10
+        #define MAX_DIFF_BISECTION 0.01
+        #define MAX_DIFF_NEWTON 0.001
+        #define MAX_SEGMENTS 500
+        #define MAX_SEGMENT_DIFF 0.0001
+        //pos1,pos2,rope_length_factor,segment_length
 
-        ////////////////////
-        // STEP 1 - get the 2d catenary curve
-        ////////////////////
-        auto _distMap = posStart2D.distance(posEnd2D);
-        auto _distHeight = posEnd.z - posStart.z;
-        auto _ropeFactor = 1.01; // rope length factor - 1% longer, edit this
-        auto _ropeLength = sqrt(_distMap*_distMap + _distHeight*_distHeight) * _ropeFactor; // rope length
+        vector3 pos1 = right[0];
+        vector3 pos2 = right[1];
+        float segment_length = 1.0;
+        float rope_length_factor = right[2];
+        if (right.size() >= 4)
+            segment_length = right[3];
 
-        if (_distMap == 0) return { {} };
-        if (_ropeLength == 0) return { {} };
+        /* calculate the 2d catenary curve */
+        float delta_x = sqrt(pow(pos2.x - pos1.y, 2) + pow(pos2.y - pos1.y, 2));
+        float delta_y = pos2.z - pos1.z;
+        float rope_length = rope_length_factor * sqrt(delta_x*delta_x + delta_y*delta_y);
 
-        // approximate constant "a" via newton's method
-        float a = 1;
-        for (int i = 0; i < 1000; ++i) {
+        if (delta_x == 0) {
+            return  { {} };
+        };
+
+        float a = 1.0;
+        float aMin = 0.1;
+        float aMax = 10 * rope_length;
+        float diff = 1.0e+7;
+        float alpha = sqrt(pow(rope_length, 2) - pow(delta_y, 2));
+
+        __itt_task_begin(domain, __itt_null, __itt_null, handle_c_task1);
+
+        for (int i = 1; i <= MAX_ITERATIONS_BISECTION && abs(diff) > MAX_DIFF_BISECTION; i = i + 1) {
+            a = (aMin + aMax) / 2;
+            diff = 2 * a * sinh(delta_x / (2 * a)) - alpha;
+
+            if (diff < 0)
+                aMax = a;
+            else
+                aMin = a;
+        }
+        __itt_task_end(domain);
+        float prev = 1.0e+7;
+        __itt_task_begin(domain, __itt_null, __itt_null, handle_c_task2);
+        for (int i = 1; i <= MAX_ITERATIONS_NEWTON && abs(prev - a) > MAX_DIFF_NEWTON; i = i + 1) {
             a = a -
-                (2 * a * std::sinh(_distMap / 2 / a) - sqrt(_ropeLength*_ropeLength - _distHeight*_distHeight)) /
-                (2 * std::sinh(_distMap / 2 / a) - _distMap / a * std::cosh(_distMap / 2 / a));
-        }
+                (2 * a * sinh(delta_x / (2 * a)) - alpha) /
+                (2 * sinh(delta_x / (2 * a)) - delta_x / a * cosh(delta_x / (2 * a)));
 
-        auto _fnc_catenary = [a](float x) {return a*std::cosh(x / a); };
+            prev = a;
+        };
+        __itt_task_end(domain);
+        if (!isfinite(a)) {
+            /* rope too short */
+            return  { {} };
+        };
 
-        auto _x1 = a * std::atanh(_distHeight / _ropeLength) - _distMap / 2;
-        auto _x2 = a * std::atanh(_distHeight / _ropeLength) + _distMap / 2;
-        auto _y1 = _fnc_catenary(_x1);
-        auto _y2 = _fnc_catenary(_x2);
+        float x1 = a * atanh(delta_y / rope_length) - delta_x / 2;
+        float x2 = a * atanh(delta_y / rope_length) + delta_x / 2;
+        float y1 = a * cosh(x1 / a);
+        float y2 = a * cosh(x2 / a);
 
-        ////////////////////
-        // STEP 2 - get array of positions on 2d catenary
-        ////////////////////
-        vector2 _posLast = { _x1, _y1 }; // begin with posStartC
-        vector2 _posEndC = { _x2, _y2 };
-        auto_array<vector2> _catenaryPositions;
-        _catenaryPositions.emplace_back(_posLast);
+        /* estimate amount of needed segments and increase segment length if necessary */
+        __itt_task_begin(domain, __itt_null, __itt_null, handle_c_task3);
+        if (rope_length / segment_length > MAX_SEGMENTS) {
+            segment_length = rope_length / MAX_SEGMENTS;
 
-        while (_posLast.distance(_posEndC) > 1) { // continue until end of caterny is reached
-            auto _u = _posLast.x;
-            auto _y = _posLast.y;
+            if (segment_length > 1)
+                segment_length = ceil(segment_length) + 1;
+        };
+        __itt_task_end(domain);
+        /* generate a vector of x,y points on catenary with distance of the segment length */
+        vector2 last_pos = { x1, y1 };
+        vector2  end_pos = { x2, y2 };
+        std::vector<vector2> catenary_points;
+        catenary_points.reserve(std::min(rope_length / segment_length, 500.f));
+        __itt_task_begin(domain, __itt_null, __itt_null, handle_c_task4);
+        while (sqrt(pow(end_pos.x - last_pos.x, 2) + pow(end_pos.y - last_pos.y, 2)) > segment_length) {
+            float u = last_pos.x;
+            float y = last_pos.y;
 
-            auto _uMin = _u;
-            auto _uMax = _u + 1;
+            float uMin = u;
+            float uMax = u + segment_length;
 
-            // find the next "u"
-            while (abs(_uMin - _uMax) > 0.0001) { // continue until the next point is about 1 meter away linear distance
-                _y = _fnc_catenary(_u);
+            /* find the next "u" */
+            while (abs(uMin - uMax) > MAX_SEGMENT_DIFF * segment_length) {
+                y = a * cosh(u / a);
 
-                if (_posLast.distance({ _u,_y }) > 1) { // too far apart
-                    _uMax = _u;
-                } else { // too close
-                    _uMin = _u;
-                }
+                if (sqrt(pow(last_pos.x - u, 2) + pow(last_pos.y - y, 2)) > segment_length)
+                    uMax = u;
+                else
+                    uMin = u;
 
-                _u = (_uMin + _uMax) / 2;
-            }
+                u = (uMin + uMax) / 2;
+            };
 
-            _y = _fnc_catenary(_u);
+            y = a * cosh(u / a);
 
-            _posLast = { _u, _y };
-            _catenaryPositions.emplace_back(_posLast);
-        }
+            last_pos = { u, y };
 
-        _catenaryPositions.emplace_back(_posEndC);
+            catenary_points.push_back({ u,y });
+        };
+        __itt_task_end(domain);
+        catenary_points.push_back(end_pos);
 
-        ////////////////////
-        // STEP 3 - convert 2d positions on catenary to world positions
-        ////////////////////
+        /* convert 2d points on catenary to world positions */
+        vector2 dir_map{ pos2.x - pos1.x, pos2.y - pos1.y };
+        float dir_map_length = dir_map.magnitude();
+        dir_map /= dir_map_length;
 
-        //Remove duplicates
-        _catenaryPositions.erase(std::unique(_catenaryPositions.begin(), _catenaryPositions.end()), _catenaryPositions.end());
-        game_value gval(std::move(_catenaryPositions));
-        sqf::diag_log(gval); // WIP
-        return gval;
-    }, GameDataType::ARRAY, GameDataType::ARRAY, GameDataType::ARRAY);
+
+        std::string result;
+
+
+        __itt_task_begin(domain, __itt_null, __itt_null, handle_stringtest);
+        for (auto& p : catenary_points) {
+            std::string x = std::to_string(pos1.x + (p.x - x1) * dir_map.x);
+            std::string y = std::to_string(pos1.y + (p.x - x1) * dir_map.y);
+            std::string z = std::to_string(pos1.z + p.y - y1);
+            result = result + "[" + x + "," + y + +"," + z + "],";
+        };
+
+        __itt_task_end(domain);
+        
+
+
+        auto_array<vector3> ret;
+        ret.reserve(catenary_points.size());
+        __itt_task_begin(domain, __itt_null, __itt_null, handle_c_task5);
+        for (auto& p : catenary_points) {
+            ret.emplace_back(
+                pos1.x + (p.x - x1) * dir_map.x,
+                pos1.y + (p.x - x1) * dir_map.y,
+                pos1.z + p.y - y1
+            );
+        };
+        __itt_task_end(domain);
+        __itt_task_begin(domain, __itt_null, __itt_null, handle_c_task6);
+        game_value output(std::move(ret));
+        __itt_task_end(domain);
+        return std::move(output);
+    }, GameDataType::ARRAY, GameDataType::ARRAY);
 
 
 }
@@ -881,9 +962,9 @@ struct waitUntilAndExecHandler {
 std::vector<std::shared_ptr<waitUntilAndExecHandler>> waitUntilAndExecArray;
 
 void swapFuncs(game_value orig, game_value newCode) {
-    auto c = static_cast<game_data_code*>(orig.data.getRef());
+    auto c = static_cast<game_data_code*>(orig.data.get());
 
-    auto nc = static_cast<game_data_code*>(newCode.data.getRef());
+    auto nc = static_cast<game_data_code*>(newCode.data.get());
 
     auto _1 = c->code_string;
     auto _2 = c->instructions;
@@ -926,7 +1007,7 @@ void cba::preInit() {
         auto tickTime = sqf::diag_ticktime();     //chrono seconds
 
 
-        sqf::call2(sqf::get_variable(sqf::mission_namespace(), "CBA_common_fnc_missionTimePFH"));
+        sqf::call(sqf::get_variable(sqf::mission_namespace(), "CBA_common_fnc_missionTimePFH"));
 
         //call FUNC(missionTimePFH);
 
@@ -947,7 +1028,7 @@ void cba::preInit() {
                 sv("_args", handler->args);
                 sv("_handle", handler->handle);
 
-                sqf::call2(handler->func, { handler->args, handler->handle });
+                sqf::call(handler->func, { handler->args, handler->handle });
             }
         }
 
@@ -964,9 +1045,9 @@ void cba::preInit() {
         for (auto& handler : waxcpy) {
             if (handler->time > CBA_missionTime) break;
             if (handler->args.is_nil())
-                sqf::call2(handler->func);
+                sqf::call(handler->func);
             else
-                sqf::call2(handler->func, handler->args);
+                sqf::call(handler->func, handler->args);
             handler->time = 0.f;
             _delete = true;
         }
@@ -981,7 +1062,7 @@ void cba::preInit() {
         // Execute the exec next frame functions
 
         for (auto& handler : nextFrameBufferA) {
-            sqf::call2(handler.second, handler.first);
+            sqf::call(handler.second, handler.first);
         }
 
         // Swap double-buffer:
@@ -998,11 +1079,11 @@ void cba::preInit() {
         for (auto& handler : wuaxcpy) {
 
             if (handler->timeout != 0.f && handler->timeout > CBA_missionTime) {
-                sqf::call2(handler->timeOutCode, handler->args);
+                sqf::call(handler->timeOutCode, handler->args);
                 handler->done = true;
                 _delete = true;
-            } else if (sqf::call2(handler->cond, handler->args)) {
-                sqf::call2(handler->func, handler->args);
+            } else if (sqf::call(handler->cond, handler->args)) {
+                sqf::call(handler->func, handler->args);
                 handler->done = true;
                 _delete = true;
             }

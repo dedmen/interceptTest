@@ -2143,13 +2143,13 @@ void tools::init() {
 void tools::postInit() {
 
     //auto orig = sqf::get_variable(sqf::mission_namespace(), "bis_fnc_itemType");
-    //auto c = static_cast<game_data_code*>(orig.data.getRef());
+    //auto c = static_cast<game_data_code*>(orig.data.get());
     //if (c->is_final)
     //    OutputDebugString("isFinal\n");
     //c->is_final = false;
     //
     //auto newCode = sqf::compile("Intercept_bis_fnc_itemType _this;");
-    //auto nc = static_cast<game_data_code*>(newCode.data.getRef());
+    //auto nc = static_cast<game_data_code*>(newCode.data.get());
     //sqf::set_variable(sqf::mission_namespace(), "bis_fnc_itemType2", newCode);
     //// sqf::set_variable(sqf::mission_namespace(), "bis_fnc_itemType", newCode);
     //
@@ -2170,7 +2170,7 @@ void tools::postInit() {
     //nc->instruction_array_size = _4;
     //
     //auto orig2 = sqf::get_variable(sqf::mission_namespace(), "bis_fnc_itemType");
-    //auto c2 = static_cast<game_data_code*>(orig.data.getRef());
+    //auto c2 = static_cast<game_data_code*>(orig.data.get());
     //if (c2->is_final)
     //    OutputDebugString("is still Final\n");
     //c2->is_final = true;
