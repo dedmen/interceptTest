@@ -367,8 +367,7 @@ std::string instructionToString(game_state* gs, const ref<game_instruction>& ins
 
     switch (typeHash) {
         case 0xc2bb0eeb: { //GameInstructionNewExpression
-            GameInstructionNewExpression* inst = static_cast<GameInstructionNewExpression*>(instr.get());
-            return std::string("endStatement ") + std::to_string(inst->beg) + " " + std::to_string(inst->end)+ ";";
+            return "endStatement;";
         } break;
         case 0x8c0dbf90: { //GameInstructionConst
             GameInstructionConst* inst = static_cast<GameInstructionConst*>(instr.get());
@@ -458,15 +457,11 @@ ref<GameInstructionFunction> parseFunction(game_state* gs, std::string_view& cns
     cnst = cnst.substr(type.length() + 1);
 
 
-    for (const auto& it : gs->_scriptFunctions) {
-        if (it._name == type)
-            return GameInstructionFunction::make(&it);
-    }
-
-//     auto& f = gs->_scriptFunctions.get(type.data());
-//     if (gs->_scriptFunctions.is_null(f)) return nullptr;
-// 
-//     return GameInstructionFunction::make(&f);
+    std::string name(type);
+     auto& f = gs->_scriptFunctions.get(name.data());
+     if (gs->_scriptFunctions.is_null(f)) return nullptr;
+ 
+     return GameInstructionFunction::make(&f);
     return nullptr;
 }
 
@@ -475,14 +470,10 @@ ref<GameInstructionOperator> parseOperator(game_state* gs, std::string_view& cns
     cnst = cnst.substr(type.length() + 1);
 
 
-    for (const auto& it : gs->_scriptOperators) {
-        if (it._name == type)
-            return GameInstructionOperator::make(&it);
-    }
-// 
-//     auto tb = gs->_scriptOperators.get_table_for_key(type.data());
-//     auto& f = gs->_scriptOperators.get(type.data());
-//     if (gs->_scriptOperators.is_null(f)) return nullptr;
+    std::string name(type);
+    auto tb = gs->_scriptOperators.get_table_for_key(name.data());
+    auto& f = gs->_scriptOperators.get(type.data());
+    if (gs->_scriptOperators.is_null(f)) return nullptr;
     return nullptr;
 
 }
