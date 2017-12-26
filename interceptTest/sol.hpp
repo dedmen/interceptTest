@@ -1,4 +1,4 @@
-﻿// The MIT License (MIT)
+// The MIT License (MIT)
 
 // Copyright (c) 2013-2017 Rapptz, ThePhD and contributors
 
@@ -803,7 +803,7 @@ namespace sol {
 
 #if defined(_WIN32) || defined(_MSC_VER)
 #ifndef SOL_CODECVT_SUPPORT
-#define SOL_CODECVT_SUPPORT 1
+//#define SOL_CODECVT_SUPPORT 1
 #endif // sol codecvt support
 #elif defined(__GNUC__)
 #if __GNUC__ >= 5

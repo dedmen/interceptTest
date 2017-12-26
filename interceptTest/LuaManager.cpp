@@ -107,9 +107,9 @@ game_value executeLua(game_value_parameter leftArg, game_value_parameter rightAr
 
     lua.state["_this"] = sol::object(lua.state, sol::in_place, static_cast<std::string>(leftArg));
     try {
-        auto result = lua.state.do_file(rightArg);
-        std::string ret = result;
-        return ret;
+        //auto result = lua.state.do_file(rightArg);
+        //std::string ret = result;
+        //return ret;
     }
     catch (sol::error err) {
         return err.what();
@@ -284,11 +284,11 @@ void LuaManager::preStart() {
     _callLuaCodeArgs = client::host::registerFunction("call"sv, "Call compiled lua code"sv, userFunctionWrapper<callLua_Code>, GameDataType::ANY, GameDataType::ANY, codeType.first);
     _callLuaCode = client::host::registerFunction("call"sv, "Call compiled lua codesv", userFunctionWrapper<callLua_Code>, GameDataType::ANY, codeType.first);
     
-    state.open_libraries();
-    state["systemChat"] = &system_chat;
-    state["getVariable"] = &getVariable;
-    state["allPlayers"] = &allPlayers;
-    state["player"] = &player;
+    //state.open_libraries();
+    //state["systemChat"] = &system_chat;
+    //state["getVariable"] = &getVariable;
+    //state["allPlayers"] = &allPlayers;
+    //state["player"] = &player;
     state.new_usertype<lua_object, object>("object", "name", &lua_object::getName);
     lua.state.do_file("P:\\test.luac");
 

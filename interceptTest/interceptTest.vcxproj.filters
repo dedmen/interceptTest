@@ -147,6 +147,9 @@
     <ClCompile Include="diagStuff.cpp">
       <Filter>Quelldateien</Filter>
     </ClCompile>
+    <ClCompile Include="gamecfg.cpp">
+      <Filter>Quelldateien</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="tools.h">
@@ -246,6 +249,9 @@
       <Filter>Headerdateien</Filter>
     </ClInclude>
     <ClInclude Include="diagStuff.h">
+      <Filter>Headerdateien</Filter>
+    </ClInclude>
+    <ClInclude Include="gamecfg.h">
       <Filter>Headerdateien</Filter>
     </ClInclude>
   </ItemGroup>

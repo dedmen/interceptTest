@@ -131,6 +131,8 @@
       <AdditionalIncludeDirectories>I:\intercept\src;J:\Installs\IntelSWTools\VTune Amplifier XE 2017\include;I:\intercept\vcproj\test\interceptTest\interceptTest\lua;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <LanguageStandard>stdcpplatest</LanguageStandard>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
+      <PreprocessorDefinitions>_SILENCE_ALL_CXX17_DEPRECATION_WARNINGS;_WINDLL;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <BasicRuntimeChecks>Default</BasicRuntimeChecks>
     </ClCompile>
     <Link>
       <AdditionalDependencies>intercept_client.lib;libittnotify.lib;%(AdditionalDependencies)</AdditionalDependencies>
@@ -207,6 +209,9 @@
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
       <InlineFunctionExpansion>AnySuitable</InlineFunctionExpansion>
       <BufferSecurityCheck>false</BufferSecurityCheck>
+      <EnableEnhancedInstructionSet>StreamingSIMDExtensions2</EnableEnhancedInstructionSet>
+      <FloatingPointModel>Fast</FloatingPointModel>
+      <FloatingPointExceptions>false</FloatingPointExceptions>
     </ClCompile>
     <Link>
       <EnableCOMDATFolding>false</EnableCOMDATFolding>
@@ -278,6 +283,7 @@
       <ExceptionHandling Condition="'$(Configuration)|$(Platform)'=='RelWithDebInfo|Win32'">false</ExceptionHandling>
     </ClCompile>
     <ClCompile Include="diagStuff.cpp" />
+    <ClCompile Include="gamecfg.cpp" />
     <ClCompile Include="LuaManager.cpp" />
     <ClCompile Include="lua\lapi.c">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">false</ExcludedFromBuild>
@@ -397,6 +403,7 @@
   <ItemGroup>
     <ClInclude Include="cba.h" />
     <ClInclude Include="diagStuff.h" />
+    <ClInclude Include="gamecfg.h" />
     <ClInclude Include="LuaManager.h" />
     <ClInclude Include="lua\lapi.h" />
     <ClInclude Include="lua\lauxlib.h" />
