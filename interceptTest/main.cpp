@@ -233,10 +233,10 @@ void __declspec(naked) railHeight() {
         movss       xmm0, [eax + 0x28];
         movss       frailHeight, xmm0;
 
-        mov         ebp, dword ptr[ebx + 8Ch]
+        mov         ebp, dword ptr[ebx + 6Ch]
         xor         esi, esi
         test        ebp, ebp
-        jmp         railHeightJmpBack//0201E08C
+        jmp         railHeightJmpBack//01071349 offs 0x0 1.82.144.872
     }
 }
 void __declspec(naked) scopeCenter() {
@@ -260,11 +260,11 @@ void __declspec(naked) scopeCenter() {
         pop         ecx
 
         movss       xmm0, dword ptr[eax]
-        movss       dword ptr[esp + 144h], xmm0
+        movss       dword ptr[esp + 150h], xmm0
         movss       xmm0, dword ptr[eax + 4]
-        movss       dword ptr[esp + 148h], xmm0
+        movss       dword ptr[esp + 154h], xmm0
         movss       xmm0, dword ptr[eax + 8]
-        jmp         scopeCenterJmpBack //0201D7D9
+        jmp         scopeCenterJmpBack //01070ABC offs 0x0 1.82.144.872
     }
 }
 
@@ -296,7 +296,7 @@ void __declspec(naked) muzzleHeight() {
         subss       xmm0, dword ptr[esp + 90h]
         push        eax
         lea         ecx, [esp + 88h]
-        jmp         muzzleHeightJmpBack //0201D9C0
+        jmp         muzzleHeightJmpBack //01070CA3 offs 0x0 1.82.144.872
     }
 }
 
@@ -312,19 +312,19 @@ void addHook() {
     auto engineSize = static_cast<uintptr_t>(modInfo.SizeOfImage);
 
 
-    placeHookTotalOffs(0x0201E082 - 0x00FC0000 + engineBase, (uintptr_t) railHeight);
-    placeHookTotalOffs(0x0201D7B9 - 0x00FC0000 + engineBase, (uintptr_t) scopeCenter);
+    placeHookTotalOffs(0x01071342 + engineBase, (uintptr_t) railHeight);
+    placeHookTotalOffs(0x01070A9C + engineBase, (uintptr_t) scopeCenter);
     //placeHookTotalOffs(0x00BADC10 + engineBase, (uintptr_t) ironCenter);
     //placeHookTotalOffs(0x00BAD2C0 + engineBase, (uintptr_t) ironCenter);
-    placeHookTotalOffs(0x0201D9A5 - 0x00FC0000 + engineBase, (uintptr_t) muzzleHeight);
+    placeHookTotalOffs(0x01070C88 + engineBase, (uintptr_t) muzzleHeight);
 
 
 
-    railHeightJmpBack = 0x0201E08C - 0x00FC0000 + engineBase;
-    scopeCenterJmpBack = 0x0201D7D9 - 0x00FC0000 + engineBase;
+    railHeightJmpBack = 0x01071349 + engineBase;
+    scopeCenterJmpBack = 0x01070ABC + engineBase;
     //ironCenterJmpBack = 0x00BADC2A + engineBase;
     //ironCenterJmpBack = 0x00BAD2DA + engineBase;
-    muzzleHeightJmpBack = 0x0201D9C0 - 0x00FC0000 + engineBase;
+    muzzleHeightJmpBack = 0x01070CA3 + engineBase;
 }
 
 
