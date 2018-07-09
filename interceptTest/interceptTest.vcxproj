@@ -152,13 +152,13 @@
       <Optimization>Disabled</Optimization>
       <SDLCheck>true</SDLCheck>
       <LanguageStandard>stdcpplatest</LanguageStandard>
-      <AdditionalIncludeDirectories>I:\intercept\src;J:\Installs\IntelSWTools\VTune Amplifier XE 2017\include;I:\intercept\vcproj\test\interceptTest\interceptTest\lua;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-      <PreprocessorDefinitions>X64;_WINDLL;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>F:\IntelSWTools\VTune Amplifier XE 2017\include;I:\intercept\src;I:\intercept\vcproj\test\interceptTest\interceptTest\lua;I:\intercept\src\client\headers\shared;I:\intercept\src\client\headers\client\sqf;I:\intercept\src\client\headers\client;I:\intercept\src\client\headers;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>INTERCEPT_SQF_STRTYPE_RSTRING;X64;_WINDLL;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
     </ClCompile>
     <Link>
-      <AdditionalDependencies>intercept_client.lib;libittnotify.lib;%(AdditionalDependencies)</AdditionalDependencies>
-      <AdditionalLibraryDirectories>I:\intercept\build\win64\intercept_client\Debug;J:\Installs\IntelSWTools\VTune Amplifier XE 2017\lib64;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalDependencies>libittnotify.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>I:\intercept\build\win64\intercept_client\RelWithDebInfo;F:\IntelSWTools\VTune Amplifier XE 2017\lib64;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
     </Link>
     <CustomBuildStep>
       <Command>I:\intercept\vcproj\test\interceptTest\signtool.exe sign /v /f I:\intercept\vcproj\test\interceptTest\intercepttest.pfx /t http://timestamp.comodoca.com/authenticode /ac I:\intercept\vcproj\test\interceptTest\ca.cert.pem "$(OutDir)$(TargetName)$(TargetExt)"</Command>
@@ -260,15 +260,16 @@
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <SDLCheck>true</SDLCheck>
       <LanguageStandard>stdcpplatest</LanguageStandard>
-      <AdditionalIncludeDirectories>I:\intercept\src;J:\Installs\IntelSWTools\VTune Amplifier XE 2017\include;I:\intercept\vcproj\test\interceptTest\interceptTest\lua;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>F:\IntelSWTools\VTune Amplifier XE 2017\include;I:\intercept\src;I:\intercept\vcproj\test\interceptTest\interceptTest\lua;I:\intercept\src\client\headers\shared;I:\intercept\src\client\headers\client\sqf;I:\intercept\src\client\headers\client;I:\intercept\src\client\headers;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
-      <PreprocessorDefinitions>X64;_WINDLL;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>INTERCEPT_SQF_STRTYPE_RSTRING;_SILENCE_ALL_CXX17_DEPRECATION_WARNINGS;X64;_WINDLL;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
     </ClCompile>
     <Link>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
-      <AdditionalLibraryDirectories>I:\intercept\build\win64\intercept_client\RelWithDebInfo;J:\Installs\IntelSWTools\VTune Amplifier XE 2017\lib64;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
-      <AdditionalDependencies>intercept_client.lib;libittnotify.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>I:\intercept\build\win64\intercept_client\RelWithDebInfo;F:\IntelSWTools\VTune Amplifier XE 2017\lib64;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalDependencies>libittnotify.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
     <CustomBuildStep>
       <Command>I:\intercept\vcproj\test\interceptTest\signtool.exe sign /v /f I:\intercept\vcproj\test\interceptTest\intercepttest.pfx /t http://timestamp.comodoca.com/authenticode /ac I:\intercept\vcproj\test\interceptTest\ca.cert.pem "$(OutDir)$(TargetName)$(TargetExt)"</Command>
@@ -279,11 +280,47 @@
     </CustomBuildStep>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="..\..\..\..\src\client\intercept\client\client.cpp" />
+    <ClCompile Include="..\..\..\..\src\client\intercept\client\eventhandlers.cpp" />
+    <ClCompile Include="..\..\..\..\src\client\intercept\client\pointers.cpp" />
+    <ClCompile Include="..\..\..\..\src\client\intercept\client\sqf\actions.cpp" />
+    <ClCompile Include="..\..\..\..\src\client\intercept\client\sqf\ai.cpp" />
+    <ClCompile Include="..\..\..\..\src\client\intercept\client\sqf\camera.cpp" />
+    <ClCompile Include="..\..\..\..\src\client\intercept\client\sqf\cargo.cpp" />
+    <ClCompile Include="..\..\..\..\src\client\intercept\client\sqf\chat.cpp" />
+    <ClCompile Include="..\..\..\..\src\client\intercept\client\sqf\common_helpers.cpp" />
+    <ClCompile Include="..\..\..\..\src\client\intercept\client\sqf\config.cpp" />
+    <ClCompile Include="..\..\..\..\src\client\intercept\client\sqf\core.cpp" />
+    <ClCompile Include="..\..\..\..\src\client\intercept\client\sqf\ctrl.cpp" />
+    <ClCompile Include="..\..\..\..\src\client\intercept\client\sqf\curator.cpp" />
+    <ClCompile Include="..\..\..\..\src\client\intercept\client\sqf\debug.cpp" />
+    <ClCompile Include="..\..\..\..\src\client\intercept\client\sqf\deprecated.cpp" />
+    <ClCompile Include="..\..\..\..\src\client\intercept\client\sqf\eden.cpp" />
+    <ClCompile Include="..\..\..\..\src\client\intercept\client\sqf\group.cpp" />
+    <ClCompile Include="..\..\..\..\src\client\intercept\client\sqf\hc.cpp" />
+    <ClCompile Include="..\..\..\..\src\client\intercept\client\sqf\intersects.cpp" />
+    <ClCompile Include="..\..\..\..\src\client\intercept\client\sqf\inventory.cpp" />
+    <ClCompile Include="..\..\..\..\src\client\intercept\client\sqf\marker.cpp" />
+    <ClCompile Include="..\..\..\..\src\client\intercept\client\sqf\misc.cpp" />
+    <ClCompile Include="..\..\..\..\src\client\intercept\client\sqf\multiplayer.cpp" />
+    <ClCompile Include="..\..\..\..\src\client\intercept\client\sqf\position.cpp" />
+    <ClCompile Include="..\..\..\..\src\client\intercept\client\sqf\rotorlib.cpp" />
+    <ClCompile Include="..\..\..\..\src\client\intercept\client\sqf\sound.cpp" />
+    <ClCompile Include="..\..\..\..\src\client\intercept\client\sqf\tasks.cpp" />
+    <ClCompile Include="..\..\..\..\src\client\intercept\client\sqf\uncategorized.cpp" />
+    <ClCompile Include="..\..\..\..\src\client\intercept\client\sqf\units.cpp" />
+    <ClCompile Include="..\..\..\..\src\client\intercept\client\sqf\vehicles.cpp" />
+    <ClCompile Include="..\..\..\..\src\client\intercept\client\sqf\waypoint.cpp" />
+    <ClCompile Include="..\..\..\..\src\client\intercept\client\sqf\world.cpp" />
+    <ClCompile Include="..\..\..\..\src\client\intercept\shared\client_types.cpp" />
+    <ClCompile Include="..\..\..\..\src\client\intercept\shared\containers.cpp" />
+    <ClCompile Include="..\..\..\..\src\client\intercept\shared\types.cpp" />
     <ClCompile Include="cba.cpp">
       <ExceptionHandling Condition="'$(Configuration)|$(Platform)'=='RelWithDebInfo|Win32'">false</ExceptionHandling>
     </ClCompile>
     <ClCompile Include="diagStuff.cpp" />
     <ClCompile Include="gamecfg.cpp" />
+    <ClCompile Include="Interpreter.cpp" />
     <ClCompile Include="LuaManager.cpp" />
     <ClCompile Include="lua\lapi.c">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">false</ExcludedFromBuild>
@@ -404,6 +441,7 @@
     <ClInclude Include="cba.h" />
     <ClInclude Include="diagStuff.h" />
     <ClInclude Include="gamecfg.h" />
+    <ClInclude Include="Interpreter.h" />
     <ClInclude Include="LuaManager.h" />
     <ClInclude Include="lua\lapi.h" />
     <ClInclude Include="lua\lauxlib.h" />

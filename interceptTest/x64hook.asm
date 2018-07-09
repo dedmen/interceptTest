@@ -14,6 +14,7 @@ _TEXT    SEGMENT
     ;misc
     EXTERN forceLod:                                    dword
     EXTERN objPtr:                                    qword
+    ;EXTERN evalIngress:                                    qword
 
     PUBLIC objectDrawHook
     objectDrawHook PROC
@@ -78,6 +79,13 @@ _TEXT    SEGMENT
         jmp ObjectForDrawingEndJmpBack;
 
     objectDrawHookEnd ENDP
+
+
+    PUBLIC evalIngressFnc
+    evalIngressFnc PROC
+        mov     r9, rax
+        ;jmp evalIngress;
+    evalIngressFnc ENDP
 
 
 
