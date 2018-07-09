@@ -37,9 +37,9 @@ TFAR_unit TFAR_currentUnit{{},true};
 TFAR::~TFAR() {}
 void TFAR::preStart() {
     
-    //_interceptEventFunction2 = intercept::client::host::registerFunction(std::string("itfarprepcoords"), "", userFunctionWrapper<redirectWrapUnary>, types::__internal::GameDataType::STRING, types::__internal::GameDataType::ARRAY);
-    //_interceptEventFunction3 = intercept::client::host::registerFunction(std::string("itfarSendPInfo"), "", userFunctionWrapper<TFAR_fnc_sendPlayerInfo>, types::__internal::GameDataType::ARRAY, types::__internal::GameDataType::ARRAY);
-    _itfarProcP = intercept::client::host::registerFunction("itfarprocp", "", userFunctionWrapper<TFAR_fnc_processPlayerPositions>, GameDataType::STRING, GameDataType::ARRAY);
+    //_interceptEventFunction2 = intercept::client::host::registerFunction(std::string("itfarprepcoords"), "", userFunctionWrapper<redirectWrapUnary>, types::__internal::game_data_type::STRING, types::__internal::game_data_type::ARRAY);
+    //_interceptEventFunction3 = intercept::client::host::registerFunction(std::string("itfarSendPInfo"), "", userFunctionWrapper<TFAR_fnc_sendPlayerInfo>, types::__internal::game_data_type::ARRAY, types::__internal::game_data_type::ARRAY);
+    _itfarProcP = intercept::client::host::register_sqf_command("itfarprocp", "", userFunctionWrapper<TFAR_fnc_processPlayerPositions>, game_data_type::STRING, game_data_type::ARRAY);
 
 }
 

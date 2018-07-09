@@ -1071,15 +1071,391 @@ std::vector<std::string> alreadyHave{
     "BIS_fnc_PlaneEjection",
     "BIS_fnc_PlaneAiEject",
     "BIS_fnc_PlaneEjectionFX",
-    "BIS_fnc_EjectionSeatRelease"
+    "BIS_fnc_EjectionSeatRelease"};
+
+std::vector<std::string> wantToExport {
+    "BIS_fnc_3den_init",
+    "BIS_fnc_3den_onKeyDown",
+    "BIS_fnc_3den_onKeyUp",
+    "BIS_fnc_3den_onMissionLoad",
+    "BIS_fnc_3den_onMissionNew",
+    "BIS_fnc_3den_onMissionPreviewEnd",
+    "BIS_fnc_3den_onSelectionChange",
+    "BIS_fnc_3DENAttributeDoorStates",
+    "BIS_fnc_AircraftFoldingWings",
+    "BIS_fnc_AircraftTailhookAi",
+    "BIS_fnc_animatedBriefing",
+    "BIS_fnc_animatedOpening",
+    "BIS_fnc_animatedScreen",
+    "BIS_fnc_animatePicture",
+    "BIS_fnc_berp",
+    "BIS_fnc_berpVector",
+    "BIS_fnc_bezierInterpolate",
+    "BIS_fnc_bezierInterpolateVector",
+    "BIS_fnc_bezierLength",
+    "BIS_fnc_blinkMarker",
+    "BIS_fnc_bounceIn",
+    "BIS_fnc_bounceInOut",
+    "BIS_fnc_bounceInOutVector",
+    "BIS_fnc_bounceInVector",
+    "BIS_fnc_bounceOut",
+    "BIS_fnc_bounceOutVector",
+    "BIS_fnc_camera_deleted",
+    "BIS_fnc_camera_edenAttributesChanged",
+    "BIS_fnc_camera_edenConnectionChanged",
+    "BIS_fnc_camera_edenDeleted",
+    "BIS_fnc_camera_edenInit",
+    "BIS_fnc_camera_edenIsSelected",
+    "BIS_fnc_camera_edenRegisteredToWorld",
+    "BIS_fnc_camera_edenReset",
+    "BIS_fnc_camera_edenSelectionChanged",
+    "BIS_fnc_camera_edenUnregisteredFromWorld",
+    "BIS_fnc_camera_getCam",
+    "BIS_fnc_camera_getCinemaBordersEnabled",
+    "BIS_fnc_camera_getFocus",
+    "BIS_fnc_camera_getFOV",
+    "BIS_fnc_camera_getHUDEnabled",
+    "BIS_fnc_camera_getVisionMode",
+    "BIS_fnc_camera_init",
+    "BIS_fnc_camera_setCam",
+    "BIS_fnc_camera_setCinemaBordersEnabled",
+    "BIS_fnc_camera_setFocus",
+    "BIS_fnc_camera_setFOV",
+    "BIS_fnc_camera_setHUDEnabled",
+    "BIS_fnc_camera_setVisionMode",
+    "BIS_fnc_camera_tick",
+    "BIS_fnc_cancelMarker",
+    "BIS_fnc_changeColorMarker",
+    "BIS_fnc_clamp",
+    "BIS_fnc_clampVector",
+    "BIS_fnc_clerp",
+    "BIS_fnc_colorMarker",
+    "BIS_fnc_controlPoint_compute",
+    "BIS_fnc_controlPoint_computeOwnerKey",
+    "BIS_fnc_controlPoint_edenAttributesChanged",
+    "BIS_fnc_controlPoint_edenConnectionChanged",
+    "BIS_fnc_controlPoint_edenDragged",
+    "BIS_fnc_controlPoint_edenIsSelected",
+    "BIS_fnc_controlPoint_edenRegisteredToWorld",
+    "BIS_fnc_controlPoint_edenUnregisteredFromWorld",
+    "BIS_fnc_controlPoint_getOwnerKey",
+    "BIS_fnc_controlPoint_isArrive",
+    "BIS_fnc_controlPoint_setIsArrive",
+    "BIS_fnc_CPDummy",
+    "BIS_fnc_CPFindEmptyPosition",
+    "BIS_fnc_CPInit",
+    "BIS_fnc_CPLog",
+    "BIS_fnc_CPPickSafeDir",
+    "BIS_fnc_CPSafeAzimuths",
+    "BIS_fnc_CPSendReinforcements",
+    "BIS_fnc_CPSpawnGarrisonGrp",
+    "BIS_fnc_CPWaitUntil",
+    "BIS_fnc_createTooltip",
+    "BIS_fnc_debugConsoleExec",
+    "BIS_fnc_debugProfile",
+    "BIS_fnc_decodeFlags2",
+    "BIS_fnc_decodeFlags4",
+    "BIS_fnc_decodeFlags8",
+    "BIS_fnc_deltaTime",
+    "BIS_fnc_diagMacrosEditorPreview",
+    "BIS_fnc_diagMacrosSimpleObject",
+    "BIS_fnc_diagObjectPerformance",
+    "BIS_fnc_disableRevive",
+    "BIS_fnc_Door",
+    "BIS_fnc_DoorClose",
+    "BIS_fnc_DoorNoHandleClose",
+    "BIS_fnc_DoorNoHandleOpen",
+    "BIS_fnc_DoorOpen",
+    "BIS_fnc_easeIn",
+    "BIS_fnc_easeInOut",
+    "BIS_fnc_easeInOutVector",
+    "BIS_fnc_easeInVector",
+    "BIS_fnc_easeOut",
+    "BIS_fnc_easeOutVector",
+    "BIS_fnc_encodeFlags2",
+    "BIS_fnc_encodeFlags4",
+    "BIS_fnc_encodeFlags8",
+    "BIS_fnc_errorParamsType",
+    "BIS_fnc_eventTimeline",
+    "BIS_fnc_EXP_camp_addTickets",
+    "BIS_fnc_EXP_camp_balanceGroup",
+    "BIS_fnc_EXP_camp_checkpoint",
+    "BIS_fnc_EXP_camp_dynamicAISkill",
+    "BIS_fnc_EXP_camp_getCinematicMode",
+    "BIS_fnc_EXP_camp_getPlayersGroup",
+    "BIS_fnc_EXP_camp_guidedProjectile",
+    "BIS_fnc_EXP_camp_hasMissionStarted",
+    "BIS_fnc_EXP_camp_IFF",
+    "BIS_fnc_EXP_camp_initCharacter",
+    "BIS_fnc_EXP_camp_initClasses",
+    "BIS_fnc_EXP_camp_initDifficulty",
+    "BIS_fnc_EXP_camp_lobby",
+    "BIS_fnc_EXP_camp_lobby_clearVars",
+    "BIS_fnc_EXP_camp_lobby_ctrlSetColor",
+    "BIS_fnc_EXP_camp_lobby_findHost",
+    "BIS_fnc_EXP_camp_lobby_getHostSettings",
+    "BIS_fnc_EXP_camp_lobby_getPlayerSquadName",
+    "BIS_fnc_EXP_camp_lobby_go",
+    "BIS_fnc_EXP_camp_lobby_intro",
+    "BIS_fnc_EXP_camp_lobby_launch",
+    "BIS_fnc_EXP_camp_lobby_loop",
+    "BIS_fnc_EXP_camp_lobby_missionCountdown",
+    "BIS_fnc_EXP_camp_lobby_onLoad",
+    "BIS_fnc_EXP_camp_lobby_onUnLoad",
+    "BIS_fnc_EXP_camp_lobby_playMissionVideo",
+    "BIS_fnc_EXP_camp_lobby_serverPing",
+    "BIS_fnc_EXP_camp_lobby_serverUpdate",
+    "BIS_fnc_EXP_camp_lobby_structuredText",
+    "BIS_fnc_EXP_camp_lobby_UIMilitaryManager",
+    "BIS_fnc_EXP_camp_lobby_UIMissionCountdown",
+    "BIS_fnc_EXP_camp_lobby_UIMissionManager",
+    "BIS_fnc_EXP_camp_lobby_UIOverlayManager",
+    "BIS_fnc_EXP_camp_lobby_UIProgressManager",
+    "BIS_fnc_EXP_camp_lobby_UISettingsManager",
+    "BIS_fnc_EXP_camp_lobby_updateHostSettings",
+    "BIS_fnc_EXP_camp_lobby_updateIntel",
+    "BIS_fnc_EXP_camp_lobby_updateMilitaryEfficiency",
+    "BIS_fnc_EXP_camp_lobby_updatePlayers",
+    "BIS_fnc_EXP_camp_lobby_updatePlayerStatus",
+    "BIS_fnc_EXP_camp_manager",
+    "BIS_fnc_EXP_camp_manager_getState",
+    "BIS_fnc_EXP_camp_manager_onPlayerRegistered",
+    "BIS_fnc_EXP_camp_manager_setState",
+    "BIS_fnc_EXP_camp_manager_triggerEvent",
+    "BIS_fnc_EXP_camp_playerChecklist",
+    "BIS_fnc_EXP_camp_playTimelineVideo",
+    "BIS_fnc_EXP_camp_replaceVehicles",
+    "BIS_fnc_EXP_camp_setCinematicMode",
+    "BIS_fnc_EXP_camp_setSkill",
+    "BIS_fnc_findLookAt",
+    "BIS_fnc_getBorderMarkers",
+    "BIS_fnc_getMarkers",
+    "BIS_fnc_getMarkerState",
+    "BIS_fnc_HatchClose",
+    "BIS_fnc_HatchOpen",
+    "BIS_fnc_hermite",
+    "BIS_fnc_hermiteVector",
+    "BIS_fnc_HEXtoRGB",
+    "BIS_fnc_hideMarker",
+    "BIS_fnc_hideMarkerArray",
+    "BIS_fnc_initWorldScene",
+    "BIS_fnc_interpolate",
+    "BIS_fnc_interpolateConstant",
+    "BIS_fnc_interpolateVector",
+    "BIS_fnc_interpolateVectorConstant",
+    "BIS_fnc_inventoryExists",
+    "BIS_fnc_inverseLerp",
+    "BIS_fnc_isDebugConsoleAllowed",
+    "BIS_fnc_isEqualVector",
+    "BIS_fnc_key_compute",
+    "BIS_fnc_key_computeOwnerCurve",
+    "BIS_fnc_key_computeTime",
+    "BIS_fnc_key_edenAreControlPointsLocked",
+    "BIS_fnc_key_edenAttributesChanged",
+    "BIS_fnc_key_edenConnectionChanged",
+    "BIS_fnc_key_edenDragged",
+    "BIS_fnc_key_edenIsSelected",
+    "BIS_fnc_key_edenRegisteredToWorld",
+    "BIS_fnc_key_edenUnregisteredFromWorld",
+    "BIS_fnc_key_getArriveControlPoint",
+    "BIS_fnc_key_getArriveTangent",
+    "BIS_fnc_key_getArriveTangentWeight",
+    "BIS_fnc_key_getConfigTime",
+    "BIS_fnc_key_getFOV",
+    "BIS_fnc_key_getInterpMode",
+    "BIS_fnc_key_getLeaveControlPoint",
+    "BIS_fnc_key_getLeaveTangent",
+    "BIS_fnc_key_getLeaveTangentWeight",
+    "BIS_fnc_key_getOwnerCurve",
+    "BIS_fnc_key_getTime",
+    "BIS_fnc_key_getValue",
+    "BIS_fnc_key_isFloat",
+    "BIS_fnc_key_isVector",
+    "BIS_fnc_key_setArriveTangent",
+    "BIS_fnc_key_setArriveTangentWeight",
+    "BIS_fnc_key_setInterpMode",
+    "BIS_fnc_key_setLeaveTangent",
+    "BIS_fnc_key_setLeaveTangentWeight",
+    "BIS_fnc_key_setTime",
+    "BIS_fnc_key_setValue",
+    "BIS_fnc_keyframeAnimation_deltaTime",
+    "BIS_fnc_keyframeAnimation_init",
+    "BIS_fnc_keyHold",
+    "BIS_fnc_laptopInit",
+    "BIS_fnc_laptopPlayVideo",
+    "BIS_fnc_lerpVector",
+    "BIS_fnc_LockedDoorNoHandleOpen",
+    "BIS_fnc_LockedDoorOpen",
+    "BIS_fnc_logFormatServer",
+    "BIS_fnc_lookAtArray",
+    "BIS_fnc_lookAtArrayEH",
+    "BIS_fnc_mapAnimAdd",
+    "BIS_fnc_mapAnimClear",
+    "BIS_fnc_mapAnimDone",
+    "BIS_fnc_missionSelector",
+    "BIS_fnc_moduleCivilianPresence",
+    "BIS_fnc_moduleCivilianPresenceSafeSpot",
+    "BIS_fnc_moduleCivilianPresenceUnit",
+    "BIS_fnc_moduleEditTerrainObject",
+    "BIS_fnc_moduleGrenade",
+    "BIS_fnc_moduleHideTerrainObjects",
+    "BIS_fnc_moduleHvtInit",
+    "BIS_fnc_moduleHvtObjective",
+    "BIS_fnc_moduleHvtObjectives",
+    "BIS_fnc_moduleHvtObjectivesInstance",
+    "BIS_fnc_moduleSimulationManager_grab",
+    "BIS_fnc_moduleSiteInit",
+    "BIS_fnc_moduleSlingload",
+    "BIS_fnc_moduleSpawnAI",
+    "BIS_fnc_moduleSpawnAIOptions",
+    "BIS_fnc_moduleSpawnAIPoint",
+    "BIS_fnc_moduleSpawnAISectorTactic",
+    "BIS_fnc_moduleSupportsInitProvider",
+    "BIS_fnc_moduleSupportsInitProviderVirtual",
+    "BIS_fnc_moduleSupportsInitRequester",
+    "BIS_fnc_moduleTimeMultiplier",
+    "BIS_fnc_moduleVanguardFob",
+    "BIS_fnc_moduleVanguardObjective",
+    "BIS_fnc_moduleVanguardScorePersistence",
+    "BIS_fnc_moveMarker",
+    "BIS_fnc_ObjectInventoryAnimatedClose",
+    "BIS_fnc_ObjectInventoryAnimatedOpen",
+    "BIS_fnc_paramTimeAcceleration",
+    "BIS_fnc_pow",
+    "BIS_fnc_pulsate",
+    "BIS_fnc_quinticIn",
+    "BIS_fnc_quinticInOut",
+    "BIS_fnc_quinticInOutVector",
+    "BIS_fnc_quinticInVector",
+    "BIS_fnc_quinticOut",
+    "BIS_fnc_quinticOutVector",
+    "BIS_fnc_randomPosIntersection",
+    "BIS_fnc_reenableRevive",
+    "BIS_fnc_resizeMarker",
+    "BIS_fnc_reviveAllowed",
+    "BIS_fnc_reviveBleedOut",
+    "BIS_fnc_reviveDamageReset",
+    "BIS_fnc_reviveDebug",
+    "BIS_fnc_reviveEhDammaged",
+    "BIS_fnc_reviveEhHandleDamage",
+    "BIS_fnc_reviveEhHandleHeal",
+    "BIS_fnc_reviveEhKilled",
+    "BIS_fnc_reviveEhRespawn",
+    "BIS_fnc_reviveEnabled",
+    "BIS_fnc_reviveGet3dIcons",
+    "BIS_fnc_reviveGetActionIcon",
+    "BIS_fnc_reviveIconControl",
+    "BIS_fnc_reviveInit",
+    "BIS_fnc_reviveIsValid",
+    "BIS_fnc_reviveIsValidSecure",
+    "BIS_fnc_reviveOnBeingRevived",
+    "BIS_fnc_reviveOnForcingRespawn",
+    "BIS_fnc_reviveOnState",
+    "BIS_fnc_reviveOnStateJIP",
+    "BIS_fnc_reviveSecureUnit",
+    "BIS_fnc_richCurve_compute",
+    "BIS_fnc_richCurve_computeCurveArcLength",
+    "BIS_fnc_richCurve_computeKeys",
+    "BIS_fnc_richCurve_computeOwnerTimeline",
+    "BIS_fnc_richCurve_computeSimulatedObjects",
+    "BIS_fnc_richCurve_edenAttributesChanged",
+    "BIS_fnc_richCurve_edenBakeCurve3D",
+    "BIS_fnc_richCurve_edenComputeNearestSegment",
+    "BIS_fnc_richCurve_edenConnectionChanged",
+    "BIS_fnc_richCurve_edenDragged",
+    "BIS_fnc_richCurve_edenDrawControlPoints3D",
+    "BIS_fnc_richCurve_edenDrawCurve3D",
+    "BIS_fnc_richCurve_edenIsSelected",
+    "BIS_fnc_richCurve_edenMarkStateDirty",
+    "BIS_fnc_richCurve_edenTick",
+    "BIS_fnc_richCurve_getCurveLength",
+    "BIS_fnc_richCurve_getCurvePoints",
+    "BIS_fnc_richCurve_getCurveValueFloat",
+    "BIS_fnc_richCurve_getCurveValueVector",
+    "BIS_fnc_richCurve_getFirstKey",
+    "BIS_fnc_richCurve_getKeyFromIndex",
+    "BIS_fnc_richCurve_getKeyIndex",
+    "BIS_fnc_richCurve_getKeys",
+    "BIS_fnc_richCurve_getKeysAtTime",
+    "BIS_fnc_richCurve_getKeyTime",
+    "BIS_fnc_richCurve_getLastKey",
+    "BIS_fnc_richCurve_getLookAtPosition",
+    "BIS_fnc_richCurve_getNextKey",
+    "BIS_fnc_richCurve_getOrientationMode",
+    "BIS_fnc_richCurve_getOwnerTimeline",
+    "BIS_fnc_richCurve_getPreviousKey",
+    "BIS_fnc_richCurve_getSimulatedObjects",
+    "BIS_fnc_richCurve_getTimeRange",
+    "BIS_fnc_richCurve_isTimeInSeconds",
+    "BIS_fnc_richCurve_numKeys",
+    "BIS_fnc_richCurve_reset",
+    "BIS_fnc_richCurve_resetKeysEventState",
+    "BIS_fnc_richCurve_setKeys",
+    "BIS_fnc_richCurve_setOrientationMode",
+    "BIS_fnc_rotateMarker",
+    "BIS_fnc_scaleAndTranslate",
+    "BIS_fnc_shakeMap",
+    "BIS_fnc_shakeMapEH",
+    "BIS_fnc_showMarker",
+    "BIS_fnc_showMarkerArray",
+    "BIS_fnc_simpleMoveMarker",
+    "BIS_fnc_SingleWingSlideDoorClose",
+    "BIS_fnc_SingleWingSlideDoorOpen",
+    "BIS_fnc_slerp",
+    "BIS_fnc_synchronizedObjectsQueue",
+    "BIS_fnc_timeline_cleanup",
+    "BIS_fnc_timeline_deleted",
+    "BIS_fnc_timeline_edenAttributesChanged",
+    "BIS_fnc_timeline_edenConnectionChanged",
+    "BIS_fnc_timeline_edenDeleted",
+    "BIS_fnc_timeline_edenDragged",
+    "BIS_fnc_timeline_edenInit",
+    "BIS_fnc_timeline_edenIsSelected",
+    "BIS_fnc_timeline_finish",
+    "BIS_fnc_timeline_getAlpha",
+    "BIS_fnc_timeline_getCurrentTime",
+    "BIS_fnc_timeline_getInterpMode",
+    "BIS_fnc_timeline_getLength",
+    "BIS_fnc_timeline_getPlayFromStart",
+    "BIS_fnc_timeline_getPlayRate",
+    "BIS_fnc_timeline_getPlayTime",
+    "BIS_fnc_timeline_getPosition",
+    "BIS_fnc_timeline_getSimulatedCurves",
+    "BIS_fnc_timeline_getStopTime",
+    "BIS_fnc_timeline_getTimeLeft",
+    "BIS_fnc_timeline_init",
+    "BIS_fnc_timeline_isFinished",
+    "BIS_fnc_timeline_isLooping",
+    "BIS_fnc_timeline_isPaused",
+    "BIS_fnc_timeline_isPlaying",
+    "BIS_fnc_timeline_isReverse",
+    "BIS_fnc_timeline_play",
+    "BIS_fnc_timeline_setInterpMode",
+    "BIS_fnc_timeline_setLength",
+    "BIS_fnc_timeline_setLoop",
+    "BIS_fnc_timeline_setPause",
+    "BIS_fnc_timeline_setPlayRate",
+    "BIS_fnc_timeline_setPosition",
+    "BIS_fnc_timeline_setReverse",
+    "BIS_fnc_timeline_simulateCurves",
+    "BIS_fnc_timeline_stop",
+    "BIS_fnc_timeline_tick",
+    "BIS_fnc_TwoWingDoorNoHandleClose",
+    "BIS_fnc_TwoWingDoorNoHandleOpen",
+    "BIS_fnc_TwoWingDoorOneHandleClose",
+    "BIS_fnc_TwoWingDoorOneHandleOpen",
+    "BIS_fnc_TwoWingDoorTwoHandleClose",
+    "BIS_fnc_TwoWingDoorTwoHandleOpen",
+    "BIS_fnc_TwoWingSlideDoorClose",
+    "BIS_fnc_TwoWingSlideDoorOpen",
+    "BIS_fnc_vectorDivide",
+    "BIS_fnc_zoomLock",
+    "BIS_fnc_zoomLockEH",
+    "BIS_fnc_zoomOnArea",
+    "BIS_fnc_zoomUnlock"
 };
 
-
-game_value exportFuncs(game_value arg) {
-
-
-
-
+game_value exportFuncs(game_value_parameter arg) {
     /*
     Author: Karel Moricky
 
@@ -1123,7 +1499,7 @@ game_value exportFuncs(game_value arg) {
     };
 
     auto _cfgRoot = sqf::config_entry() >> "cfgFunctions";
-    std::vector<std::string> _projects = { "arma2", "arma2oa", "tkoh", "arma3" };
+    std::vector<std::string> _projects = {"arma2", "arma2oa", "tkoh", "arma3"};
 
     //--- Header
     _fnc_addLineMain("<mediawiki xml:lang=\"en\">");
@@ -1135,7 +1511,8 @@ game_value exportFuncs(game_value arg) {
     std::vector<std::string> pages;
     for (auto& it : _functionsList) {
         std::string funcName(it);
-        if (std::find(alreadyHave.begin(), alreadyHave.end(), funcName) != alreadyHave.end()) continue;
+        //if (std::find(alreadyHave.begin(), alreadyHave.end(), funcName) != alreadyHave.end()) continue;
+        if (std::find(wantToExport.begin(), wantToExport.end(), funcName) == wantToExport.end()) continue;
         auto _meta = sqf::call(bis_fnc_functionmeta, it);
         std::string _metaPath = _meta[0];
         if (_metaPath.find("A3\\") == std::string::npos) continue;
@@ -1169,7 +1546,8 @@ game_value exportFuncs(game_value arg) {
                 _chars = "&gt;";
             else if (ch == '&')
                 _chars = "&amp;";
-            else _chars = ch;
+            else
+                _chars = ch;
             for (auto x : _chars) {
                 _rowTextArray.push_back(x);
             }
@@ -1183,22 +1561,22 @@ game_value exportFuncs(game_value arg) {
             if (_row == _rowComment) break;
             ++index;
         }
-        if (_fileHeader.find("#include") != std::string::npos) { _fileHeader = ""; }; //--- Ignore when confused by macro file
+        if (_fileHeader.find("#include") != std::string::npos) { _fileHeader = ""; };  //--- Ignore when confused by macro file
 
-        auto _description = (_fileHeader == "" || _metaFormat != ".sqf") ? "''N/A''" : sqf::format({ "&lt;pre&gt;%1&lt;/pre&gt;&lt;small&gt;''(Placeholder description extracted from the function header by [[BIS_fnc_exportFunctionsToWiki]])''&lt;/small&gt;", _fileHeader });
+        auto _description = (_fileHeader == "" || _metaFormat != ".sqf") ? "''N/A''" : (std::string)sqf::format({"&lt;pre&gt;%1&lt;/pre&gt;&lt;small&gt;''(Placeholder description extracted from the function header by [[BIS_fnc_exportFunctionsToWiki]])''&lt;/small&gt;", _fileHeader});
 
         auto _project = sqf::get_text(_cfgRoot >> _metaTag >> "project");
 
-        if (_project == "") _project = sqf::to_lower(sqf::product_version().name_short);
+        if (_project.length() <= 1) _project = sqf::to_lower(sqf::product_version().name_short);
 
         //--- Export
         _fnc_addLine("<page>");
         _indent = 2;
-        _fnc_addLine(sqf::format({ "<title>%1</title>",it }));
+        _fnc_addLine((std::string)sqf::format({"<title>%1</title>", it}));
         _fnc_addLine("<revision>");
         _indent = 3;
 
-        _fnc_addLine(sqf::format({ "<timestamp>%1</timestamp>","2006-04-03T17:42:00Z" }));//---- Arma 3 release date
+        _fnc_addLine((std::string)sqf::format({"<timestamp>%1</timestamp>", "2006-04-03T17:42:00Z"}));  //---- Arma 3 release date
         _fnc_addLine("<contributor></contributor>");
         _fnc_addLine("<comment>Generated by BIS_fnc_exportFunctionsToWiki</comment>");
 
@@ -1207,28 +1585,27 @@ game_value exportFuncs(game_value arg) {
         _indent = 0;
         //--- Function template
 
-
-        _fnc_addLine("{{Function|= Comments");
+        _fnc_addLine("{{Function|Comments=");
         _fnc_addLine("____________________________________________________________________________________________");
         _fnc_addLine("");
-        _fnc_addLine(sqf::format({ "| %1 |= Game name", _project }));
+        _fnc_addLine((std::string)sqf::format({"| %1 |Game name=", _project}));
         _fnc_addLine("");
-        _fnc_addLine("|1.00|= Game version");
+        _fnc_addLine("|1.00|Game version=");
         _fnc_addLine("____________________________________________________________________________________________");
         _fnc_addLine("");
-        _fnc_addLine(sqf::format({ "| %1 |= Description", _description }));
+        _fnc_addLine((std::string)sqf::format({"| %1 |Description=", _description}));
         _fnc_addLine("____________________________________________________________________________________________");
         _fnc_addLine("");
-        _fnc_addLine(sqf::format({ "| &lt;!-- [] call [[%1]]; --&gt; |= Syntax", it }));
-        _fnc_addLine("|p1= |= Parameter 1");
+        _fnc_addLine((std::string)sqf::format({"| &lt;!-- [] call [[%1]]; --&gt; |Syntax=", it}));
+        _fnc_addLine("|p1= |Parameter 1=");
         _fnc_addLine("");
-        _fnc_addLine("| |= Return value");
+        _fnc_addLine("| |Return value=");
         _fnc_addLine("____________________________________________________________________________________________");
         _fnc_addLine("");
-        _fnc_addLine("|x1= &lt;code&gt;&lt;/code&gt; |= ");
+        _fnc_addLine("|x1= &lt;code&gt;&lt;/code&gt; |Example 1= ");
         _fnc_addLine("____________________________________________________________________________________________");
         _fnc_addLine("");
-        _fnc_addLine("| |= See also");
+        _fnc_addLine("| |See also=");
         _fnc_addLine("");
         _fnc_addLine("}}");
         _fnc_addLine("");
@@ -1241,15 +1618,14 @@ game_value exportFuncs(game_value arg) {
         _fnc_addLine("");
         _fnc_addLine("&lt;h3 style=\"display:none\"&gt;Bottom Section&lt;/h3&gt;");
         //--- Categories
-        _fnc_addLine(sqf::format({ "[[Category:Function Group: %2|{{uc:%1}}]]", _metaName, _metaCategory }));
-        _fnc_addLine(sqf::format({ "[[Category:Functions|{{uc:%1}}]]", _metaName }));
-
+        _fnc_addLine((std::string)sqf::format({"[[Category:Function Group: %2|{{uc:%1}}]]", _metaName, _metaCategory}));
+        _fnc_addLine((std::string)sqf::format({"[[Category:Functions|{{uc:%1}}]]", _metaName}));
 
         bool _compatible = false;
         for (auto& xxx : _projects) {
-            if (xxx == _project) _compatible = true;
+            if (xxx == (std::string)_project) _compatible = true;
             if (_compatible) {
-                _fnc_addLine(sqf::format({ "[[Category:{{Name|%2}}: Functions|{{uc:%1}}]]", _metaName, xxx }));
+                _fnc_addLine((std::string)sqf::format({"[[Category:{{Name|%2}}: Functions|{{uc:%1}}]]", _metaName, xxx}));
             }
         }
 
@@ -1262,15 +1638,9 @@ game_value exportFuncs(game_value arg) {
         _indent = 1;
         _fnc_addLine("</page>");
 
-
-
         pages.push_back(fulltext2);
         fulltext2.clear();
     }
-
-
-
-
 
     //--- Footer
     //_indent = 0;
@@ -1286,28 +1656,30 @@ game_value exportFuncs(game_value arg) {
         file << "</mediawiki>";
     }
 
-
     return game_value();
 }
 #pragma endregion
 __itt_domain* domain_initF = __itt_domain_create("InterceptInitFunctions");
 __itt_string_handle* handle_initFunctions = __itt_string_handle_create("initFunctions");
 
-class scopedTimer {        //TFAR speedTest
+#if 0
+class scopedTimer {  //TFAR speedTest
 public:
-    explicit scopedTimer(const std::string & name_, bool willPrintOnDestruct_ = true) :start(std::chrono::high_resolution_clock::now()), name(name_), willPrintOnDestruct(willPrintOnDestruct_) {}
-    ~scopedTimer() { if (willPrintOnDestruct) log(); }
+    explicit scopedTimer(const std::string& name_, bool willPrintOnDestruct_ = true) : start(std::chrono::high_resolution_clock::now()), name(name_), willPrintOnDestruct(willPrintOnDestruct_) {}
+    ~scopedTimer() {
+        if (willPrintOnDestruct) log();
+    }
     void log() const {
         std::chrono::high_resolution_clock::time_point now = std::chrono::high_resolution_clock::now();
         auto duration = std::chrono::duration_cast<std::chrono::microseconds>(now - start).count();
         OutputDebugStringA((name + " " + std::to_string(duration) + " microsecs\n").c_str());
     }
-    void log(const std::string & text) {
+    void log(const std::string& text) {
         std::chrono::high_resolution_clock::time_point now = std::chrono::high_resolution_clock::now();
         auto duration = std::chrono::duration_cast<std::chrono::microseconds>(now - start).count();
         std::string message = name + "-" + text + " " + std::to_string(duration) + " microsecs\n";
         OutputDebugStringA(message.c_str());
-        start += std::chrono::high_resolution_clock::now() - now; //compensate time for call to log func
+        start += std::chrono::high_resolution_clock::now() - now;  //compensate time for call to log func
     }
     void reset() {
         start = std::chrono::high_resolution_clock::now();
@@ -1321,11 +1693,10 @@ public:
     bool willPrintOnDestruct;
 };
 
-
 game_value initFunctions(game_value _this) {
     __itt_task_begin(domain_initF, __itt_null, __itt_null, handle_initFunctions);
     scopedTimer initFunctionsTimer("initFunctions");
-    sqf::diag_log({ "_THiS###########",_this });
+    sqf::diag_log({"_THiS###########", _this});
     /*
     File: init.sqf
     Author: Karel Moricky, optimised headers by Killzone_Kid
@@ -1340,15 +1711,14 @@ game_value initFunctions(game_value _this) {
     Nothing
     */
 
-#define VERSION	3.0
+#define VERSION 3.0
 
     //--- is not used anymore and so it should not be used anymore
-    __SQF(if (isNil "BIS_fnc_MP_packet") then { BIS_fnc_MP_packet = compileFinal "" };);
+    __SQF(if (isNil "BIS_fnc_MP_packet") then{BIS_fnc_MP_packet = compileFinal ""};);
 
     if (sqf::get_number(sqf::config_entry() >> "CfgFunctions" >> "version") != VERSION) {
-        
         __itt_task_end(domain_initF);
-        return game_value();//--- Check version, has to match config version
+        return game_value();  //--- Check version, has to match config version
     }
     //    exitwith{
     //    sqf::text_log_format
@@ -1378,18 +1748,22 @@ game_value initFunctions(game_value _this) {
 
     ******************************************************************************************************/
 
-    std::string _headerNoDebug = "\
+    std::string _headerNoDebug =
+        "\
         private _fnc_scriptNameParent = if (isNil '_fnc_scriptName') then{ '%1' } else { _fnc_scriptName };\
         private _fnc_scriptName = '%1';\
         scriptName _fnc_scriptName;\
     ";
-    std::string _headerSaveScriptMap = "\
+    std::string _headerSaveScriptMap =
+        "\
         private _fnc_scriptMap = if (isNil '_fnc_scriptMap') then{ [_fnc_scriptName] } else { _fnc_scriptMap + [_fnc_scriptName] };\
     ";
-    std::string _headerLogScriptMap = "\
+    std::string _headerLogScriptMap =
+        "\
         textLogFormat['%1 : %2', _fnc_scriptMap joinString ' >> ', _this];\
     ";
-    std::string _headerSystem = "\
+    std::string _headerSystem =
+        "\
         private _fnc_scriptNameParent = if (isNil '_fnc_scriptName') then{ '%1' } else { _fnc_scriptName }; \
         scriptName '%1';\
     ";
@@ -1403,11 +1777,10 @@ game_value initFunctions(game_value _this) {
     else if (_debug == 2)
         _headerDefault = _headerNoDebug + _headerSaveScriptMap + _headerLogScriptMap;
 
-
     ///////////////////////////////////////////////////////////////////////////////////////////////////////
     //--- Compile function
     auto _fncCompile = [=](std::string _fncVar, std::string _fncPath, std::string _fncExt, int _fncHeader, bool _fncFinal) -> code {
-        scopedTimer compileTimer("compile "+ _fncVar);
+        scopedTimer compileTimer("compile " + _fncVar);
         //_fncVar = _this select 0;
         //_fncMeta = _this select 1;
         //_fncHeader = _this select 2;
@@ -1415,30 +1788,29 @@ game_value initFunctions(game_value _this) {
 
         //_fncPath = _fncMeta select 0;
         //_fncExt = _fncMeta select 1;
-        if (_fncExt == ".sqf") {   //--- SQF
+        if (_fncExt == ".sqf") {  //--- SQF
             std::string _header;
             if (_fncHeader == -1)
-                _header = _headerNone;   //--- No header (used in low-level functions, like 'fired' event handlers for every weapon)
+                _header = _headerNone;  //--- No header (used in low-level functions, like 'fired' event handlers for every weapon)
             else if (_fncHeader == 1)
                 _header = _headerSystem;  //--- System functions' header (rewrite default header based on debug mode)
             else
-                _header = _headerDefault;     //--- Full header
+                _header = _headerDefault;  //--- Full header
 
-                                              //--- Extend error report by including name of the function responsible
+            //--- Extend error report by including name of the function responsible
             std::string _debugHeaderExtended = "\r\n#line 1 \"" + _fncPath + " [" + _fncVar + "]\"\r\n";
             std::string _debugMessage = "Log: [Functions]%1 | %2";
 
             if (_fncFinal) {
-                return sqf::compile_final(sqf::format({ _header, _fncVar, _debugMessage }) + _debugHeaderExtended + sqf::preprocess_file(_fncPath));
+                return sqf::compile_final(sqf::format({_header, _fncVar, _debugMessage}) + _debugHeaderExtended + sqf::preprocess_file(_fncPath));
             } else {
-                return sqf::compile(sqf::format({ _header, _fncVar, _debugMessage }) + _debugHeaderExtended + sqf::preprocess_file(_fncPath));
+                return sqf::compile(sqf::format({_header, _fncVar, _debugMessage}) + _debugHeaderExtended + sqf::preprocess_file(_fncPath));
             };
         } else if (_fncExt == ".fsm") {
-            return sqf::compile_final(sqf::format({ "%1_fsm = _this execfsm '%2'; %1_fsm",_fncVar,_fncPath }));
+            return sqf::compile_final(sqf::format({"%1_fsm = _this execfsm '%2'; %1_fsm", _fncVar, _fncPath}));
         }
         return game_value();
     };
-
 
     /******************************************************************************************************
     COMPILE ONE FUNCTION
@@ -1454,20 +1826,22 @@ game_value initFunctions(game_value _this) {
 
     //--- Compile only selected
     if (_this.is_nil()) _this = auto_array<game_value>();
-    if (_this.type() != game_data_array::type_def) _this = auto_array<game_value>{ _this };
+    if (_this.type() != game_data_array::type_def) _this = auto_array<game_value>{_this};
     game_value _recompile = (_this.size() > 0) ? _this[0] : 0;
     if (_recompile.type() == game_data_string::type_def) {
-
         //--- Recompile specific function
         bool _fncUINamespace = true;
         game_value _fnc = sqf::get_variable(sqf::ui_namespace(), _recompile);
-        if (_fnc.is_nil()) { _fnc = sqf::get_variable(sqf::mission_namespace(), _recompile); _fncUINamespace = false; }
+        if (_fnc.is_nil()) {
+            _fnc = sqf::get_variable(sqf::mission_namespace(), _recompile);
+            _fncUINamespace = false;
+        }
         if (!_fnc.is_nil()) {
             static game_value_static bis_fnc_functionMeta = sqf::get_variable(sqf::ui_namespace(), "bis_fnc_functionMeta");
             auto _fncMeta = sqf::call(bis_fnc_functionMeta, _recompile);
             int _headerType = (_this.size() > 1) ? static_cast<int>(_this[1]) : 0;
             auto compiled = _fncCompile(_recompile, _fncMeta[0], _fncMeta[1], _headerType, false);
-            if (_fncUINamespace && sqf::cheats_enabled()) { sqf::set_variable(sqf::ui_namespace(), _recompile, compiled); }; //--- Cannot recompile compileFinal functions in public version
+            if (_fncUINamespace && sqf::cheats_enabled()) { sqf::set_variable(sqf::ui_namespace(), _recompile, compiled); };  //--- Cannot recompile compileFinal functions in public version
             sqf::set_variable(sqf::mission_namespace(), _recompile, compiled);
             //if (isnil "_functions_listRecompile") then{
             //    textlogformat["Log: [Functions]: %1 recompiled with meta %2",_recompile,_fncMeta];
@@ -1475,7 +1849,7 @@ game_value initFunctions(game_value _this) {
         } else {
             static game_value_static _fncError = sqf::get_variable(sqf::ui_namespace(), "bis_fnc_error");
             if (!_fncError.is_nil()) {
-                sqf::call(_fncError, { "%1 is not a function.", _recompile });
+                sqf::call(_fncError, {"%1 is not a function.", _recompile});
             } else {
                 //textlogformat["Log: [Functions]: ERROR: %1 is not a function.",_recompile];
             }
@@ -1483,7 +1857,6 @@ game_value initFunctions(game_value _this) {
         __itt_task_end(domain_initF);
         return game_value();
     };
-
 
     /******************************************************************************************************
     COMPILE EVERYTHING IN GIVEN NAMESPACE(S)
@@ -1515,17 +1888,14 @@ game_value initFunctions(game_value _this) {
     game_value base_Recompile = bis_functions_listRecompile.is_nil() ? game_value(auto_array<game_value>()) : sqf::call(bis_functions_listRecompile);
     auto_array<r_string> _functions_listPreStart = auto_array<r_string>();
     auto_array<r_string> _functions_list(base_list.to_array().begin(), base_list.to_array().end());
-    game_value _functions_listPreInit = auto_array<game_value>{ base_PreInit,auto_array<game_value>() };
+    game_value _functions_listPreInit = auto_array<game_value>{base_PreInit, auto_array<game_value>()};
     auto test = sqf::str(_functions_listPreInit);
-    game_value _functions_listPostInit = auto_array<game_value>{ base_PostInit,auto_array<game_value>() };
+    game_value _functions_listPostInit = auto_array<game_value>{base_PostInit, auto_array<game_value>()};
     auto_array<r_string> _functions_listRecompile(base_Recompile.to_array().begin(), base_Recompile.to_array().end());
     //--- When not forced, recompile only mission if uiNamespace functions exists
     int _recompileInt =
-        (_recompile.type() == game_data_number::type_def) ?
-        static_cast<int>(_recompile)
-        :
-        ((_functions_list.count() > 0) ? 3 : 0)
-        ;
+        (_recompile.type() == game_data_number::type_def) ? static_cast<int>(_recompile)
+                                                          : ((_functions_list.count() > 0) ? 3 : 0);
 
     //--- When autodetect, recognize what recompile type is required
 
@@ -1535,18 +1905,18 @@ game_value initFunctions(game_value _this) {
 
     auto _file = sqf::get_text(sqf::config_entry() >> "cfgFunctions" >> "file");
     std::vector<std::tuple<config, std::string, int>> _cfgSettings = {
-            {sqf::config_file(), _file, 0 },	//--- 0
-            {sqf::campaign_config_file(), "functions", 1 },	//--- 1
-            {sqf::mission_config_file(), "functions", 1 }	//--- 2
+        {sqf::config_file(), _file, 0},                 //--- 0
+        {sqf::campaign_config_file(), "functions", 1},  //--- 1
+        {sqf::mission_config_file(), "functions", 1}    //--- 2
     };
     std::vector<int> _listConfigs;
     switch (_recompileInt) {
-        case 0: _listConfigs = { 0,1,2 }; break;
+        case 0: _listConfigs = {0, 1, 2}; break;
         case 5:
         case 1: {
             _functions_list.clear();
-            _functions_listPreInit = auto_array<game_value>{ auto_array<game_value>(), auto_array<game_value>() };
-            _functions_listPostInit = auto_array<game_value>{ auto_array<game_value>(), auto_array<game_value>() };
+            _functions_listPreInit = auto_array<game_value>{auto_array<game_value>(), auto_array<game_value>()};
+            _functions_listPostInit = auto_array<game_value>{auto_array<game_value>(), auto_array<game_value>()};
             _functions_listRecompile.clear();
 
             sqf::set_variable(sqf::ui_namespace(), "bis_functions_list", auto_array<r_string>());
@@ -1554,13 +1924,12 @@ game_value initFunctions(game_value _this) {
             sqf::set_variable(sqf::ui_namespace(), "bis_functions_listPostInit", _functions_listPostInit);
             sqf::set_variable(sqf::ui_namespace(), "bis_functions_listRecompile", auto_array<r_string>());
 
-            _listConfigs = { 0,1,2 };
-        }break;
-        case 2: _listConfigs = { 0 }; break;
+            _listConfigs = {0, 1, 2};
+        } break;
+        case 2: _listConfigs = {0}; break;
         case 3:
-        case 4: _listConfigs = { 1,2 }; break;
+        case 4: _listConfigs = {1, 2}; break;
     }
-
 
     /******************************************************************************************************
     SCAN CFGFUNCTIONS
@@ -1587,7 +1956,7 @@ game_value initFunctions(game_value _this) {
         !sqf::cheats_enabled()
         &&
         //--- Editor mission
-        static_cast<bool>(sqf::call(sqf::compile("((uinamespace getvariable[\"gui_displays\", []]) find(finddisplay 26) != 1)"))) //To lazy to implement correctly
+        static_cast<bool>(sqf::call(sqf::compile("((uinamespace getvariable[\"gui_displays\", []]) find(finddisplay 26) != 1)")))  //To lazy to implement correctly
         &&
         //--- Manual toggle
         sqf::get_number(sqf::config_entry(sqf::mission_config_file()) >> "allowFunctionsRecompile") == 0;
@@ -1599,7 +1968,6 @@ game_value initFunctions(game_value _this) {
         auto _pathAccess = std::get<2>(_cfg);
         auto _cfgFunctions = (sqf::config_entry(_pathConfig) >> "cfgfunctions");
 
-
         auto cfgFunctionsCount = sqf::count(_cfgFunctions);
         for (int _c = 0; _c < cfgFunctionsCount; _c++) {
             auto _currentTag = sqf::select(_cfgFunctions, _c);
@@ -1610,14 +1978,15 @@ game_value initFunctions(game_value _this) {
             bool _requiredAddonsMet = true;
             for (auto& it : _requiredAddons.to_array()) {
                 if (!sqf::is_class(sqf::config_entry() >> "CfgPatches" >> it)) {
-                    _requiredAddonsMet = false; break;
+                    _requiredAddonsMet = false;
+                    break;
                 }
             }
             if (!_requiredAddonsMet) continue;
 
             auto _tag = sqf::config_name(_currentTag);
             auto _tagName = sqf::get_text(sqf::config_entry(_currentTag) >> "tag");
-            if (_tagName == "")  _tagName = _tag;
+            if (_tagName == "") _tagName = _tag;
             auto _itemPathTag = sqf::get_text(sqf::config_entry(_currentTag) >> "file");
             auto currentTagCount = sqf::count(_currentTag);
             for (int _i = 0; _i < currentTagCount; _i++) {
@@ -1644,7 +2013,6 @@ game_value initFunctions(game_value _this) {
 
                     if (_itemExt == "") _itemExt = ".sqf";
 
-
                     //if (_itemPathItem != "") {
                     //    if (_tagName == "BIS" && _pathAccess == 0) {
                     //        //--- Disable rewriting of global BIS functions from outside (ToDo: Make it dynamic, so anyone can protect their functions)
@@ -1660,8 +2028,14 @@ game_value initFunctions(game_value _this) {
                     //}
                     std::string _itemPath = _itemPathItem;
                     if (_itemPath == "") {
-                        if (_itemPathCat != "") { _itemPath = _itemPathCat + "\\fn_" + _itemName + _itemExt; } else {
-                            if (_itemPathTag != "") { _itemPath = _itemPathTag + "\\fn_" + _itemName + _itemExt; } else { _itemPath = ""; }
+                        if (_itemPathCat != "") {
+                            _itemPath = _itemPathCat + "\\fn_" + _itemName + _itemExt;
+                        } else {
+                            if (_itemPathTag != "") {
+                                _itemPath = _itemPathTag + "\\fn_" + _itemName + _itemExt;
+                            } else {
+                                _itemPath = "";
+                            }
                         }
                     }
 
@@ -1670,19 +2044,19 @@ game_value initFunctions(game_value _this) {
                     //--- Compile function
                     if (_itemPath == "") _itemPath = _pathFile + "\\" + _categoryName + "\\fn_" + _itemName + _itemExt;
                     auto _itemVar = _tagName + "_fnc_" + _itemName;
-                    game_value _itemMeta = auto_array<game_value>{ _itemPath, _itemExt, _itemHeader, _itemPreInit > 0, _itemPostInit > 0, _itemRecompile > 0, _tag, _categoryName, _itemName };
+                    game_value _itemMeta = auto_array<game_value>{_itemPath, _itemExt, _itemHeader, _itemPreInit > 0, _itemPostInit > 0, _itemRecompile > 0, _tag, _categoryName, _itemName};
                     code _itemCompile;
                     if (_itemCheatsEnabled == 0 || (_itemCheatsEnabled > 0 && sqf::cheats_enabled())) {
                         _itemCompile = _fncCompile(_itemVar, _itemPath, _itemExt, _itemHeader, _compileFinal);
                     } else {
-                        _itemCompile = sqf::compile_final("false"); //--- Function not available in retail version
+                        _itemCompile = sqf::compile_final("false");  //--- Function not available in retail version
                     }
 
                     //--- Register function
                     if (_itemCompile.type() == game_data_code::type_def) {
                         if (_functions_list.find(r_string(_itemVar)) == _functions_list.end()) {
                             auto _namespace = (_pathAccess == 0) ? sqf::ui_namespace() : sqf::mission_namespace();
-                            sqf::set_variable(_namespace, _itemVar, _itemCompile); //---- Save function
+                            sqf::set_variable(_namespace, _itemVar, _itemCompile);  //---- Save function
                             auto metaStr = sqf::str(_itemMeta);
                             sqf::set_variable(_namespace, _itemVar + "_meta", sqf::compile_final(metaStr));
 
@@ -1713,9 +2087,9 @@ game_value initFunctions(game_value _this) {
                                 static game_value_static bis_fnc_error = sqf::get_variable(sqf::ui_namespace(), "bis_fnc_error");
                                 std::string _errorText("%1 is a mission / campaign function and cannot contain 'preStart = 1;' param"sv);
                                 if (!bis_fnc_error.is_nil()) {
-                                    sqf::call(bis_fnc_error, { _errorText,_itemVar });
+                                    sqf::call(bis_fnc_error, {_errorText, _itemVar});
                                 } else {
-                                    sqf::diag_log(sqf::format({ "Log: [Functions]: " + _errorText,_itemVar }));
+                                    sqf::diag_log(sqf::format({"Log: [Functions]: " + _errorText, _itemVar}));
                                 }
                             }
                         }
@@ -1730,9 +2104,9 @@ game_value initFunctions(game_value _this) {
                                 static game_value_static bis_fnc_error = sqf::get_variable(sqf::ui_namespace(), "bis_fnc_error");
                                 std::string _errorText("Redundant use of 'recompile = 1;' in %1 - mission / campaign functions are recompiled on start by default."sv);
                                 if (!bis_fnc_error.is_nil()) {
-                                    sqf::call(bis_fnc_error, { _errorText,_itemVar });
+                                    sqf::call(bis_fnc_error, {_errorText, _itemVar});
                                 } else {
-                                    sqf::diag_log(sqf::format({ "Log: [Functions]: " + _errorText,_itemVar }));
+                                    sqf::diag_log(sqf::format({"Log: [Functions]: " + _errorText, _itemVar}));
                                 }
                             }
                         }
@@ -1751,12 +2125,10 @@ game_value initFunctions(game_value _this) {
 
     //--- Save the lists (only when they're undefined, or in dev version where compileFinal variables can be rewritten)
     if (sqf::get_variable(sqf::ui_namespace(), "BIS_functions_list").is_nil() || sqf::cheats_enabled()) {
-
         auto f1 = sqf::str(_functions_list);
         auto f2 = sqf::str(_functions_listPreInit[0]);
         auto f3 = sqf::str(_functions_listPostInit[0]);
         auto f4 = sqf::str(_functions_listRecompile);
-
 
         sqf::set_variable(sqf::ui_namespace(), "BIS_functions_list", static_cast<game_value>(sqf::compile_final(f1)));
         sqf::set_variable(sqf::ui_namespace(), "BIS_functions_listPreInit", static_cast<game_value>(sqf::compile_final(f2)));
@@ -1784,7 +2156,7 @@ game_value initFunctions(game_value _this) {
     if (_recompileInt >= 0 && _recompileInt <= 5 && _recompileInt != 2) {
         scopedTimer recompileTimer("recompileTimer");
         auto cpy = _functions_list;
-        for (auto& it : _functions_listRecompile) //--- Exclude functions marker for recompile to avoid double-compile
+        for (auto& it : _functions_listRecompile)  //--- Exclude functions marker for recompile to avoid double-compile
             cpy.erase(cpy.find(it));
         for (auto& it : cpy) {
             static game_value_static bis_fnc_functionMeta = sqf::get_variable(sqf::ui_namespace(), "bis_fnc_functionMeta");
@@ -1809,7 +2181,7 @@ game_value initFunctions(game_value _this) {
                 static game_value_static bis_fnc_logFormat = sqf::get_variable(sqf::ui_namespace(), "bis_fnc_logFormat");
                 //sqf::call(bis_fnc_logFormat, { "preStart %1",it });
                 auto name = std::string(it);
-                scopedTimer recompileTimer("preStart "+ name);
+                scopedTimer recompileTimer("preStart " + name);
                 auto code = sqf::get_variable(sqf::ui_namespace(), name);
                 auto codeString = sqf::str(code);
                 auto _function = sqf::call(code, std::move(auto_array<game_value>()));
@@ -1818,10 +2190,9 @@ game_value initFunctions(game_value _this) {
         }
     }
 
-    //--- Mission only
+        //--- Mission only
 #pragma region Mission only
     if (_recompileInt == 3 || _recompileInt == 5) {
-
         //--- Switch to mission loading bar
         sqf::set_variable(sqf::current_namespace(), "RscDisplayLoading_progressMission", true);
         static game_value_static bis_fnc_preload = sqf::get_variable(sqf::ui_namespace(), "bis_fnc_preload");
@@ -1834,7 +2205,7 @@ game_value initFunctions(game_value _this) {
         if (sqf::is_server() && sqf::is_null(bis_functions_mainscope)
             && !sqf::get_variable(sqf::ui_namespace(), "bis_fnc_init").is_nil() && sqf::world_name() != "") {
             auto _grpLogic = sqf::create_group(sqf::side_logic());
-            bis_functions_mainscope = sqf::create_unit(_grpLogic, "Logic", { 9, 9, 9 }, {}, 0, "none");
+            bis_functions_mainscope = sqf::create_unit(_grpLogic, "Logic", {9, 9, 9}, {}, 0, "none");
             sqf::set_variable(sqf::mission_namespace(), "bis_functions_mainscope", static_cast<game_value>(bis_functions_mainscope));
 
             sqf::set_variable(bis_functions_mainscope, "isDedicated", sqf::is_dedicated(), true);
@@ -1844,7 +2215,7 @@ game_value initFunctions(game_value _this) {
             if (!sqf::is_multiplayer()) sqf::set_variable(bis_functions_mainscope, "BIS_fnc_netId_globIDs_SP", auto_array<game_value>());
             sqf::public_variable("bis_functions_mainscope");
         }
-        sqf::set_group_id(sqf::get_group(bis_functions_mainscope), sqf::localize("str_dn_modules"), {});//--- Name the group for curator
+        sqf::set_group_id(sqf::get_group(bis_functions_mainscope), sqf::localize("str_dn_modules"), {});  //--- Name the group for curator
 
         //if (!sqf::is_nil("bis_functions_mainscope")) {
         //    sqf::set_pos(bis_functions_mainscope, sqf::position(bis_functions_mainscope));
@@ -1861,11 +2232,9 @@ game_value initFunctions(game_value _this) {
             static game_value_static bis_fnc_recompile = sqf::get_variable(sqf::current_namespace(), "bis_fnc_recompile");
             {
                 scopedTimer recompileTimer("recompileTimer preInit");
-
-
             }
             for (auto& it : _functions_listRecompile) {
-                sqf::call(bis_fnc_logFormat, { "recompile %1",it });
+                sqf::call(bis_fnc_logFormat, {"recompile %1", it});
                 sqf::call(bis_fnc_recompile, it);
             };
 
@@ -1875,7 +2244,7 @@ game_value initFunctions(game_value _this) {
             for (auto& x : _functions_listPreInit.to_array()) {
                 for (auto& it : x.to_array()) {
                     scopedTimer preInitTimer_("preInit " + static_cast<std::string>(it));
-                    sqf::call(sqf::get_variable(sqf::mission_namespace(), it), { "preInit" });
+                    sqf::call(sqf::get_variable(sqf::mission_namespace(), it), {"preInit"});
                 }
             }
         }
@@ -1883,74 +2252,84 @@ game_value initFunctions(game_value _this) {
         //--- Call postInit functions once player is present
 
         __SQF(
-            _this spawn{
-            _fnc_scriptName = "script";
-            0.15 call bis_fnc_progressloadingscreen;
+            _this spawn {
+                _fnc_scriptName = "script";
+                0.15 call bis_fnc_progressloadingscreen;
 
-            //--- Wait until server is initialized (to avoid running scripts before the server)
-            waituntil{ call(missionnamespace getvariable["BIS_fnc_preload_server",{ isserver }]) || getClientState == "LOGGED IN" };
-            if (getClientState == "LOGGED IN") exitwith{}; //--- Server lost
-            0.30 call bis_fnc_progressloadingscreen;
+                //--- Wait until server is initialized (to avoid running scripts before the server)
+                waituntil{call(missionnamespace getvariable["BIS_fnc_preload_server", {isserver}]) || getClientState == "LOGGED IN"};
+                if (getClientState == "LOGGED IN") exitwith{};  //--- Server lost
+                0.30 call bis_fnc_progressloadingscreen;
 
-            //--- After JIP, units cannot be initialized during the loading screen
-            if !(isserver) then {
-                endloadingscreen;
-                waituntil{ !isnull cameraon && {getClientState != "MISSION RECEIVED" && {getClientState != "GAME LOADED"}} };
+                //--- After JIP, units cannot be initialized during the loading screen
+                if
+                    !(isserver)then {
+                        endloadingscreen;
+                        waituntil{!isnull cameraon && {getClientState != "MISSION RECEIVED" && {getClientState != "GAME LOADED"}}};
 
-                ["bis_fnc_initFunctions"] call bis_fnc_startLoadingScreen;
-            };
-            if (isnil "bis_functions_mainscope") exitwith{ endloadingscreen; ["[x] Error while loading the mission!"] call bis_fnc_errorMsg; }; //--- Error while loading
-            bis_functions_mainscope setvariable["didJIP",didJIP];
-            0.45 call bis_fnc_progressloadingscreen;
-
-            //wait for functions mainscope to get initialized (overruled by escape condition at line: 577)
-            //waituntil {!isnil "bis_functions_mainscope" && {!isnull bis_functions_mainscope}};
-            0.60 call bis_fnc_progressloadingscreen;
-
-            //--- Wait until module inits are initialized
-            [] call bis_fnc_initModules;
-            0.75 call bis_fnc_progressloadingscreen;
-
-            //--- Execute automatic scripts
-            if (!is3DEN) then
-            {
-                if (isserver) then{
-                    [] execvm "initServer.sqf";
-            "initServer.sqf" call bis_fnc_logFormat;
-                };
-
-            //--- Run mission scripts
-            if !(isDedicated) then {
-                [player,didJIP] execvm "initPlayerLocal.sqf";
-                [[[player,didJIP],"initPlayerServer.sqf"],"bis_fnc_execvm",false,false] call bis_fnc_mp;
-                "initPlayerLocal.sqf" call bis_fnc_logFormat;
-                "initPlayerServer.sqf" call bis_fnc_logFormat;
-            };
-            0.90 call bis_fnc_progressloadingscreen;
-
-            //--- Call postInit functions
-            _fnc_scriptname = "postInit";
-            {
-                {
-                    _time = diag_ticktime;
-                    [_x,didJIP] call{
-                        private["_didJIP","_time"];
-                    ["postInit",_this select 1] call(missionnamespace getvariable(_this select 0))
+                        ["bis_fnc_initFunctions"] call bis_fnc_startLoadingScreen;
                     };
-                    ["%1 (%2 ms)",_x,(diag_ticktime - _time) * 1000] call bis_fnc_logFormat;
-                } foreach _x;
-            } foreach _this;
-            1.0 call bis_fnc_progressloadingscreen;
-            };
+                if (isnil "bis_functions_mainscope") exitwith {
+                        endloadingscreen;
+                        ["[x] Error while loading the mission!"] call bis_fnc_errorMsg;
+                    };  //--- Error while loading
+                bis_functions_mainscope setvariable["didJIP", didJIP];
+                0.45 call bis_fnc_progressloadingscreen;
 
-            //--- MissionNamespace init
-            missionnamespace setvariable["bis_fnc_init",true];
+                //wait for functions mainscope to get initialized (overruled by escape condition at line: 577)
+                //waituntil {!isnil "bis_functions_mainscope" && {!isnull bis_functions_mainscope}};
+                0.60 call bis_fnc_progressloadingscreen;
 
-            if !(isserver) then {
-                ["bis_fnc_initFunctions"] call bis_fnc_endLoadingScreen;
-            };
-        };
-        ).capture(_functions_listPostInit);
+                //--- Wait until module inits are initialized
+                [] call bis_fnc_initModules;
+                0.75 call bis_fnc_progressloadingscreen;
+
+                //--- Execute automatic scripts
+                if (!is3DEN) then {
+                        if (isserver) then {
+                                [] execvm "initServer.sqf";
+                                "initServer.sqf" call bis_fnc_logFormat;
+                            };
+
+                        //--- Run mission scripts
+                        if
+                            !(isDedicated)then {
+                                [ player, didJIP ] execvm "initPlayerLocal.sqf";
+                                [ [ [ player, didJIP ], "initPlayerServer.sqf" ], "bis_fnc_execvm", false, false ] call bis_fnc_mp;
+                                "initPlayerLocal.sqf" call bis_fnc_logFormat;
+                                "initPlayerServer.sqf" call bis_fnc_logFormat;
+                            };
+                        0.90 call bis_fnc_progressloadingscreen;
+
+                        //--- Call postInit functions
+                        _fnc_scriptname = "postInit";
+                        {
+                            {
+                                _time = diag_ticktime;
+                                [_x, didJIP] call {
+                                private
+                                    [ "_didJIP", "_time" ];
+                                    [ "postInit", _this select 1 ] call(missionnamespace getvariable(_this select 0))
+                                };
+                                [ "%1 (%2 ms)", _x, (diag_ticktime - _time) * 1000 ] call bis_fnc_logFormat;
+                            }
+                            foreach
+                                _x;
+                        }
+                        foreach
+                            _this;
+                        1.0 call bis_fnc_progressloadingscreen;
+                    };
+
+                //--- MissionNamespace init
+                missionnamespace setvariable["bis_fnc_init", true];
+
+                if
+                    !(isserver)then {
+                        ["bis_fnc_initFunctions"] call bis_fnc_endLoadingScreen;
+                    };
+            };)
+            .capture(_functions_listPostInit);
     };
 #pragma endregion
     //--- Not mission
@@ -1967,7 +2346,6 @@ game_value initFunctions(game_value _this) {
 
     //--- Only mission variables
     if (_recompileInt == 1 || _recompileInt == 5) {
-
         //_fnc_scriptname = "initFunctions";
         //"Functions recompiled" call bis_fnc_log;
     };
@@ -1985,42 +2363,41 @@ game_value initFunctions(game_value _this) {
     __itt_task_end(domain_initF);
     return game_value();
 }
-
+#endif
 types::registered_sqf_function _bis_fnc_itemType;
 game_value bis_fnc_itemType(game_value arg) {
     static std::map<std::string, std::pair<std::string, std::string>> magTypes{
-        { "shotboundingmine" ,{ "Mine", "MineBounding" } },
-        { "shotbullet" ,{ "Magazine", "Bullet" } },
-        { "shotcm" ,{ "Magazine", "CounterMeasures" } },
-        { "shotdeploy" ,{ "Magazine", "Artillery" } },
-        { "shotdirectionalbomb" ,{ "Mine", "MineDirectional" } },
-        { "shotgrenade" ,{ "Magazine", "Grenade" } },
-        { "shotilluminating" ,{ "Magazine", "Flare" } },
-        { "shotlaser" ,{ "Magazine", "Laser" } },
-        { "shotmine" ,{ "Mine", "Mine" } },
-        { "shotmissile" ,{ "Magazine", "Missile" } },
-        { "shotrocket" ,{ "Magazine", "Rocket" } },
-        { "shotshell" ,{ "Magazine", "Shell" } },
-        { "shotsmoke" ,{ "Magazine", "SmokeShell" } },
-        { "shotsmokex" ,{ "Magazine", "SmokeShell" } },
-        { "shotspread" ,{ "Magazine", "ShotgunShell" } },
-        { "shotsubmunitions" ,{ "Magazine", "Artillery" } }
-    };
+        {"shotboundingmine", {"Mine", "MineBounding"}},
+        {"shotbullet", {"Magazine", "Bullet"}},
+        {"shotcm", {"Magazine", "CounterMeasures"}},
+        {"shotdeploy", {"Magazine", "Artillery"}},
+        {"shotdirectionalbomb", {"Mine", "MineDirectional"}},
+        {"shotgrenade", {"Magazine", "Grenade"}},
+        {"shotilluminating", {"Magazine", "Flare"}},
+        {"shotlaser", {"Magazine", "Laser"}},
+        {"shotmine", {"Mine", "Mine"}},
+        {"shotmissile", {"Magazine", "Missile"}},
+        {"shotrocket", {"Magazine", "Rocket"}},
+        {"shotshell", {"Magazine", "Shell"}},
+        {"shotsmoke", {"Magazine", "SmokeShell"}},
+        {"shotsmokex", {"Magazine", "SmokeShell"}},
+        {"shotspread", {"Magazine", "ShotgunShell"}},
+        {"shotsubmunitions", {"Magazine", "Artillery"}}};
 
     static std::map<std::string, std::string> cursorType{
-        { "arifle","AssaultRifle" },
-        { "bomb","BombLauncher" },
-        { "cannon","Cannon" },
-        { "gl","GrenadeLauncher" },
-        { "laserdesignator","LaserDesignator" },
-        { "mg","MachineGun" },
-        { "missile","MissileLauncher" },
-        { "mortar","Mortar" },
-        { "rocket","RocketLauncher" },
-        { "sgun","Shotgun" },
-        { "throw","Throw" },
-        { "smg","SubmachineGun" },
-        { "srifle","SniperRifle" }
+        {"arifle", "AssaultRifle"},
+        {"bomb", "BombLauncher"},
+        {"cannon", "Cannon"},
+        {"gl", "GrenadeLauncher"},
+        {"laserdesignator", "LaserDesignator"},
+        {"mg", "MachineGun"},
+        {"missile", "MissileLauncher"},
+        {"mortar", "Mortar"},
+        {"rocket", "RocketLauncher"},
+        {"sgun", "Shotgun"},
+        {"throw", "Throw"},
+        {"smg", "SubmachineGun"},
+        {"srifle", "SniperRifle"}
 
     };
 
@@ -2028,7 +2405,7 @@ game_value bis_fnc_itemType(game_value arg) {
 
     auto _cfgItem = (sqf::config_entry() >> "cfgweapons" >> _item);
     if (sqf::is_class(_cfgItem)) {
-        auto _simulation = sqf::get_text(_cfgItem >> "simulation");
+        auto _simulation = (std::string)sqf::get_text(_cfgItem >> "simulation");
         std::transform(_simulation.begin(), _simulation.end(), _simulation.begin(), ::tolower);
 
         if (_simulation == "weapon") {
@@ -2046,102 +2423,99 @@ game_value bis_fnc_itemType(game_value arg) {
                 case 4:
                 case 5:
                 case 65536: {
-                    auto _cursor = sqf::get_text(_cfgItem >> "cursor");
+                    auto _cursor = (std::string)sqf::get_text(_cfgItem >> "cursor");
                     std::transform(_cursor.begin(), _cursor.end(), _cursor.begin(), ::tolower);
                     if (_cursor == "" || _cursor == "emptycursor") {
                         _cursor = sqf::get_text(_cfgItem >> "cursorAim");
                         std::transform(_cursor.begin(), _cursor.end(), _cursor.begin(), ::tolower);
                     }
                     if (_cursor == "") {
-                        return { "VehicleWeapon","Horn" };
+                        return {"VehicleWeapon", "Horn"};
                     }
                     std::string category = (_type > 4) ? "VehicleWeapon" : "Weapon";
 
-                    auto found = cursorType.find(_cursor);
+                    auto found = cursorType.find((std::string)_cursor);
                     if (found != cursorType.end()) {
-                        return { category, found->second };
+                        return {category, found->second};
                     }
 
                     switch (_type) {
-                        case 1: return { category,"Rifle" };
-                        case 4: return { category,"Launcher" };
-                        case 65536: return { category,"VehicleWeapon" };
-                        default:return { category,"UnknownWeapon" };
+                        case 1: return {category, "Rifle"};
+                        case 4: return {category, "Launcher"};
+                        case 65536: return {category, "VehicleWeapon"};
+                        default: return {category, "UnknownWeapon"};
                     }
                 }
                 case 2: {
-                    return { "Weapon","Handgun" };
+                    return {"Weapon", "Handgun"};
                 }
                 case 4096: {
-                    return { "Item","LaserDesignator" };
+                    return {"Item", "LaserDesignator"};
                 }
                 case 131072: {
                     auto _infoType = static_cast<int>(sqf::get_number(_cfgItem >> "itemInfo" >> "type"));
                     switch (_infoType) {
-                        case 101: return { "Item","AccessoryMuzzle" };
-                        case 201: return { "Item","AccessorySights" };
-                        case 301: return { "Item","AccessoryPointer" };
-                        case 302: return { "Item","AccessoryBipod" };
-                        case 401: return { "Item","FirstAidKit" };
-                        case 605: return { "Equipment","Headgear" };
-                        case 619: return { "Item","Medikit" };
-                        case 620: return { "Item","Toolkit" };
-                        case 621: return { "Item","UAVTerminal" };
-                        case 701: return { "Equipment","Vest" };
-                        case 801: return { "Equipment","Uniform" };
-                        default: return { "Item","UnknownEquipment" };
+                        case 101: return {"Item", "AccessoryMuzzle"};
+                        case 201: return {"Item", "AccessorySights"};
+                        case 301: return {"Item", "AccessoryPointer"};
+                        case 302: return {"Item", "AccessoryBipod"};
+                        case 401: return {"Item", "FirstAidKit"};
+                        case 605: return {"Equipment", "Headgear"};
+                        case 619: return {"Item", "Medikit"};
+                        case 620: return {"Item", "Toolkit"};
+                        case 621: return {"Item", "UAVTerminal"};
+                        case 701: return {"Equipment", "Vest"};
+                        case 801: return {"Equipment", "Uniform"};
+                        default: return {"Item", "UnknownEquipment"};
                     }
                 }
-                default: return { "Weapon","UnknownWeapon" };
+                default: return {"Weapon", "UnknownWeapon"};
             }
         }
 
-        if (_simulation == "binocular")return { "Item","Binocular" };
-        if (_simulation == "nvgoggles")return { "Item","NVGoggles" };
-        if (_simulation == "itemcompass")return { "Item","Compass" };
-        if (_simulation == "itemgps")return { "Item","GPS" };
-        if (_simulation == "itemmap")return { "Item","Map" };
-        if (_simulation == "itemminedetector")return { "Item","MineDetector" };
-        if (_simulation == "itemradio")return { "Item","Radio" };
-        if (_simulation == "itemwatch")return { "Item","Watch" };
-        if (_simulation == "cmlauncher")return { "VehicleWeapon","CounterMeasuresLauncher" };
-        return { "Item","Unknown" };
+        if (_simulation == "binocular") return {"Item", "Binocular"};
+        if (_simulation == "nvgoggles") return {"Item", "NVGoggles"};
+        if (_simulation == "itemcompass") return {"Item", "Compass"};
+        if (_simulation == "itemgps") return {"Item", "GPS"};
+        if (_simulation == "itemmap") return {"Item", "Map"};
+        if (_simulation == "itemminedetector") return {"Item", "MineDetector"};
+        if (_simulation == "itemradio") return {"Item", "Radio"};
+        if (_simulation == "itemwatch") return {"Item", "Watch"};
+        if (_simulation == "cmlauncher") return {"VehicleWeapon", "CounterMeasuresLauncher"};
+        return {"Item", "Unknown"};
     }
 
     if (sqf::is_class(sqf::config_entry() >> "cfgmagazines" >> _item)) {
-        auto _ammo = sqf::get_text(sqf::config_entry() >> "cfgammo" >> sqf::get_text(sqf::config_entry() >> "cfgmagazines" >> _item >> "ammo") >> "simulation");
+        auto _ammo = (std::string)sqf::get_text(sqf::config_entry() >> "cfgammo" >> sqf::get_text(sqf::config_entry() >> "cfgmagazines" >> _item >> "ammo") >> "simulation");
         std::transform(_ammo.begin(), _ammo.end(), _ammo.begin(), ::tolower);
 
-        auto found = magTypes.find(_ammo);
+        auto found = magTypes.find((std::string)_ammo);
         if (found != magTypes.end()) {
-            return { found->second.first, found->second.second };
+            return {found->second.first, found->second.second};
         }
 
-        return { "Magazine","UnknownMagazine" };
+        return {"Magazine", "UnknownMagazine"};
     }
 
     if (sqf::is_class(sqf::config_entry() >> "cfgvehicles" >> _item)) {
         if (sqf::get_number(sqf::config_entry() >> "cfgvehicles" >> _item >> "isBackpack") > 0)
-            return { "Equipment", "Backpack" };
-        return { "","" };
+            return {"Equipment", "Backpack"};
+        return {"", ""};
     }
     if (sqf::is_class(sqf::config_entry() >> "cfgGlasses" >> _item)) {
-        return { "Equipment", "Glasses" };
+        return {"Equipment", "Glasses"};
     }
-    return { "","" };
+    return {"", ""};
 }
 #endif
 
-
 void tools::init() {
-    //_funcExport = client::host::registerFunction("Intercept_bis_fnc_exportFunctionsToWiki", "", userFunctionWrapper<exportFuncs>, GameDataType::NOTHING, GameDataType::ARRAY);
-    //_initFunc = client::host::registerFunction("Intercept_InitFunctions", "", userFunctionWrapper<initFunctions>, GameDataType::NOTHING, GameDataType::ANY);
-    //_bis_fnc_itemType = client::host::registerFunction("Intercept_bis_fnc_itemType", "", userFunctionWrapper<bis_fnc_itemType>, GameDataType::ARRAY, GameDataType::STRING);
-
+    _funcExport = client::host::register_sqf_command("Intercept_bis_fnc_exportFunctionsToWiki", "", userFunctionWrapper<exportFuncs>, game_data_type::NOTHING, game_data_type::ARRAY);
+    //_initFunc = client::host::registerFunction("Intercept_InitFunctions", "", userFunctionWrapper<initFunctions>, game_data_type::NOTHING, game_data_type::ANY);
+    //_bis_fnc_itemType = client::host::registerFunction("Intercept_bis_fnc_itemType", "", userFunctionWrapper<bis_fnc_itemType>, game_data_type::ARRAY, game_data_type::STRING);
 }
 
 void tools::postInit() {
-
     //auto orig = sqf::get_variable(sqf::mission_namespace(), "bis_fnc_itemType");
     //auto c = static_cast<game_data_code*>(orig.data.get());
     //if (c->is_final)
@@ -2176,5 +2550,4 @@ void tools::postInit() {
     //c2->is_final = true;
     //if (c2->is_final)
     //    OutputDebugString("is again Final\n");
-
 }

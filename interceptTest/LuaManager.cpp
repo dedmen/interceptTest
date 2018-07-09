@@ -1,4 +1,5 @@
 #define INTERCEPT_SQF_STRTYPE_RSTRING
+#if 0
 #include "LuaManager.h"
 #include <client/headers/intercept.hpp>
 #include <sstream>
@@ -277,12 +278,12 @@ void intercept::register_interfaces() {
 void LuaManager::preStart() {
     auto codeType = client::host::registerType(r_string("LUACODE"), r_string("luaCode"), r_string("Dis is LUA!"), r_string("luaCode"), createGameDataLuaCode);
     GameDataLuaCode_type = codeType.second;
-    _execLua = client::host::registerFunction("execLUA"sv, "Loads, compiles and executes given Lua file"sv, userFunctionWrapper<executeLua>, GameDataType::ANY, GameDataType::ANY, GameDataType::STRING);
-    _compileLua = client::host::registerFunction("compileLUA"sv, "Compiles Lua string"sv, userFunctionWrapper<compileLua>, codeType.first, GameDataType::STRING);
-    _compileLuaFromFile = client::host::registerFunction("compileLUAFromFile"sv, "Preprocesses and compiles LUA from file. Setting source information in case of errors."sv, userFunctionWrapper<compileLuaFromFile>, codeType.first, GameDataType::STRING);
-    _callLuaString = client::host::registerFunction("callLUA"sv, "Call Named lua function in global Namespace"sv, userFunctionWrapper<callLua_String>, GameDataType::ANY, GameDataType::ANY, GameDataType::STRING);
-    _callLuaCodeArgs = client::host::registerFunction("call"sv, "Call compiled lua code"sv, userFunctionWrapper<callLua_Code>, GameDataType::ANY, GameDataType::ANY, codeType.first);
-    _callLuaCode = client::host::registerFunction("call"sv, "Call compiled lua codesv", userFunctionWrapper<callLua_Code>, GameDataType::ANY, codeType.first);
+    _execLua = client::host::register_sqf_command("execLUA"sv, "Loads, compiles and executes given Lua file"sv, userFunctionWrapper<executeLua>, game_data_type::ANY, game_data_type::ANY, game_data_type::STRING);
+    _compileLua = client::host::register_sqf_command("compileLUA"sv, "Compiles Lua string"sv, userFunctionWrapper<compileLua>, codeType.first, game_data_type::STRING);
+    _compileLuaFromFile = client::host::register_sqf_command("compileLUAFromFile"sv, "Preprocesses and compiles LUA from file. Setting source information in case of errors."sv, userFunctionWrapper<compileLuaFromFile>, codeType.first, game_data_type::STRING);
+    _callLuaString = client::host::register_sqf_command("callLUA"sv, "Call Named lua function in global Namespace"sv, userFunctionWrapper<callLua_String>, game_data_type::ANY, game_data_type::ANY, game_data_type::STRING);
+    _callLuaCodeArgs = client::host::register_sqf_command("call"sv, "Call compiled lua code"sv, userFunctionWrapper<callLua_Code>, game_data_type::ANY, game_data_type::ANY, codeType.first);
+    _callLuaCode = client::host::register_sqf_command("call"sv, "Call compiled lua codesv", userFunctionWrapper<callLua_Code>, game_data_type::ANY, codeType.first);
     
     //state.open_libraries();
     //state["systemChat"] = &system_chat;
@@ -303,3 +304,4 @@ void LuaManager::preStart() {
     //r_string x2 = ar._p1->_x();
     //StartLuaEditRemoteDebugger(32201, state);
 }
+#endif

@@ -394,8 +394,8 @@ void diagStuff::preStart() {
     //ObjectForDrawingEndJmpBack = engineBase + 0x0000000000F8EA49;
 
 
-    static auto mfunc = intercept::client::host::registerFunction("setDrawMode", "", userFunctionWrapper<drawMode>, GameDataType::NOTHING, GameDataType::STRING);
-    static auto mfunc2 = intercept::client::host::registerFunction("setDiagMode", "", userFunctionWrapper<diagBit>, GameDataType::NOTHING, GameDataType::SCALAR);
+    static auto mfunc = intercept::client::host::register_sqf_command("setDrawMode", "", userFunctionWrapper<drawMode>, game_data_type::NOTHING, game_data_type::STRING);
+    static auto mfunc2 = intercept::client::host::register_sqf_command("setDiagMode", "", userFunctionWrapper<diagBit>, game_data_type::NOTHING, game_data_type::SCALAR);
 
 }
 
