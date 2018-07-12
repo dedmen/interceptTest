@@ -54,7 +54,7 @@ void weaponGetMag(uintptr_t muzzle, uintptr_t magName) {
             }
 
         }
-        OutputDebugStringA("done");
+        //OutputDebugStringA("done");
         insideMagInit = 0;
     }
 
@@ -182,6 +182,7 @@ void __declspec(naked) magazineInitMagGroup() {
 
 uintptr_t placeHookTotalOffs(uintptr_t totalOffset, uintptr_t jmpTo);
 
+#include <Windows.h>
 #include <Psapi.h>
 #pragma comment (lib, "Psapi.lib")//GetModuleInformation
 
@@ -196,17 +197,17 @@ void addHuuk() {
     auto engineSize = static_cast<uintptr_t>(modInfo.SizeOfImage);
 
 
-    placeHookTotalOffs(0x00D88382 - 0x1D0000 + engineBase, (uintptr_t) weaponInitGetMag);
-    weaponInitGetMagJmpBack = 0x00D88392 - 0x1D0000 + engineBase;
-    placeHookTotalOffs(0x00D86854 - 0x1D0000 + engineBase, (uintptr_t) magazineInitMagGroup);
-    magazineInitMagGroupJmpBack = 0x00D86864 - 0x1D0000 + engineBase;
-
-    findMagType = (uintptr_t(*)(int, const char*))(0x00E944D0 - 0xA30000 + engineBase);
-    magTypeConstr = (uintptr_t(__thiscall*)(uintptr_t))(0x15DF150 - 0xA30000 + engineBase);
-    magTypeInit = (uintptr_t(__thiscall*)(uintptr_t, const char*))(0x15E5AE0 - 0xA30000 + engineBase);
-    addMagType = (uintptr_t(__thiscall*)(uintptr_t, uintptr_t))(0xDB1EB0 - 0xA30000 + engineBase);
-    allocB = 0x25F0B40 - 0xA30000 + engineBase;
-    findMagStat = 0x28A5604 - 0xA30000 + engineBase;
+    //placeHookTotalOffs(0x00D88382 - 0x1D0000 + engineBase, (uintptr_t) weaponInitGetMag);
+    //weaponInitGetMagJmpBack = 0x00D88392 - 0x1D0000 + engineBase;
+    //placeHookTotalOffs(0x00D86854 - 0x1D0000 + engineBase, (uintptr_t) magazineInitMagGroup);
+    //magazineInitMagGroupJmpBack = 0x00D86864 - 0x1D0000 + engineBase;
+    //
+    //findMagType = (uintptr_t(*)(int, const char*))(0x00E944D0 - 0xA30000 + engineBase);
+    //magTypeConstr = (uintptr_t(__thiscall*)(uintptr_t))(0x15DF150 - 0xA30000 + engineBase);
+    //magTypeInit = (uintptr_t(__thiscall*)(uintptr_t, const char*))(0x15E5AE0 - 0xA30000 + engineBase);
+    //addMagType = (uintptr_t(__thiscall*)(uintptr_t, uintptr_t))(0xDB1EB0 - 0xA30000 + engineBase);
+    //allocB = 0x25F0B40 - 0xA30000 + engineBase;
+    //findMagStat = 0x28A5604 - 0xA30000 + engineBase;
 }
 
 #endif
@@ -220,7 +221,7 @@ scopecenter modellocal = 0201D7B9 [eax+0x4]
 #pragma endregion railScopeHeightHack
 
 void magGroupTest::preStart() {
-#ifndef X64
-    addHuuk();
-#endif
+//#ifndef X64
+//    addHuuk();
+//#endif
 }

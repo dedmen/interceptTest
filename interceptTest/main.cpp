@@ -323,7 +323,8 @@ scopecenter modellocal = 0201D7B9 [eax+0x4]
 
 #pragma endregion railScopeHeightHack
 
-game_value addRailScopeHeightHook() {
+game_value addRailScopeHeightHook(uintptr_t x) {
+    __debugbreak();
     static bool alreadyAdded = false;
     if (alreadyAdded) return "NO!";
     addHook();
@@ -412,8 +413,8 @@ void __cdecl intercept::pre_start() {
     gamecfg::preStart();
     Interpreter::init();
 #ifndef X64
-    static auto _rHackinterceptEventFunction2 = intercept::client::host::registerFunction("addRailScopeHeightHook", "", userFunctionWrapper<addRailScopeHeightHook>, game_data_type::STRING);
-    static auto _rHackinterceptEventFunction6 = intercept::client::host::registerFunction("getRailScopeStuff", "", userFunctionWrapper<getRailScopeStuff>, game_data_type::ARRAY);
+    static auto _rHackinterceptEventFunction2 = intercept::client::host::register_sqf_command("addRailScopeHeightHook", "", addRailScopeHeightHook, game_data_type::STRING);
+    static auto _rHackinterceptEventFunction6 = intercept::client::host::register_sqf_command("getRailScopeStuff", "", userFunctionWrapper<getRailScopeStuff>, game_data_type::ARRAY);
 #endif
 
     class NativeFunctionPluginInterface {
