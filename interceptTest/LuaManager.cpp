@@ -1,4 +1,3 @@
-#define INTERCEPT_SQF_STRTYPE_RSTRING
 #if 0
 #include "LuaManager.h"
 #include <client/headers/intercept.hpp>

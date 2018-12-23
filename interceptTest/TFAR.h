@@ -1,5 +1,4 @@
 #pragma once
-#define INTERCEPT_SQF_STRTYPE_RSTRING
 #include <client/headers/intercept.hpp>
 //#define INTEL_NO_ITTNOTIFY_API
 #include <ittnotify.h>

@@ -1,13 +1,12 @@
-#define INTERCEPT_SQF_STRTYPE_RSTRING
 #include "tools.h"
 #include <client/headers/intercept.hpp>
 #include <fstream>
 #include <future>
 using namespace intercept;
-#include <ittnotify.h>
+
 
 #if 0
-
+#include <ittnotify.h>
 types::registered_sqf_function _funcExport;
 types::registered_sqf_function _initFunc;
 #pragma region exportFuncs
@@ -2510,7 +2509,7 @@ game_value bis_fnc_itemType(game_value arg) {
 #endif
 
 void tools::init() {
-    _funcExport = client::host::register_sqf_command("Intercept_bis_fnc_exportFunctionsToWiki", "", userFunctionWrapper<exportFuncs>, game_data_type::NOTHING, game_data_type::ARRAY);
+    //_funcExport = client::host::register_sqf_command("Intercept_bis_fnc_exportFunctionsToWiki", "", userFunctionWrapper<exportFuncs>, game_data_type::NOTHING, game_data_type::ARRAY);
     //_initFunc = client::host::registerFunction("Intercept_InitFunctions", "", userFunctionWrapper<initFunctions>, game_data_type::NOTHING, game_data_type::ANY);
     //_bis_fnc_itemType = client::host::registerFunction("Intercept_bis_fnc_itemType", "", userFunctionWrapper<bis_fnc_itemType>, game_data_type::ARRAY, game_data_type::STRING);
 }

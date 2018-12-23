@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <Project DefaultTargets="Build" ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup Label="ProjectConfigurations">
     <ProjectConfiguration Include="Debug|Win32">
@@ -128,15 +128,15 @@
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
       <SDLCheck>true</SDLCheck>
-      <AdditionalIncludeDirectories>I:\intercept\src;J:\Installs\IntelSWTools\VTune Amplifier XE 2017\include;I:\intercept\vcproj\test\interceptTest\interceptTest\lua;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>F:\IntelSWTools\VTune Amplifier\include;I:\intercept\src;I:\intercept\vcproj\test\interceptTest\interceptTest\lua;I:\intercept\src\client\headers\shared;I:\intercept\src\client\headers\client\sqf;I:\intercept\src\client\headers\client;I:\intercept\src\client\headers;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <LanguageStandard>stdcpplatest</LanguageStandard>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
-      <PreprocessorDefinitions>_SILENCE_ALL_CXX17_DEPRECATION_WARNINGS;_WINDLL;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>INTERCEPT_SQF_STRTYPE_RSTRING;_SILENCE_ALL_CXX17_DEPRECATION_WARNINGS;_WINDLL;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <BasicRuntimeChecks>Default</BasicRuntimeChecks>
     </ClCompile>
     <Link>
-      <AdditionalDependencies>intercept_client.lib;libittnotify.lib;%(AdditionalDependencies)</AdditionalDependencies>
-      <AdditionalLibraryDirectories>I:\intercept\build\win32\intercept_client\Debug;J:\Installs\IntelSWTools\VTune Amplifier XE 2017\lib32;C:\Program Files (x86)\LuaEdit 2010\lib\x86;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalDependencies>libittnotify.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>I:\intercept\build\win32\intercept_client\Debug;F:\IntelSWTools\VTune Amplifier\lib32;C:\Program Files (x86)\LuaEdit 2010\lib\x86;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
     </Link>
     <CustomBuildStep>
       <Command>I:\intercept\vcproj\test\interceptTest\signtool.exe sign /v /f I:\intercept\vcproj\test\interceptTest\intercepttest.pfx /t http://timestamp.comodoca.com/authenticode /ac I:\intercept\vcproj\test\interceptTest\ca.cert.pem "$(OutDir)$(TargetName)$(TargetExt)"</Command>
@@ -152,13 +152,13 @@
       <Optimization>Disabled</Optimization>
       <SDLCheck>true</SDLCheck>
       <LanguageStandard>stdcpplatest</LanguageStandard>
-      <AdditionalIncludeDirectories>F:\IntelSWTools\VTune Amplifier XE 2017\include;I:\intercept\src;I:\intercept\vcproj\test\interceptTest\interceptTest\lua;I:\intercept\src\client\headers\shared;I:\intercept\src\client\headers\client\sqf;I:\intercept\src\client\headers\client;I:\intercept\src\client\headers;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>D:\IntelSWTools\VTune Amplifier 2019\include;I:\intercept\src;I:\intercept\vcproj\test\interceptTest\interceptTest\lua;I:\intercept\src\client\headers\shared;I:\intercept\src\client\headers\client\sqf;I:\intercept\src\client\headers\client;I:\intercept\src\client\headers;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>INTERCEPT_SQF_STRTYPE_RSTRING;X64;_WINDLL;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
     </ClCompile>
     <Link>
       <AdditionalDependencies>libittnotify.lib;%(AdditionalDependencies)</AdditionalDependencies>
-      <AdditionalLibraryDirectories>I:\intercept\build\win64\intercept_client\RelWithDebInfo;F:\IntelSWTools\VTune Amplifier XE 2017\lib64;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>I:\intercept\build\win64\intercept_client\RelWithDebInfo;D:\IntelSWTools\VTune Amplifier 2019\lib64;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
     </Link>
     <CustomBuildStep>
       <Command>I:\intercept\vcproj\test\interceptTest\signtool.exe sign /v /f I:\intercept\vcproj\test\interceptTest\intercepttest.pfx /t http://timestamp.comodoca.com/authenticode /ac I:\intercept\vcproj\test\interceptTest\ca.cert.pem "$(OutDir)$(TargetName)$(TargetExt)"</Command>
@@ -260,7 +260,7 @@
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <SDLCheck>true</SDLCheck>
       <LanguageStandard>stdcpplatest</LanguageStandard>
-      <AdditionalIncludeDirectories>F:\IntelSWTools\VTune Amplifier XE 2017\include;I:\intercept\src;I:\intercept\vcproj\test\interceptTest\interceptTest\lua;I:\intercept\src\client\headers\shared;I:\intercept\src\client\headers\client\sqf;I:\intercept\src\client\headers\client;I:\intercept\src\client\headers;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>D:\IntelSWTools\VTune Amplifier 2019\include;I:\intercept\src;I:\intercept\vcproj\test\interceptTest\interceptTest\lua;I:\intercept\src\client\headers\shared;I:\intercept\src\client\headers\client\sqf;I:\intercept\src\client\headers\client;I:\intercept\src\client\headers;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
       <PreprocessorDefinitions>INTERCEPT_SQF_STRTYPE_RSTRING;_SILENCE_ALL_CXX17_DEPRECATION_WARNINGS;X64;_WINDLL;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
@@ -268,7 +268,7 @@
     <Link>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
-      <AdditionalLibraryDirectories>I:\intercept\build\win64\intercept_client\RelWithDebInfo;F:\IntelSWTools\VTune Amplifier XE 2017\lib64;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>I:\intercept\build\win64\intercept_client\RelWithDebInfo;D:\IntelSWTools\VTune Amplifier 2019\lib64;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <AdditionalDependencies>libittnotify.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
     <CustomBuildStep>

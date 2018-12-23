@@ -225,7 +225,7 @@ void __declspec(naked) railHeight() {
         mov         ebp, dword ptr[ebx + 6Ch]
         xor         esi, esi
         test        ebp, ebp
-        jmp         railHeightJmpBack//01071349 offs 0x0 1.82.144.872
+        jmp         railHeightJmpBack  //01071349 offs 0x0 1.82.144.872
     }
 }
 void __declspec(naked) scopeCenter() {
@@ -252,7 +252,7 @@ void __declspec(naked) scopeCenter() {
         movss       xmm0, dword ptr[eax + 4]
         movss       dword ptr[esp + 154h], xmm0
         movss       xmm0, dword ptr[eax + 8]
-        jmp         scopeCenterJmpBack //01070ABC offs 0x0 1.82.144.872
+        jmp         scopeCenterJmpBack  //01070ABC offs 0x0 1.82.144.872
     }
 }
 
@@ -284,7 +284,7 @@ void __declspec(naked) muzzleHeight() {
         subss       xmm0, dword ptr[esp + 90h]
         push        eax
         lea         ecx, [esp + 88h]
-        jmp         muzzleHeightJmpBack //01070CA3 offs 0x0 1.82.144.872
+        jmp         muzzleHeightJmpBack  //01070CA3 offs 0x0 1.82.144.872
     }
 }
 
@@ -298,14 +298,11 @@ void addHook() {
     auto engineBase = reinterpret_cast<uintptr_t>(modInfo.lpBaseOfDll);
     auto engineSize = static_cast<uintptr_t>(modInfo.SizeOfImage);
 
-
-    placeHookTotalOffs(0x01071342 + engineBase, (uintptr_t) railHeight);
-    placeHookTotalOffs(0x01070A9C + engineBase, (uintptr_t) scopeCenter);
+    placeHookTotalOffs(0x01071342 + engineBase, (uintptr_t)railHeight);
+    placeHookTotalOffs(0x01070A9C + engineBase, (uintptr_t)scopeCenter);
     //placeHookTotalOffs(0x00BADC10 + engineBase, (uintptr_t) ironCenter);
     //placeHookTotalOffs(0x00BAD2C0 + engineBase, (uintptr_t) ironCenter);
-    placeHookTotalOffs(0x01070C88 + engineBase, (uintptr_t) muzzleHeight);
-
-
+    placeHookTotalOffs(0x01070C88 + engineBase, (uintptr_t)muzzleHeight);
 
     railHeightJmpBack = 0x01071349 + engineBase;
     scopeCenterJmpBack = 0x01070ABC + engineBase;
@@ -314,7 +311,7 @@ void addHook() {
     muzzleHeightJmpBack = 0x01070CA3 + engineBase;
 }
 
-    /*
+/*
 00FC0000
 rail height modelLocal = 0201E082 [eax+0x28]
 muzzleHeight = 0201D9A5 [esp+0x70]
@@ -437,7 +434,6 @@ void __cdecl intercept::pre_start() {
     }
 
     static auto _CrapFunc = intercept::client::host::register_sqf_command("getMissionConfigValue"sv, ""sv, [](uintptr_t, game_value_parameter right) -> game_value {
-
         if (right.type_enum() == game_data_type::ARRAY) {
             if (static_cast<r_string>(right[0]) == "EnableTargetDebug") return 1;
             if (right.size() > 1)
@@ -445,20 +441,29 @@ void __cdecl intercept::pre_start() {
             return sqf::get_mission_config_value(right[0]);
         }
         return sqf::get_mission_config_value(right);
-    }, game_data_type::ANY, game_data_type::ARRAY);
+    },
+                                                                          game_data_type::ANY, game_data_type::ARRAY);
 
-
-    
     static auto _names = intercept::client::host::register_sqf_command("."sv, ""sv, [](uintptr_t, game_value_parameter left, game_value_parameter right) -> game_value {
-  return sqf::get_variable((rv_namespace)left,right);
-    }, game_data_type::ANY, game_data_type::NAMESPACE, game_data_type::STRING  );
-
-
+        return sqf::get_variable((rv_namespace)left, right);
+    },
+                                                                       game_data_type::ANY, game_data_type::NAMESPACE, game_data_type::STRING);
 }
 
 void __cdecl intercept::pre_init() {
     pTFAR.preInit();
     cba::preInit();
+}
+
+void __cdecl intercept::pre_pre_init() {
+    //auto gs = client::host::functions.get_engine_allocator()->gameState;
+    //auto ns1 = gs->namespaces[0];
+    //auto ns2 = gs->namespaces[1];
+    //auto ns3 = gs->namespaces[2];
+    //auto ns4 = gs->namespaces[3];
+    //MessageBoxA(0,
+    //            "2,",
+    //            "",0);
 }
 
 void __cdecl intercept::post_init() {
@@ -474,13 +479,13 @@ void __cdecl intercept::post_init() {
     tools::postInit();
     cba::postInit();
 
-    static auto _EH2 = client::addEventHandler<client::eventhandlers_object::Fired>(sqf::player(), [](types::object unit, types::r_string weapon, types::r_string muzzle, types::r_string mode, types::r_string ammo, types::r_string magazine, types::object projectile, types::object gunner) {
-        auto p1 = ((game_data_object*)projectile.data.get())->get_position_matrix()._position;
-        auto p2 = sqf::position_camera_to_world({0, 0, 0});
-
-        auto p3 = p2 - p1;
-
-    });
+    //static auto _EH2 = client::addEventHandler<client::eventhandlers_object::Fired>(sqf::player(), [](types::object unit, types::r_string weapon, types::r_string muzzle, types::r_string mode, types::r_string ammo, types::r_string magazine, types::object projectile, types::object gunner) {
+    //    auto p1 = ((game_data_object*)projectile.data.get())->get_position_matrix()._position;
+    //    auto p2 = sqf::position_camera_to_world({0, 0, 0});
+    //
+    //    auto p3 = p2 - p1;
+    //
+    //});
 
     //std::thread([]() {
     //    auto player_data = std::vector<std::tuple<game_value,game_value,game_value>>();

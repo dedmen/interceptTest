@@ -1,4 +1,3 @@
-#define INTERCEPT_SQF_STRTYPE_RSTRING
 #include "magGroupTest.h"
 #include <client/headers/intercept.hpp>
 using namespace intercept;
