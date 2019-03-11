@@ -433,7 +433,7 @@ void __cdecl intercept::pre_start() {
         });
     }
 
-    static auto _CrapFunc = intercept::client::host::register_sqf_command("getMissionConfigValue"sv, ""sv, [](uintptr_t, game_value_parameter right) -> game_value {
+    static auto _CrapFunc = intercept::client::host::register_sqf_command("getMissionConfigValue"sv, ""sv, [](game_state&, game_value_parameter right) -> game_value {
         if (right.type_enum() == game_data_type::ARRAY) {
             if (static_cast<r_string>(right[0]) == "EnableTargetDebug") return 1;
             if (right.size() > 1)
@@ -444,7 +444,7 @@ void __cdecl intercept::pre_start() {
     },
                                                                           game_data_type::ANY, game_data_type::ARRAY);
 
-    static auto _names = intercept::client::host::register_sqf_command("."sv, ""sv, [](uintptr_t, game_value_parameter left, game_value_parameter right) -> game_value {
+    static auto _names = intercept::client::host::register_sqf_command("."sv, ""sv, [](game_state&, game_value_parameter left, game_value_parameter right) -> game_value {
         return sqf::get_variable((rv_namespace)left, right);
     },
                                                                        game_data_type::ANY, game_data_type::NAMESPACE, game_data_type::STRING);
