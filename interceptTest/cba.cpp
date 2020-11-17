@@ -430,7 +430,7 @@ void cba::preStart() {
                 << nularName
                 << "\", \"\", [](sqf::runtime::runtime& runtime) -> value { runtime.__logmsg(logmessage::runtime::ErrorMessage(runtime.context_active().current_frame().diag_info_from_position(), \"NOT IMPLEMENTED\", \""
                 << nularName
-                << "\")); return {}; }))";
+                << "\")); return {}; }));\n";
         }
         commandOut << "\n\n\n\n";
         for (const auto& it : unaries) {
@@ -439,7 +439,7 @@ void cba::preStart() {
                 << unaryName
                 << "\", t_any(), \"\", [](sqf::runtime::runtime& runtime, value::cref r) -> value { runtime.__logmsg(logmessage::runtime::ErrorMessage(runtime.context_active().current_frame().diag_info_from_position(), \"NOT IMPLEMENTED\", \""
                 << unaryName
-                << "\")); return {}; }))";
+                << "\")); return {}; }));\n";
         }
         commandOut << "\n\n\n\n";
         for (const auto& it : binaries) {
@@ -451,7 +451,7 @@ void cba::preStart() {
                 << unaryName
                 << "\", t_any(), t_any(), \"\", [](sqf::runtime::runtime& runtime, value::cref l, value::cref r) -> value { runtime.__logmsg(logmessage::runtime::ErrorMessage(runtime.context_active().current_frame().diag_info_from_position(), \"NOT IMPLEMENTED\", \""
                 << unaryName
-                << "\")); return {}; }))";
+                << "\")); return {}; }));\n";
         }
 
         return {};

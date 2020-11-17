@@ -23,7 +23,7 @@ types::registered_sqf_function _interceptEventFunction6;
 
 // required exported function to return API version
 int __cdecl intercept::api_version() {
-    return 1;
+    return 2;
 }
 #include <chrono>
 using namespace std::chrono;
