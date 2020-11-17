@@ -183,14 +183,14 @@ void cba::preStart() {
     //static auto _nothing1 = intercept::client::host::register_sqf_command("nothing"sv, ""sv, userFunctionWrapper<nothing1>, game_data_type::NOTHING, game_data_type::ANY);
     //static auto _nothing2 = intercept::client::host::register_sqf_command("nothing"sv, ""sv, userFunctionWrapper<nothing2>, game_data_type::NOTHING, game_data_type::ANY, game_data_type::ANY);
 
-    static auto _isEqTo = intercept::client::host::register_sqf_command(u8"iForEach"sv, "", [](game_state&, game_value_parameter left, game_value_parameter right) -> game_value {
+    static auto _isEqTo = intercept::client::host::register_sqf_command("iForEach"sv, "", [](game_state&, game_value_parameter left, game_value_parameter right) -> game_value {
         auto& arr = left.to_array();
         for (auto& element : arr)
             sqf::call(right, element);
         return {};
     }, game_data_type::NOTHING, game_data_type::ARRAY, game_data_type::CODE);
 
-    static auto _isEqTo3 = intercept::client::host::register_sqf_command(u8"iForEach3"sv, "", [](game_state&, game_value_parameter left, game_value_parameter right) -> game_value {
+    static auto _isEqTo3 = intercept::client::host::register_sqf_command("iForEach3"sv, "", [](game_state&, game_value_parameter left, game_value_parameter right) -> game_value {
         auto& arr = left.to_array();
         for (auto& element : arr)
             sqf::call(right);
@@ -420,24 +420,38 @@ void cba::preStart() {
         
         std::ofstream commandOut("P:\\commands.cpp");
 
-        auto& nulars = gs.get_script_nulars();
-        auto& unaries = gs.get_script_functions();
-        auto& binaries = gs.get_script_operators();
+        const auto& nulars = gs.get_script_nulars();
+        const auto& unaries = gs.get_script_functions();
+        const auto& binaries = gs.get_script_operators();
 
-        for (auto& it : nulars) {
+        for (const auto& it : nulars) {
             auto nularName = it.get_map_key();
-            commandOut << "cm.add(nular(\"" << nularName << "\", {}, {}));\n";
+            commandOut << "runtime.register_sqfop(nular(\""
+                << nularName
+                << "\", \"\", [](sqf::runtime::runtime& runtime) -> value { runtime.__logmsg(logmessage::runtime::ErrorMessage(runtime.context_active().current_frame().diag_info_from_position(), \"NOT IMPLEMENTED\", \""
+                << nularName
+                << "\")); return {}; }))";
         }
         commandOut << "\n\n\n\n";
-        for (auto& it : unaries) {
+        for (const auto& it : unaries) {
             auto unaryName = it.get_map_key();
-            commandOut << "cm.add(unary(\"" << unaryName << "\",type::ANY,{},{}));\n";
+            commandOut << "runtime.register_sqfop(unary(\""
+                << unaryName
+                << "\", t_any(), \"\", [](sqf::runtime::runtime& runtime, value::cref r) -> value { runtime.__logmsg(logmessage::runtime::ErrorMessage(runtime.context_active().current_frame().diag_info_from_position(), \"NOT IMPLEMENTED\", \""
+                << unaryName
+                << "\")); return {}; }))";
         }
         commandOut << "\n\n\n\n";
-        for (auto& it : binaries) {
+        for (const auto& it : binaries) {
             auto unaryName = it.get_map_key();
             auto prio = it.placeholder10;
-            commandOut << "cm.add(binary(" << prio << ",\"" << unaryName << "\",type::ANY,type::ANY,{},{}));\n";
+
+            commandOut << "runtime.register_sqfop(binary("
+                << prio << ",\""
+                << unaryName
+                << "\", t_any(), t_any(), \"\", [](sqf::runtime::runtime& runtime, value::cref l, value::cref r) -> value { runtime.__logmsg(logmessage::runtime::ErrorMessage(runtime.context_active().current_frame().diag_info_from_position(), \"NOT IMPLEMENTED\", \""
+                << unaryName
+                << "\")); return {}; }))";
         }
 
         return {};

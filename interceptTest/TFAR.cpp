@@ -457,7 +457,7 @@ std::set<object> TFAR::TFAR_fnc_getNearPlayers() {
 
     auto myPos = TFAR_currentUnit.getPos();
     float maxVoiceVolume = sqf::get_variable(sqf::mission_namespace(), "TF_max_voice_volume", 20.f);
-    auto nearUnits = sqf::near_entities(myPos, {r_string("Man"sv)}, maxVoiceVolume + 40.f);
+    auto nearUnits = sqf::near_entities(myPos, r_string("Man"sv), maxVoiceVolume + 40.f);
 
     nearUnits.insert(nearUnits.end(), myGroupUnits.begin(), myGroupUnits.end());
     //nearUnits.push_back(TFAR_currentUnit); //#TODO add TFAR_currentUnit if it's not already in there
